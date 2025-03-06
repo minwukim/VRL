@@ -83,7 +83,9 @@ training_args = GRPOConfig(
     # do_eval=True,
     per_device_train_batch_size=4,
     num_generations = 4,
-    gradient_accumulation_steps = 2
+    gradient_accumulation_steps = 2,
+    num_train_epochs = 3
+
 )
 
 trainer = GRPOTrainer(
