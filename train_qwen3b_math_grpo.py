@@ -78,13 +78,14 @@ training_args = GRPOConfig(
     vllm_gpu_memory_utilization=0.4,
     max_prompt_length = max_prompt_length,
     max_completion_length = max_seq_length,
-    run_name = "qwen3b-grpo-exp1",
+    run_name = "qwen3b-grpo-exp2",
     report_to = "wandb", 
     do_eval=True,
     per_device_train_batch_size=4,
     num_generations = 4,
     gradient_accumulation_steps = 4,
-    num_train_epochs = 3
+    num_train_epochs = 3,
+    logging_steps=10,
 )
 
 trainer = GRPOTrainer(
