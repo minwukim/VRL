@@ -80,6 +80,8 @@ training_args = GRPOConfig(
     max_completion_length = max_seq_length,
     run_name = "qwen3b-grpo-exp1",
     report_to = "wandb", 
+    do_eval=True,
+    per_device_train_batch_size=6,
 )
 
 trainer = GRPOTrainer(
