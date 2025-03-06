@@ -46,12 +46,12 @@ def correctness_reward_func(prompts, completions, answer, **kwargs) -> list[floa
     responses = [completion[0]['content'] for completion in completions]
     scores = [compute_score(r, a) for r, a in zip(responses, answer)]
 
-    for i, (q, r, a, score) in enumerate(zip(prompts, responses, answer, scores)):
-        print('-'*20, f"Question {i+1}:\n{q[-1]['content']}", 
-              f"\nAnswer:\n{a}", 
-              f"\nResponse:\n{responses[i]}", 
-              f"\nExtracted:\n{r}", 
-              f"\nScore:\n{score}")
+    # for i, (q, r, a, score) in enumerate(zip(prompts, responses, answer, scores)):
+    #     print('-'*20, f"Question {i+1}:\n{q[-1]['content']}", 
+    #           f"\nAnswer:\n{a}", 
+    #           f"\nResponse:\n{responses[i]}", 
+    #           f"\nExtracted:\n{r}", 
+    #           f"\nScore:\n{score}")
 
     return scores
 
@@ -80,7 +80,7 @@ training_args = GRPOConfig(
     max_completion_length = max_seq_length,
     run_name = "qwen3b-grpo-exp1",
     report_to = "wandb", 
-    # do_eval=True,
+    do_eval=True,
     per_device_train_batch_size=4,
     num_generations = 4,
     gradient_accumulation_steps = 2,
@@ -93,7 +93,7 @@ trainer = GRPOTrainer(
     reward_funcs = [
         correctness_reward_func,
         token_format_reward_func,
-        boxed_format_reward_func,
+        boxed_format_reward_func
     ],
     args = training_args,
     train_dataset=dataset_train,
