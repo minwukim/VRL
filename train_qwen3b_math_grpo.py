@@ -82,6 +82,7 @@ training_args = GRPOConfig(
     report_to = "wandb", 
     do_eval=True,
     per_device_train_batch_size=6,
+    num_generations = 6
 )
 
 trainer = GRPOTrainer(
