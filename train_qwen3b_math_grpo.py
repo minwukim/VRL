@@ -81,8 +81,9 @@ training_args = GRPOConfig(
     run_name = "qwen3b-grpo-exp1",
     report_to = "wandb", 
     do_eval=True,
-    per_device_train_batch_size=6,
-    num_generations = 6
+    per_device_train_batch_size=4,
+    num_generations = 4,
+
 )
 
 trainer = GRPOTrainer(
