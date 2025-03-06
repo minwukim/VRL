@@ -46,12 +46,12 @@ def correctness_reward_func(prompts, completions, answer, **kwargs) -> list[floa
     responses = [completion[0]['content'] for completion in completions]
     scores = [compute_score(r, a) for r, a in zip(responses, answer)]
 
-    for i, (q, r, a, score) in enumerate(zip(prompts, responses, answer, scores)):
-        print('-'*20, f"Question {i+1}:\n{q[-1]['content']}", 
-              f"\nAnswer:\n{a}", 
-              f"\nResponse:\n{responses[i]}", 
-              f"\nExtracted:\n{r}", 
-              f"\nScore:\n{score}")
+    # for i, (q, r, a, score) in enumerate(zip(prompts, responses, answer, scores)):
+    #     print('-'*20, f"Question {i+1}:\n{q[-1]['content']}", 
+    #           f"\nAnswer:\n{a}", 
+    #           f"\nResponse:\n{responses[i]}", 
+    #           f"\nExtracted:\n{r}", 
+    #           f"\nScore:\n{score}")
 
     return scores
 
