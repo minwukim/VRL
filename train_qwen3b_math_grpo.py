@@ -5,6 +5,7 @@ from trl import GRPOConfig, GRPOTrainer
 
 max_seq_length = 4000
 max_prompt_length = max_seq_length + 256
+
 model_name = "Qwen/Qwen2.5-3B-Instruct"
 
 SYSTEM_PROMPT = """
@@ -72,13 +73,13 @@ def boxed_format_reward_func(completions, **kwargs):
 
 training_args = GRPOConfig(
     use_vllm = True,
-    output_dir = "0308-purerl-demo",
+    output_dir = "0308-purerl-qwen3b",
     bf16 = True,
     bf16_full_eval=True,
     vllm_gpu_memory_utilization=0.9,
     max_prompt_length = max_prompt_length,
     max_completion_length = max_seq_length,
-    run_name = "0308-purerl-demo",
+    run_name = "0308-purerl-qwen3b",
     report_to = "wandb", 
     do_eval=True,
     per_device_train_batch_size=4,
@@ -91,8 +92,7 @@ training_args = GRPOConfig(
     save_steps = 200,
     eval_strategy="steps",
     eval_steps = 200,
-    # eval_on_start=True,
-    max_steps=10
+    eval_on_start=True,
 )
 
 trainer = GRPOTrainer(
