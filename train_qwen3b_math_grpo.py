@@ -3,7 +3,7 @@ from datasets import load_dataset, Dataset
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
 from trl import GRPOConfig, GRPOTrainer
 
-max_seq_length = 2500
+max_seq_length = 3000
 max_prompt_length = max_seq_length + 256
 model_name = "Qwen/Qwen2.5-3B-Instruct"
 
@@ -59,7 +59,7 @@ def correctness_reward_func(prompts, completions, answer, **kwargs) -> list[floa
 def token_format_reward_func(completions, **kwargs):
     pattern = r"^<think>.*?</think>\s*<answer>.*?</answer>$"
     responses = [completion[0]["content"] for completion in completions]
-    matches = [re.match(pattern, r) for r in responses]
+    matches = [re.search(pattern, r) for r in responses]
     return [0.1 if match else 0.0 for match in matches]
 
 # check box format: if the answer is encased in \boxed, give 0.1. 0 otherwise. |Ref: https://huggingface.co/docs/trl/main/en/grpo_trainer
@@ -75,7 +75,7 @@ training_args = GRPOConfig(
     output_dir = "qwen3b-math-grpo",
     bf16 = True,
     bf16_full_eval=True,
-    vllm_gpu_memory_utilization=0.6,
+    vllm_gpu_memory_utilization=0.9,
     max_prompt_length = max_prompt_length,
     max_completion_length = max_seq_length,
     run_name = "qwen3b-grpo-exp2",
