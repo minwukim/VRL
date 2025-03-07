@@ -3,7 +3,7 @@ from datasets import load_dataset, Dataset
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
 from trl import GRPOConfig, GRPOTrainer
 
-max_seq_length = 3000
+max_seq_length = 4000
 max_prompt_length = max_seq_length + 256
 model_name = "Qwen/Qwen2.5-3B-Instruct"
 
@@ -86,7 +86,11 @@ training_args = GRPOConfig(
     gradient_accumulation_steps = 4,
     num_train_epochs = 3,
     logging_steps=1,
-    gradient_checkpointing=True
+    gradient_checkpointing=True,
+    save_strategy = "steps",
+    save_steps = 5,
+    evaluation_strategy="steps",
+    eval_steps=5
 )
 
 trainer = GRPOTrainer(
@@ -98,5 +102,6 @@ trainer = GRPOTrainer(
     ],
     args = training_args,
     train_dataset=dataset_train,
+    eval_dataset=dataset_test
 )
 trainer.train()
