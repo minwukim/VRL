@@ -72,13 +72,13 @@ def boxed_format_reward_func(completions, **kwargs):
 
 training_args = GRPOConfig(
     use_vllm = True,
-    output_dir = "0308-purerl-Qwen2.5-3B-3epochs",
+    output_dir = "0308-purerl-demo",
     bf16 = True,
     bf16_full_eval=True,
     vllm_gpu_memory_utilization=0.9,
     max_prompt_length = max_prompt_length,
     max_completion_length = max_seq_length,
-    run_name = "0308-purerl-Qwen2.5-3B-3epochs",
+    run_name = "0308-purerl-demo",
     report_to = "wandb", 
     do_eval=True,
     per_device_train_batch_size=4,
@@ -92,7 +92,7 @@ training_args = GRPOConfig(
     evaluation_strategy="steps",
     eval_steps = 200,
     # eval_on_start=True,
-    max_steps=2
+    max_steps=10
 )
 
 trainer = GRPOTrainer(
