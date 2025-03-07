@@ -91,7 +91,8 @@ training_args = GRPOConfig(
     save_steps = 200,
     evaluation_strategy="steps",
     eval_steps = 200,
-    # eval_on_start=True
+    # eval_on_start=True,
+    max_steps=2
 )
 
 trainer = GRPOTrainer(
