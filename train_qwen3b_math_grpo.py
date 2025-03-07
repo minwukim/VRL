@@ -86,6 +86,7 @@ training_args = GRPOConfig(
     gradient_accumulation_steps = 4,
     num_train_epochs = 3,
     logging_steps=1,
+    gradient_checkpointing=True
 )
 
 trainer = GRPOTrainer(
