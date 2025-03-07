@@ -57,9 +57,9 @@ def correctness_reward_func(prompts, completions, answer, **kwargs) -> list[floa
 
 # check token format: If matches the regex ^<think>.*?</think><answer>.*?</answer>$, give 0.1, 0 otherwise. | Ref: https://huggingface.co/docs/trl/main/en/grpo_trainer
 def token_format_reward_func(completions, **kwargs):
-    pattern = r"^<think>.*?</think>\s*<answer>.*?</answer>$"
+    pattern = r"^\s*<think>.*?</think>\s*<answer>.*?</answer>\s*$"
     responses = [completion[0]["content"] for completion in completions]
-    matches = [re.search(pattern, r) for r in responses]
+    matches = [re.search(pattern, r, re.DOTALL) for r in responses]
     return [0.1 if match else 0.0 for match in matches]
 
 # check box format: if the answer is encased in \boxed, give 0.1. 0 otherwise. |Ref: https://huggingface.co/docs/trl/main/en/grpo_trainer
@@ -72,19 +72,19 @@ def boxed_format_reward_func(completions, **kwargs):
 
 training_args = GRPOConfig(
     use_vllm = True,
-    output_dir = "qwen3b-math-grpo-checkpoint",
+    output_dir = "0308-purerl-Qwen2.5-3B-3epochs",
     bf16 = True,
     bf16_full_eval=True,
     vllm_gpu_memory_utilization=0.9,
     max_prompt_length = max_prompt_length,
     max_completion_length = max_seq_length,
-    run_name = "qwen3b-grpo-exp2",
+    run_name = "0308-purerl-Qwen2.5-3B-3epochs",
     report_to = "wandb", 
     do_eval=True,
     per_device_train_batch_size=4,
     num_generations = 4,
     gradient_accumulation_steps = 4,
-    num_train_epochs = 5,
+    num_train_epochs = 3,
     logging_steps=1,
     gradient_checkpointing=True,
     save_strategy = "steps",
