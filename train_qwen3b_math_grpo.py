@@ -72,7 +72,7 @@ def boxed_format_reward_func(completions, **kwargs):
 
 training_args = GRPOConfig(
     use_vllm = True,
-    output_dir = "qwen3b-math-grpo",
+    output_dir = "qwen3b-math-grpo-checkpoint",
     bf16 = True,
     bf16_full_eval=True,
     vllm_gpu_memory_utilization=0.9,
