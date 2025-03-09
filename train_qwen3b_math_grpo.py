@@ -79,7 +79,7 @@ training_args = GRPOConfig(
     vllm_gpu_memory_utilization=0.9,
     max_prompt_length = max_prompt_length,
     max_completion_length = max_seq_length,
-    run_name = "0308-purerl-qwen3b",
+    run_name = "0308-purerl-qwen3b-2",
     report_to = "wandb", 
     do_eval=True,
     per_device_train_batch_size=4,
@@ -91,7 +91,7 @@ training_args = GRPOConfig(
     save_strategy = "steps",
     save_steps = 200,
     eval_strategy="steps",
-    eval_steps = 200,
+    eval_steps = 100,
     eval_on_start=True,
 )
 
@@ -106,4 +106,4 @@ trainer = GRPOTrainer(
     train_dataset=dataset_train,
     eval_dataset=dataset_test
 )
-trainer.train()
+trainer.train(resume_from_checkpoint=True)
