@@ -56,7 +56,8 @@ def get_math_test_prompts():
 # ---------------------------------------------------
 # Replace "./path/to/your/checkpoint" with your actual checkpoint path or model name.
 
-path = "Qwen/Qwen2.5-3B-Instruct"
+# path = "Qwen/Qwen2.5-3B-Instruct"
+path = "./0308-purerl-qwen3b/checkpoint-3400"
 
 llm = LLM(
     model=path
@@ -113,7 +114,7 @@ def main():
     df = pd.DataFrame(results)
     
     # Export the DataFrame to a CSV file
-    df.to_csv("base_results.csv", index=False)
+    df.to_csv("cp3400_results.csv", index=False)
     
     # Print a summary
     print(f"Processed {len(results)} examples. Results saved to 'vllm_inference_results.csv'.")
