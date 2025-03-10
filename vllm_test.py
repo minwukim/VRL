@@ -94,7 +94,7 @@ def main():
         score_format = token_format_reward_func(generated_text)
         score_box = boxed_format_reward_func(generated_text)
         total_reward = score_corr + score_format + score_box
-        token_length = len(llm.tokenizer.encode(generated_text))
+        token_length = len(llm.get_tokenizer().encode(generated_text))
 
         
         # Append the result to the list
