@@ -69,24 +69,24 @@ sampling_params = SamplingParams(
 # Initialize three vLLM engines on different GPUs
 # ---------------------------------------------------
 engine_base = LLMEngine(
-    model="Qwen/Qwen2.5-3B-Instruct",
-    tokenizer="Qwen/Qwen2.5-3B-Instruct",
+    model_name="Qwen/Qwen2.5-3B-Instruct",
+    tokenizer_name="Qwen/Qwen2.5-3B-Instruct",
     max_seq_len=4000,
     max_batch_size=4,
     device="cuda:0"  # Load on GPU 0
 )
 
 engine_ckpt1 = LLMEngine(
-    model=checkpoint1,  # Replace with your actual checkpoint path
-    tokenizer=checkpoint1,
+    model_name=checkpoint1,  # Replace with your actual checkpoint path
+    tokenizer_name=checkpoint1,
     max_seq_len=4000,
     max_batch_size=4,
     device="cuda:1"  # Load on GPU 1
 )
 
 engine_ckpt2 = LLMEngine(
-    model=checkpoint2,  # Replace with your actual checkpoint path
-    tokenizer=checkpoint2,
+    model_name=checkpoint2,  # Replace with your actual checkpoint path
+    tokenizer_name=checkpoint2,
     max_seq_len=4000,
     max_batch_size=4,
     device="cuda:2"  # Load on GPU 2
