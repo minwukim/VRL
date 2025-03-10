@@ -55,17 +55,18 @@ def get_math_test_prompts():
 # Initialize the LLM with your checkpoint
 # ---------------------------------------------------
 # Replace "./path/to/your/checkpoint" with your actual checkpoint path or model name.
+
+path = "Qwen/Qwen2.5-3B-Instruct"
+
 llm = LLM(
-    model="./path/to/your/checkpoint",  # Path to your GRPO-trained model
-    max_seq_len=4000,
-    max_batch_size=4
+    model=path
 )
 
 # Define sampling parameters (used by LLM.generate() even though no sampling randomness is applied)
 sampling_params = SamplingParams(
     temperature=0.0,  # Set temperature to 0 for deterministic output if desired
     top_p=1.0,
-    max_tokens=1000
+    max_tokens=4000
 )
 
 # ---------------------------------------------------
@@ -93,6 +94,8 @@ def main():
         score_format = token_format_reward_func(generated_text)
         score_box = boxed_format_reward_func(generated_text)
         total_reward = score_corr + score_format + score_box
+        token_length = len(llm.tokenizer.encode(generated_text))
+
         
         # Append the result to the list
         results.append({
@@ -102,14 +105,15 @@ def main():
             "correctness": score_corr,
             "token_format": score_format,
             "boxed_format": score_box,
-            "total_reward": total_reward
+            "total_reward": total_reward,
+            "token_length": token_length
         })
     
     # Create a pandas DataFrame from the results
     df = pd.DataFrame(results)
     
     # Export the DataFrame to a CSV file
-    df.to_csv("vllm_inference_results.csv", index=False)
+    df.to_csv("base_results.csv", index=False)
     
     # Print a summary
     print(f"Processed {len(results)} examples. Results saved to 'vllm_inference_results.csv'.")
