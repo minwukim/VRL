@@ -1,8 +1,7 @@
 import re
+import pandas as pd
 from datasets import load_dataset
 from vllm import LLM, SamplingParams
-
-# Import your custom reward functions
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
 
 # ---------------------------------------------------
@@ -24,29 +23,25 @@ def extract_ground_truth(text: str) -> str | None:
 # ---------------------------------------------------
 # Reward functions
 # ---------------------------------------------------
-def correctness_reward_func(prompt, completion, ground_truth) -> float:
-    # Wrap completion in the expected format for reward functions
-    wrapped = [{"content": completion}]
+def correctness_reward_func(prompt: str, completion: str, ground_truth: str) -> float:
     # Using compute_score from your custom_MATH_reward module
     return compute_score(completion, ground_truth)
 
-def token_format_reward_func(completion) -> float:
+def token_format_reward_func(completion: str) -> float:
     pattern = r"^\s*<think>.*?</think>\s*<answer>.*?</answer>\s*$"
     match = re.search(pattern, completion, re.DOTALL)
     return 0.1 if match else 0.0
 
-def boxed_format_reward_func(completion) -> float:
+def boxed_format_reward_func(completion: str) -> float:
     match = re.search(r"\\boxed\{(.*?)\}", completion)
     return 0.1 if match else 0.0
 
 # ---------------------------------------------------
-# Load the MATH-500 test dataset and build prompts
+# Load the entire MATH-500 test dataset and build prompts
 # ---------------------------------------------------
-def get_math_test_prompts(num_examples: int = 10):
+def get_math_test_prompts():
     source_name = "HuggingFaceH4/MATH-500"
     data = load_dataset(source_name, trust_remote_code=True)['test']
-    # Select a subset for demonstration
-    data = data.select(range(num_examples))
     prompts = []
     ground_truths = []
     for example in data:
@@ -59,40 +54,37 @@ def get_math_test_prompts(num_examples: int = 10):
 # ---------------------------------------------------
 # Initialize the LLM with your checkpoint
 # ---------------------------------------------------
-
-path = "Qwen/Qwen2.5-3B-Instruct"
-
 # Replace "./path/to/your/checkpoint" with your actual checkpoint path or model name.
 llm = LLM(
-    model=path  # Path to your GRPO-trained model
+    model="./path/to/your/checkpoint",  # Path to your GRPO-trained model
+    max_seq_len=4000,
+    max_batch_size=4
 )
 
-# Define sampling parameters
+# Define sampling parameters (used by LLM.generate() even though no sampling randomness is applied)
 sampling_params = SamplingParams(
-    temperature=0.7,
-    top_p=0.95,
-    max_tokens=4000
+    temperature=0.0,  # Set temperature to 0 for deterministic output if desired
+    top_p=1.0,
+    max_tokens=1000
 )
 
 # ---------------------------------------------------
-# Main Inference and Reward Computation Loop
+# Main Inference and CSV Export
 # ---------------------------------------------------
 def main():
-    # Get prompts and corresponding ground truths from the dataset
-    prompts, ground_truths = get_math_test_prompts(num_examples=10)
+    # Get prompts and ground truths for the entire test set
+    prompts, ground_truths = get_math_test_prompts()
     
-    # Generate responses from the LLM. The LLM.generate() method accepts a list of prompt strings.
+    # Generate responses from the LLM for all prompts
     outputs = llm.generate(prompts, sampling_params)
     
-    # Initialize cumulative rewards
-    total_correctness = 0.0
-    total_token_format = 0.0
-    total_boxed_format = 0.0
+    # List to collect results
+    results = []
     
     # Process each output
     for idx, output in enumerate(outputs):
         prompt = output.prompt
-        # Assuming the first generation is what you want:
+        # Assuming the first generation is the desired response
         generated_text = output.outputs[0].text
         gt = ground_truths[idx]
         
@@ -102,23 +94,25 @@ def main():
         score_box = boxed_format_reward_func(generated_text)
         total_reward = score_corr + score_format + score_box
         
-        total_correctness += score_corr
-        total_token_format += score_format
-        total_boxed_format += score_box
-        
-        # Print the individual results
-        print(f"Prompt:\n{prompt}")
-        print(f"Ground Truth:\n{gt}")
-        print(f"Generated text:\n{generated_text}")
-        print(f"Rewards -> Correctness: {score_corr:.3f}, Token Format: {score_format:.3f}, Boxed Format: {score_box:.3f}, Total: {total_reward:.3f}")
-        print("-" * 50)
+        # Append the result to the list
+        results.append({
+            "question": prompt,
+            "ground_truth": gt,
+            "response": generated_text,
+            "correctness": score_corr,
+            "token_format": score_format,
+            "boxed_format": score_box,
+            "total_reward": total_reward
+        })
     
-    num = len(outputs)
-    print("\nSummary of Rewards:")
-    print(f"Average Correctness: {total_correctness/num:.3f}")
-    print(f"Average Token Format: {total_token_format/num:.3f}")
-    print(f"Average Boxed Format: {total_boxed_format/num:.3f}")
-    print(f"Average Total Reward: {(total_correctness+total_token_format+total_boxed_format)/num:.3f}")
+    # Create a pandas DataFrame from the results
+    df = pd.DataFrame(results)
+    
+    # Export the DataFrame to a CSV file
+    df.to_csv("vllm_inference_results.csv", index=False)
+    
+    # Print a summary
+    print(f"Processed {len(results)} examples. Results saved to 'vllm_inference_results.csv'.")
 
 if __name__ == "__main__":
     main()
