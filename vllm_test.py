@@ -1,7 +1,8 @@
 import re
 from datasets import load_dataset
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
-from vllm import LLMEngine, Request, SamplingParams
+from vllm import LLMEngine, SamplingParams
+from vllm.engine.request import Request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # ---------------------------------------------------
@@ -16,7 +17,6 @@ Ensure the final answer in the solution is formatted within \\boxed{}.
 
 checkpoint1 = "./0308-purerl-qwen3b/checkpoint-1875"
 checkpoint2 = "./0308-purerl-qwen3b/checkpoint-3400"
-
 
 def build_prompt(problem: str) -> str:
     return f"{SYSTEM_PROMPT}\nUser: {problem}\nAssistant:"
@@ -110,7 +110,6 @@ def process_question(example):
     response_ckpt2 = engine_ckpt2.generate([request])[0].text
     
     # Compute rewards for each model using the three reward functions
-    # For each, we wrap the raw response with wrap_completion(...)
     score_corr_base = correctness_reward_func([{"content": prompt}], [wrap_completion(response_base)], ground_truth)[0]
     score_format_base = token_format_reward_func([wrap_completion(response_base)])[0]
     score_box_base = boxed_format_reward_func([wrap_completion(response_base)])[0]
@@ -164,7 +163,6 @@ def main():
     dataset_test = get_math_test_dataset()
     
     # For demonstration purposes, process a subset (e.g., first 10 questions).
-    # Remove or adjust the selection as needed.
     subset = dataset_test.select(range(10))
     
     results = []
