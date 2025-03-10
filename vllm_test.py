@@ -57,7 +57,7 @@ def get_math_test_prompts():
 # Replace "./path/to/your/checkpoint" with your actual checkpoint path or model name.
 
 # path = "Qwen/Qwen2.5-3B-Instruct"
-path = "./0308-purerl-qwen3b/checkpoint-3400"
+path = "./0308-purerl-qwen3b/checkpoint-1875"
 
 llm = LLM(
     model=path
