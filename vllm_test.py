@@ -1,11 +1,12 @@
 import re
 from datasets import load_dataset
+from vllm import LLM, SamplingParams
+
+# Import your custom reward functions
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
-from vllm import LLMEngine, SamplingParams
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # ---------------------------------------------------
-# Setup: Prompt construction and ground truth extraction
+# System Prompt and utility functions
 # ---------------------------------------------------
 SYSTEM_PROMPT = """
 Answer the question below in the specified format. 
@@ -14,191 +15,112 @@ Enclose the reasoning process within <think> </think> tags and the final solutio
 Ensure the final answer in the solution is formatted within \\boxed{}.
 """
 
-checkpoint1 = "./0308-purerl-qwen3b/checkpoint-1875"
-checkpoint2 = "./0308-purerl-qwen3b/checkpoint-3400"
-
 def build_prompt(problem: str) -> str:
     return f"{SYSTEM_PROMPT}\nUser: {problem}\nAssistant:"
 
 def extract_ground_truth(text: str) -> str | None:
     return remove_boxed(last_boxed_only_string(text))
 
-def get_math_test_dataset():
+# ---------------------------------------------------
+# Reward functions
+# ---------------------------------------------------
+def correctness_reward_func(prompt, completion, ground_truth) -> float:
+    # Wrap completion in the expected format for reward functions
+    wrapped = [{"content": completion}]
+    # Using compute_score from your custom_MATH_reward module
+    return compute_score(completion, ground_truth)
+
+def token_format_reward_func(completion) -> float:
+    pattern = r"^\s*<think>.*?</think>\s*<answer>.*?</answer>\s*$"
+    match = re.search(pattern, completion, re.DOTALL)
+    return 0.1 if match else 0.0
+
+def boxed_format_reward_func(completion) -> float:
+    match = re.search(r"\\boxed\{(.*?)\}", completion)
+    return 0.1 if match else 0.0
+
+# ---------------------------------------------------
+# Load the MATH-500 test dataset and build prompts
+# ---------------------------------------------------
+def get_math_test_prompts(num_examples: int = 10):
     source_name = "HuggingFaceH4/MATH-500"
     data = load_dataset(source_name, trust_remote_code=True)['test']
-    # Map the dataset to include the built prompt and extracted ground truth answer
-    data = data.map(lambda x: {
-        'prompt': build_prompt(x['problem']),
-        'ground_truth': extract_ground_truth(x['solution'])
-    })
-    return data
+    # Select a subset for demonstration
+    data = data.select(range(num_examples))
+    prompts = []
+    ground_truths = []
+    for example in data:
+        prompt = build_prompt(example['problem'])
+        gt = extract_ground_truth(example['solution'])
+        prompts.append(prompt)
+        ground_truths.append(gt)
+    return prompts, ground_truths
 
 # ---------------------------------------------------
-# Reward functions (same as defined previously)
+# Initialize the LLM with your checkpoint
 # ---------------------------------------------------
-def correctness_reward_func(prompts, completions, answer, **kwargs) -> list[float]:
-    responses = [completion[0]['content'] for completion in completions]
-    scores = [compute_score(r, answer) for r in responses]
-    return scores
 
-def token_format_reward_func(completions, **kwargs):
-    pattern = r"^\s*<think>.*?</think>\s*<answer>.*?</answer>\s*$"
-    responses = [completion[0]["content"] for completion in completions]
-    matches = [re.search(pattern, r, re.DOTALL) for r in responses]
-    return [0.1 if match else 0.0 for match in matches]
+path = "Qwen/Qwen2.5-3B-Instruct"
 
-def boxed_format_reward_func(completions, **kwargs):
-    responses = [completion[0]["content"] for completion in completions]
-    matches = [re.search(r"\\boxed\{(.*?)\}", r) for r in responses]
-    return [0.1 if match else 0.0 for match in matches]
+# Replace "./path/to/your/checkpoint" with your actual checkpoint path or model name.
+llm = LLM(
+    model=path  # Path to your GRPO-trained model
+    max_seq_len=4000,
+    max_batch_size=4
+)
 
-def wrap_completion(text: str):
-    """Wrap a raw response string to the expected format for reward functions."""
-    return [{"content": text}]
-
-# ---------------------------------------------------
-# Sampling parameters for generation
-# ---------------------------------------------------
+# Define sampling parameters
 sampling_params = SamplingParams(
     temperature=0.7,
     top_p=0.95,
-    max_tokens=4000,
+    max_tokens=1000
 )
 
 # ---------------------------------------------------
-# Initialize three vLLM engines on different GPUs
-# ---------------------------------------------------
-engine_base = LLMEngine(
-    model_name="Qwen/Qwen2.5-3B-Instruct",
-    tokenizer_name="Qwen/Qwen2.5-3B-Instruct",
-    max_seq_len=4000,
-    max_batch_size=4,
-    device="cuda:0"  # Load on GPU 0
-)
-
-engine_ckpt1 = LLMEngine(
-    model_name=checkpoint1,  # Replace with your actual checkpoint path
-    tokenizer_name=checkpoint1,
-    max_seq_len=4000,
-    max_batch_size=4,
-    device="cuda:1"  # Load on GPU 1
-)
-
-engine_ckpt2 = LLMEngine(
-    model_name=checkpoint2,  # Replace with your actual checkpoint path
-    tokenizer_name=checkpoint2,
-    max_seq_len=4000,
-    max_batch_size=4,
-    device="cuda:2"  # Load on GPU 2
-)
-
-# ---------------------------------------------------
-# Function to process a single question: generate responses and compute rewards.
-# ---------------------------------------------------
-def process_question(example):
-    # Retrieve the prompt (already constructed) and ground truth answer
-    prompt = example['prompt']
-    ground_truth = example['ground_truth']
-    
-    # Create a generation request as a simple dictionary
-    request = {"prompt": prompt, "sampling_params": sampling_params}
-    
-    # Generate responses from each engine (vLLM expects a list of request dicts)
-    response_base = engine_base.generate([request])[0].text
-    response_ckpt1 = engine_ckpt1.generate([request])[0].text
-    response_ckpt2 = engine_ckpt2.generate([request])[0].text
-    
-    # Compute rewards for each model using the three reward functions
-    score_corr_base = correctness_reward_func([{"content": prompt}], [wrap_completion(response_base)], ground_truth)[0]
-    score_format_base = token_format_reward_func([wrap_completion(response_base)])[0]
-    score_box_base = boxed_format_reward_func([wrap_completion(response_base)])[0]
-    total_score_base = score_corr_base + score_format_base + score_box_base
-
-    score_corr_ckpt1 = correctness_reward_func([{"content": prompt}], [wrap_completion(response_ckpt1)], ground_truth)[0]
-    score_format_ckpt1 = token_format_reward_func([wrap_completion(response_ckpt1)])[0]
-    score_box_ckpt1 = boxed_format_reward_func([wrap_completion(response_ckpt1)])[0]
-    total_score_ckpt1 = score_corr_ckpt1 + score_format_ckpt1 + score_box_ckpt1
-
-    score_corr_ckpt2 = correctness_reward_func([{"content": prompt}], [wrap_completion(response_ckpt2)], ground_truth)[0]
-    score_format_ckpt2 = token_format_reward_func([wrap_completion(response_ckpt2)])[0]
-    score_box_ckpt2 = boxed_format_reward_func([wrap_completion(response_ckpt2)])[0]
-    total_score_ckpt2 = score_corr_ckpt2 + score_format_ckpt2 + score_box_ckpt2
-
-    return {
-        "problem": prompt,
-        "ground_truth": ground_truth,
-        "responses": {
-            "base": response_base,
-            "ckpt1": response_ckpt1,
-            "ckpt2": response_ckpt2
-        },
-        "rewards": {
-            "base": {
-                "correctness": score_corr_base,
-                "token_format": score_format_base,
-                "boxed_format": score_box_base,
-                "total": total_score_base
-            },
-            "ckpt1": {
-                "correctness": score_corr_ckpt1,
-                "token_format": score_format_ckpt1,
-                "boxed_format": score_box_ckpt1,
-                "total": total_score_ckpt1
-            },
-            "ckpt2": {
-                "correctness": score_corr_ckpt2,
-                "token_format": score_format_ckpt2,
-                "boxed_format": score_box_ckpt2,
-                "total": total_score_ckpt2
-            }
-        }
-    }
-
-# ---------------------------------------------------
-# Main loop: Process questions concurrently and summarize rewards.
+# Main Inference and Reward Computation Loop
 # ---------------------------------------------------
 def main():
-    # Load the test dataset
-    dataset_test = get_math_test_dataset()
+    # Get prompts and corresponding ground truths from the dataset
+    prompts, ground_truths = get_math_test_prompts(num_examples=10)
     
-    # For demonstration purposes, process a subset (e.g., first 10 questions).
-    subset = dataset_test.select(range(10))
+    # Generate responses from the LLM. The LLM.generate() method accepts a list of prompt strings.
+    outputs = llm.generate(prompts, sampling_params)
     
-    results = []
-    # Use a ThreadPoolExecutor for parallel processing
-    with ThreadPoolExecutor(max_workers=5) as executor:
-        futures = [executor.submit(process_question, example) for example in subset]
-        for future in as_completed(futures):
-            try:
-                result = future.result()
-                results.append(result)
-            except Exception as e:
-                print(f"Error processing question: {e}")
-
-    # Aggregate rewards for each model
-    summary = {
-        "base": {"correctness": 0.0, "token_format": 0.0, "boxed_format": 0.0, "total": 0.0, "count": 0},
-        "ckpt1": {"correctness": 0.0, "token_format": 0.0, "boxed_format": 0.0, "total": 0.0, "count": 0},
-        "ckpt2": {"correctness": 0.0, "token_format": 0.0, "boxed_format": 0.0, "total": 0.0, "count": 0}
-    }
+    # Initialize cumulative rewards
+    total_correctness = 0.0
+    total_token_format = 0.0
+    total_boxed_format = 0.0
     
-    for res in results:
-        for model in ["base", "ckpt1", "ckpt2"]:
-            summary[model]["correctness"] += res["rewards"][model]["correctness"]
-            summary[model]["token_format"] += res["rewards"][model]["token_format"]
-            summary[model]["boxed_format"] += res["rewards"][model]["boxed_format"]
-            summary[model]["total"] += res["rewards"][model]["total"]
-            summary[model]["count"] += 1
+    # Process each output
+    for idx, output in enumerate(outputs):
+        prompt = output.prompt
+        # Assuming the first generation is what you want:
+        generated_text = output.outputs[0].text
+        gt = ground_truths[idx]
+        
+        # Compute rewards
+        score_corr = correctness_reward_func(prompt, generated_text, gt)
+        score_format = token_format_reward_func(generated_text)
+        score_box = boxed_format_reward_func(generated_text)
+        total_reward = score_corr + score_format + score_box
+        
+        total_correctness += score_corr
+        total_token_format += score_format
+        total_boxed_format += score_box
+        
+        # Print the individual results
+        print(f"Prompt:\n{prompt}")
+        print(f"Ground Truth:\n{gt}")
+        print(f"Generated text:\n{generated_text}")
+        print(f"Rewards -> Correctness: {score_corr:.3f}, Token Format: {score_format:.3f}, Boxed Format: {score_box:.3f}, Total: {total_reward:.3f}")
+        print("-" * 50)
     
-    # Print summary results for each model
-    for model in ["base", "ckpt1", "ckpt2"]:
-        count = summary[model]["count"]
-        print(f"\nSummary for model '{model}':")
-        print(f"  Average Correctness: {summary[model]['correctness'] / count if count else 0:.3f}")
-        print(f"  Average Token Format: {summary[model]['token_format'] / count if count else 0:.3f}")
-        print(f"  Average Boxed Format: {summary[model]['boxed_format'] / count if count else 0:.3f}")
-        print(f"  Average Total Reward: {summary[model]['total'] / count if count else 0:.3f}")
-        print("=" * 60)
+    num = len(outputs)
+    print("\nSummary of Rewards:")
+    print(f"Average Correctness: {total_correctness/num:.3f}")
+    print(f"Average Token Format: {total_token_format/num:.3f}")
+    print(f"Average Boxed Format: {total_boxed_format/num:.3f}")
+    print(f"Average Total Reward: {(total_correctness+total_token_format+total_boxed_format)/num:.3f}")
 
 if __name__ == "__main__":
     main()
