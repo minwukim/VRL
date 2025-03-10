@@ -2,7 +2,6 @@ import re
 from datasets import load_dataset
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
 from vllm import LLMEngine, SamplingParams
-from vllm.engine.request import Request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # ---------------------------------------------------
@@ -101,10 +100,10 @@ def process_question(example):
     prompt = example['prompt']
     ground_truth = example['ground_truth']
     
-    # Create a generation request
-    request = Request(prompt=prompt, sampling_params=sampling_params)
+    # Create a generation request as a simple dictionary
+    request = {"prompt": prompt, "sampling_params": sampling_params}
     
-    # Generate responses from each engine
+    # Generate responses from each engine (vLLM expects a list of request dicts)
     response_base = engine_base.generate([request])[0].text
     response_ckpt1 = engine_ckpt1.generate([request])[0].text
     response_ckpt2 = engine_ckpt2.generate([request])[0].text
