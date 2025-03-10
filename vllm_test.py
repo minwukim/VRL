@@ -64,16 +64,14 @@ path = "Qwen/Qwen2.5-3B-Instruct"
 
 # Replace "./path/to/your/checkpoint" with your actual checkpoint path or model name.
 llm = LLM(
-    model=path,  # Path to your GRPO-trained model
-    max_seq_len=4000,
-    max_batch_size=4
+    model=path  # Path to your GRPO-trained model
 )
 
 # Define sampling parameters
 sampling_params = SamplingParams(
     temperature=0.7,
     top_p=0.95,
-    max_tokens=1000
+    max_tokens=4000
 )
 
 # ---------------------------------------------------
