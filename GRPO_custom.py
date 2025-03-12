@@ -152,10 +152,13 @@ class CustomGRPOTrainer(GRPOTrainer):
         # ------------------------------
         # Build new prompts by combining duplicated question and answer with an added instruction.
         added_instruction = (
-            "\n There might be something wrong with this answer. "
-            "Please go through the answer and try to check if it is correct or not. "
-            "Give your final answer in either 'correct' or 'incorrect' in the end."
+            "\n Given the question and the response provided, go through the reasoning process of the response and check if the response is correct or not. "
+            "Then, try to resolve the problem if incorrect, and return the same final answer if you think it is correct. "
+            "Enclose your reasoning of checking and resolving process within <think> </think> tags and the final solution within <answer> </answer> tags, "
+            "i.e., <think> reasoning process here </think> <answer> solution here </answer>. "
+            "Ensure the final answer in the solution is formatted within \\boxed{}, so that the response can be directly extracted for grading."
         )
+
         new_prompts_text = []
         for q, a in zip(duplicated_prompts_text, duplicated_answers_text):
             new_prompt = f"Question: {q}\nAnswer: {a}{added_instruction}"
