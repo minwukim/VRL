@@ -62,6 +62,8 @@ def main():
     total_length = 0
     num_samples = len(outputs)
     
+    results = []
+    
     for idx, output in enumerate(outputs):
         generated_text = output.outputs[0].text
         gt = ground_truths[idx]
@@ -73,6 +75,17 @@ def main():
         total_correctness += score_corr
         total_correct_and_format += score_correct_and_format
         total_length += token_length
+        
+        results.append({
+            "Prompt": prompts[idx],
+            "Generated Answer": generated_text,
+            "Ground Truth": gt,
+            "Correctness Score": score_corr,
+            "Correctness and Format Score": score_correct_and_format
+        })
+    
+    df = pd.DataFrame(results)
+    df.to_csv("math_model_results_cp200.csv", index=False)
     
     print(f"Average Correctness Score: {total_correctness / num_samples:.4f}")
     print(f"Average Correctness and Format Score: {total_correct_and_format / num_samples:.4f}")
