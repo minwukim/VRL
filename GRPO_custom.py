@@ -80,9 +80,21 @@ class CustomGRPOTrainer(GRPOTrainer):
             
             all_unique_prompts = gather_object(unique_prompts_text)
             if self.accelerator.is_main_process:
+
+                init_sampling_params = SamplingParams(
+                    max_tokens=self.max_completion_length,
+                    guided_decoding=guided_decoding,
+                    n=args.num_generations,
+                    temperature=args.temperature,
+                    top_p=args.top_p,
+                    top_k=-1 if args.top_k is None else args.top_k,
+                    min_p=0.0 if args.min_p is None else args.min_p,
+                    repetition_penalty=args.repetition_penalty,
+                )
+
                 initial_outputs = self.llm.generate(
                     all_unique_prompts,
-                    sampling_params=self.sampling_params,
+                    sampling_params=init_sampling_params,
                     use_tqdm=False,
                 )
                 unique_initial_answer_ids = []
