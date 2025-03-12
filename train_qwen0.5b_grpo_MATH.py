@@ -6,7 +6,7 @@ from GRPO_custom import CustomGRPOTrainer
 max_seq_length = 256
 max_prompt_length = 256
 
-model_name = "Qwen/Qwen2-0.5B"
+model_name = "Qwen/Qwen2-0.5B-Instruct"
 
 SYSTEM_PROMPT = """
 Answer the question below in the specified format. 
