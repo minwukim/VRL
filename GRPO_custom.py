@@ -87,7 +87,7 @@ class CustomGRPOTrainer(GRPOTrainer):
             if self.accelerator.is_main_process:
                 initial_outputs = self.llm.generate(
                     all_unique_prompts,
-                    sampling_params=single.sampling_params,
+                    sampling_params=single_sampling_params,
                     use_tqdm=False,
                 )
 
