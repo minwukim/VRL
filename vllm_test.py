@@ -114,7 +114,7 @@ def main():
     df = pd.DataFrame(results)
     
     # Export the DataFrame to a CSV file
-    df.to_csv("yc-dreal_results.csv", index=False)
+    df.to_csv("cp1875_results.csv", index=False)
     
     # Print a summary
     print(f"Processed {len(results)} examples. Results saved to 'vllm_inference_results.csv'.")
