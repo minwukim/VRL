@@ -9,6 +9,7 @@ from datasets import Dataset, IterableDataset
 from trl import GRPOTrainer, GRPOConfig
 from trl.data_utils import apply_chat_template, maybe_apply_chat_template
 from trl.trainer.utils import pad
+from copy import deepcopy
 
 # Define RewardFunc as before
 RewardFunc = Union[str, PreTrainedModel, Callable[[list, list], list[float]]]
