@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 @dataclass
-class MyArguments:
+class MyArguments: 
     model_name: str
     output_dir: str
     run_name: str
@@ -43,6 +43,8 @@ class MyArguments:
     evaluation_strategy: str
     eval_steps: int
     eval_on_start: bool
+    resume_from_checkpoint: bool = False
+
 
 from trl import TrlParser
 
@@ -103,6 +105,7 @@ grpo_config_args = GRPOConfig(
     output_dir=training_args.output_dir,
     run_name=training_args.run_name,
     learning_rate=training_args.learning_rate,
+    resume_from_checkpoint=training_args.resume_from_checkpoint,
     beta=training_args.beta,
     adam_beta1=training_args.adam_beta1,
     adam_beta2=training_args.adam_beta2,
@@ -136,6 +139,6 @@ trainer = GRPOTrainer(
     reward_funcs=[reward_correct, reward_correct_and_format],
     args=grpo_config_args,
     train_dataset=train,
-    eval_dataset=test
+    eval_dataset=test,
 )
-trainer.train()
+trainer.train(resume_from_checkpoint=training_args.resume_from_checkpoint)
