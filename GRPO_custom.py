@@ -255,9 +255,29 @@ class CustomGRPOTrainer(GRPOTrainer):
         # ------------------------------
         rewards_per_func = torch.zeros(len(duplicated_prompts_text), len(self.reward_funcs), device=device)
         for i, reward_func in enumerate(self.reward_funcs):
-            # The reward function now compares the generated judgment with a target.
-            output_reward = reward_func(prompts=duplicated_prompts_text, completions=judgments_text)
-            rewards_per_func[:, i] = torch.tensor(output_reward, dtype=torch.float32, device=device)
+            # If reward_func is a module, prepare its input via its processing class.
+            if isinstance(reward_func, nn.Module):
+                # Here, we assume that self.reward_processing_classes has been set up.
+                reward_processing_class = self.reward_processing_classes[i]
+                # If working with conversational data, you could wrap the texts accordingly.
+                # For simplicity, we just concatenate the duplicated prompt and judgment.
+                texts = [q + j for q, j in zip(duplicated_prompts_text, judgments_text)]
+                reward_inputs = reward_processing_class(
+                    texts,
+                    return_tensors="pt",
+                    padding=True,
+                    padding_side="right",
+                    add_special_tokens=False,
+                )
+                reward_inputs = super()._prepare_inputs(reward_inputs)
+                with torch.inference_mode():
+                    rewards_per_func[:, i] = reward_func(**reward_inputs).logits[:, 0]  # Shape (B*G,)
+            else:
+                # For non-module reward functions, pass along any extra keys if needed.
+                keys = [key for key in inputs[0] if key not in ["prompt", "completion"]]
+                reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
+                output_reward = reward_func(prompts=duplicated_prompts_text, completions=judgments_text, **reward_kwargs)
+                rewards_per_func[:, i] = torch.tensor(output_reward, dtype=torch.float32, device=device)
         
         rewards_per_func = gather(rewards_per_func)
         rewards = (rewards_per_func * self.reward_weights.to(device).unsqueeze(0)).sum(dim=1)
@@ -271,6 +291,7 @@ class CustomGRPOTrainer(GRPOTrainer):
             (self.accelerator.process_index + 1) * len(duplicated_prompts_text),
         )
         advantages = advantages[process_slice]
+
         
         # ------------------------------
         # Step 7: Logging Metrics (Optional)
