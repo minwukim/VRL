@@ -149,10 +149,12 @@ class CustomGRPOTrainer(GRPOTrainer):
         duplicated_prompts_text = []
         duplicated_answers_text = []
         for q, a in zip(prompts_text, answers_text):
-            for _ in range(self.num_generations):
+            # for _ in range(self.num_generations):
+            for _ in range(1):
                 duplicated_prompts_text.append(q)
                 duplicated_answers_text.append(a)
         
+        print(f"Generated {len(duplicated_prompts_text)} duplicated prompts.")
         # ------------------------------
         # Step 3: Construct New Prompts for Judgment
         # ------------------------------
@@ -217,6 +219,8 @@ class CustomGRPOTrainer(GRPOTrainer):
         
         judgments_text = self.processing_class.batch_decode(judgment_ids, skip_special_tokens=True)
         completion_mask = (judgment_ids != self.processing_class.pad_token_id).long()
+        print(f"Generated {len(judgments_text)} judgments.")
+        print(judgments_text[0])
         
         # ------------------------------
         # Step 5: Prepare for Log Probability Computation & Reward Calculation
