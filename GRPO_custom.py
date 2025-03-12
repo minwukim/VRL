@@ -77,26 +77,19 @@ class CustomGRPOTrainer(GRPOTrainer):
         # Generate initial answer for each unique prompt.
         if self.args.use_vllm:
             print("YOU SHOULD SEE ME: using vllm to generate initial answers.")
+
+            # Create a copy of sampling_params with n set to 1.
+            single_sampling_params = deepcopy(self.sampling_params)
+            single_sampling_params.n = 1
             
             all_unique_prompts = gather_object(unique_prompts_text)
             if self.accelerator.is_main_process:
-
-                init_sampling_params = SamplingParams(
-                    max_tokens=self.max_completion_length,
-                    guided_decoding=guided_decoding,
-                    n=args.num_generations,
-                    temperature=args.temperature,
-                    top_p=args.top_p,
-                    top_k=-1 if args.top_k is None else args.top_k,
-                    min_p=0.0 if args.min_p is None else args.min_p,
-                    repetition_penalty=args.repetition_penalty,
-                )
-
                 initial_outputs = self.llm.generate(
                     all_unique_prompts,
-                    sampling_params=init_sampling_params,
+                    sampling_params=single.sampling_params,
                     use_tqdm=False,
                 )
+
                 unique_initial_answer_ids = []
                 for outputs in initial_outputs:
                     # Taking the first generation from vLLM output for each unique prompt.
