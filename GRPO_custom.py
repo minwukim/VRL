@@ -139,8 +139,7 @@ def _generate_and_score_completions(
     prompts_text = [maybe_apply_chat_template(example, self.processing_class)["prompt"] for example in inputs]
 
     # MINWU PRINTS
-    if self.accelerator.is_main_process:
-        print(f"HOW MANY PROMPT TEXTS: {len(prompts_text)}", flush=True)
+    print(f"HOW MANY PROMPT TEXTS: {len(prompts_text)}")
     prompt_inputs = self.processing_class(
         prompts_text, return_tensors="pt", padding=True, padding_side="left", add_special_tokens=False
     )
@@ -156,44 +155,37 @@ def _generate_and_score_completions(
     single_sampling_params.n = 1
 
     if self.args.use_vllm:
+        # Gather all prompts from all processes.
         all_prompts_text = gather_object(prompts_text)
         if self.accelerator.is_main_process:
-            # Remove duplicates for faster generation of A1
-            ordered_set_of_prompts = list(dict.fromkeys(all_prompts_text))
+            # Remove duplicates to generate one A1 per unique prompt.
+            unique_prompts = list(dict.fromkeys(all_prompts_text))
             with profiling_context(self, "vLLM.generate (A1)"):
                 all_outputs = self.llm.generate(
-                    ordered_set_of_prompts, sampling_params=single_sampling_params, use_tqdm=False
+                    unique_prompts, sampling_params=single_sampling_params, use_tqdm=False
                 )
-            a1_ids_list = []
-            for outputs in all_outputs:
-                for output in outputs.outputs:
-                    a1_ids_list.append(output.token_ids)
+            # Build a dictionary mapping each unique prompt to its generated A1.
+            unique_a1 = {}
+            for prompt, output in zip(unique_prompts, all_outputs):
+                # We take the first generated completion for each unique prompt.
+                token_ids = output.outputs[0].token_ids
+                # Decode the tokens into a string.
+                decoded = self.processing_class.batch_decode(
+                    [torch.tensor(token_ids, device=self.accelerator.device)],
+                    skip_special_tokens=True,
+                )[0]
+                unique_a1[prompt] = decoded
         else:
-            a1_ids_list = [None] * len(all_prompts_text)
-        # MINWU: MAYBE NOT NECESSARY
-        a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
-        process_slice = slice(
-            self.accelerator.process_index * len(prompts),
-            (self.accelerator.process_index + 1) * len(prompts),
-        )
-        a1_ids_list = a1_ids_list[process_slice]
-        if self.accelerator.is_main_process:
-            print(f"HOW MANY A1 IDS: {len(a1_ids_list)}", flush=True)
-
-        # Convert and pad A1 token ids
-        a1_ids = [torch.tensor(ids, device=self.accelerator.device) for ids in a1_ids_list]
-        a1_ids = pad(a1_ids, padding_value=self.processing_class.pad_token_id)
+            unique_a1 = None
+        # Broadcast the dictionary from the main process to all processes.
+        unique_a1 = broadcast_object_list(unique_a1, from_process=0)
+        # For each original prompt, get its corresponding A1.
+        a1_text = [unique_a1[p] for p in prompts_text]
+        print(f"Example A1: {a1_text[0]}")
     else:
-        if self.accelerator.is_main_process:
-            print("SHOULDN'T SEE ME", flush=True)
-        # MINWU:SHOULD NOT SEE ME
-        # with unwrap_model_for_generation(self.model_wrapped, self.accelerator) as unwrapped_model:
-        #     a1_ids = unwrapped_model.generate(
-        #         prompt_ids, attention_mask=prompt_mask, generation_config=single_sampling_params
-        #     )
+        # In case of non-vllm branch (not used here), you would generate A1 per prompt.
+        raise NotImplementedError("Non-vllm branch not implemented in this custom trainer.")
 
-    # Decode the generated A1 completions
-    a1_text = self.processing_class.batch_decode(a1_ids, skip_special_tokens=True)
 
     # 3. Construct new prompt: (Q, A1) concatenated with extra context (added_instruction)
     added_instruction = (
@@ -208,9 +200,8 @@ def _generate_and_score_completions(
 
     new_prompts_text = [orig + a1 + added_instruction for orig, a1 in zip(prompts_text, a1_text)]
     # MINWU PRINTS
-    if self.accelerator.is_main_process:
-        print(f"HOW MANY NEW PROMPT TEXTS: {len(new_prompts_text)}", flush=True)
-        print(f"NEW PROMPT TEXT EXAMPLE: {new_prompts_text[0]}", flush=True)
+    print(f"HOW MANY NEW PROMPT TEXTS: {len(new_prompts_text)}")
+    print(f"NEW PROMPT TEXT EXAMPLE: {new_prompts_text[0]}")
     
     # Preprocess the new prompt (Q, A1, added_instruction)
     new_prompt_inputs = self.processing_class(
@@ -245,16 +236,14 @@ def _generate_and_score_completions(
         )
         a2_ids_list = a2_ids_list[process_slice]
         # MINWU PRINTS
-        if self.accelerator.is_main_process:
-            print(f"HOW MANY A2 IDS: {len(a2_ids_list)}", flush=True)
+        print(f"HOW MANY A2 IDS: {len(a2_ids_list)}")
 
         # Convert and pad A2 token ids, then concatenate with the new prompt tokens
         a2_ids = [torch.tensor(ids, device=self.accelerator.device) for ids in a2_ids_list]
         a2_ids = pad(a2_ids, padding_value=self.processing_class.pad_token_id)
         prompt_completion_ids = torch.cat([new_prompt_ids, a2_ids], dim=1)
     else:
-        if self.accelerator.is_main_process:
-            print("SHOULDN'T SEE ME", flush=True)
+        print("SHOULDN'T SEE ME")
         # MINWU: SHOULD NOT SEE ME
         # with unwrap_model_for_generation(self.model_wrapped, self.accelerator) as unwrapped_model:
         #     prompt_completion_ids = unwrapped_model.generate(
@@ -303,9 +292,8 @@ def _generate_and_score_completions(
             completions.append([{"role": "assistant", "content": bootstrap + completion}])
     else:
         completions = completions_text
-    if self.accelerator.is_main_process:
-        print(f"HOW MANY COMPLETIONS: {len(completions)}", flush=True)
-        print(f"COMPLETIONS EXAMPLE: {completions[0]}", flush=True)
+    print(f"HOW MANY COMPLETIONS: {len(completions)}")
+    print(f"COMPLETIONS EXAMPLE: {completions[0]}")
 
     # 6. Compute rewards based on A2 completions, following the original reward processing
     rewards_per_func = torch.zeros(len(prompts), len(self.reward_funcs), device=device)
