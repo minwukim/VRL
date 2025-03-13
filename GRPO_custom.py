@@ -12,18 +12,18 @@ from trl.data_utils import apply_chat_template, maybe_apply_chat_template, is_co
 from trl.trainer.utils import pad
 from copy import deepcopy
 
-from transformers import Trainer, iswandb_available, is_rich_available
+import pandas as pd
 
-if iswandb_available():
-    import wandb
+from transformers import Trainer
+
+import wandb
 
 import time
 
-if is_rich_available():
-    from rich.console import Console
-    from rich.panel import Panel
-    from rich.table import Table
-    from rich.text import Text
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
 
 from copy import deepcopy
 
@@ -63,8 +63,8 @@ def print_prompt_completions_sample(prompts: list[str], completions: list[str], 
     ╰────────────────────────────────────────╯
     ```
     """
-    if not is_rich_available():
-        raise ImportError("This feature requires `rich` to be installed. Please install it first: `pip install rich`")
+    # if not is_rich_available():
+    #     raise ImportError("This feature requires `rich` to be installed. Please install it first: `pip install rich`")
 
     console = Console()
     table = Table(show_header=True, header_style="bold white", expand=True)
@@ -364,15 +364,14 @@ def _generate_and_score_completions(
         rewards_to_log = rewards.tolist()
 
         if self.accelerator.is_main_process:
-            if is_rich_available():
-                print_prompt_completions_sample(
-                    prompts_to_log,
-                    completions_to_log,
-                    rewards_to_log,
-                    self.state.global_step,
-                )
+            # if is_rich_available():
+            print_prompt_completions_sample(
+                prompts_to_log,
+                completions_to_log,
+                rewards_to_log,
+                self.state.global_step,
+            )
             if self.args.report_to and "wandb" in self.args.report_to and wandb.run is not None:
-                import pandas as pd
                 table = {
                     "step": [str(self.state.global_step)] * len(rewards),
                     "prompt": prompts_to_log,
