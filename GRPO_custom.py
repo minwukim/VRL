@@ -135,9 +135,11 @@ class CustomGRPOTrainer(GRPOTrainer):
         self, inputs: dict[str, Union[torch.Tensor, Any]]
     ) -> dict[str, Union[torch.Tensor, Any]]:
         # 1. Preprocess the original prompt (Q)
-        device = self.accelerator.device
         print(inputs)
-        prompts = [x["prompt"] for x in inputs]
+        prompts = []
+        for a in inputs:
+            prompts.append(a["prompt"])
+        # prompts = [x["prompt"] for x in inputs]
         prompts_text = [maybe_apply_chat_template(example, self.processing_class)["prompt"] for example in inputs]
 
         # MINWU PRINTS
