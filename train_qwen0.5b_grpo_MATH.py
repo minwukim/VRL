@@ -92,6 +92,7 @@ training_args = GRPOConfig(
     save_steps = 200,
     eval_strategy="steps",
     eval_steps = 200,
+    log_completions = True
     # eval_on_start=True,
 )
 
