@@ -3,8 +3,8 @@ from datasets import load_dataset, Dataset
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
 from trl import GRPOConfig, GRPOTrainer
 from GRPO_custom import CustomGRPOTrainer
-max_seq_length = 256
-max_prompt_length = 256
+max_seq_length = 1000
+max_prompt_length = 1000
 
 model_name = "Qwen/Qwen2-0.5B-Instruct"
 
@@ -47,12 +47,12 @@ def correctness_reward_func(prompts, completions, answer, **kwargs) -> list[floa
     responses = [completion[0]['content'] for completion in completions]
     scores = [compute_score(r, a) for r, a in zip(responses, answer)]
 
-    for i, (q, r, a, score) in enumerate(zip(prompts, responses, answer, scores)):
-        print('-'*20, f"Question {i+1}:\n{q[-1]['content']}", 
-              f"\nAnswer:\n{a}", 
-              f"\nResponse:\n{responses[i]}", 
-              f"\nExtracted:\n{r}", 
-              f"\nScore:\n{score}")
+    # for i, (q, r, a, score) in enumerate(zip(prompts, responses, answer, scores)):
+    #     print('-'*20, f"Question {i+1}:\n{q[-1]['content']}", 
+    #           f"\nAnswer:\n{a}", 
+    #           f"\nResponse:\n{responses[i]}", 
+    #           f"\nExtracted:\n{r}", 
+    #           f"\nScore:\n{score}")
 
     return scores
 
