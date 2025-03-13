@@ -201,6 +201,8 @@ def _generate_and_score_completions(
         "Ensure the final answer in the solution is formatted within \\boxed{}, so that the response can be directly extracted for grading."
     )
     # MINWU COMEBACK: REMOVE INSTRUCTION.
+
+    
     new_prompts_text = [orig + a1 + added_instruction for orig, a1 in zip(prompts_text, a1_text)]
     # MINWU PRINTS
     print(f"HOW MANY NEW PROMPT TEXTS: {len(new_prompts_text)}")
@@ -311,10 +313,10 @@ def _generate_and_score_completions(
         with profiling_context(self, reward_func_name):
             if isinstance(reward_func, nn.Module):
                 if is_conversational(inputs[0]):
-                    messages = [{"messages": p + c} for p, c in zip(prompts, completions)]
+                    messages = [{"messages": p + c} for p, c in zip(new_prompts_text, completions)]
                     texts = [apply_chat_template(x, reward_processing_class)["text"] for x in messages]
                 else:
-                    texts = [p + c for p, c in zip(prompts, completions)]
+                    texts = [p + c for p, c in zip(new_prompts_text, completions)]
                 reward_inputs = reward_processing_class(
                     texts, return_tensors="pt", padding=True, padding_side="right", add_special_tokens=False
                 )
@@ -324,7 +326,7 @@ def _generate_and_score_completions(
             else:
                 keys = [key for key in inputs[0] if key not in ["prompt", "completion"]]
                 reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
-                output_reward_func = reward_func(prompts=prompts, completions=completions, **reward_kwargs)
+                output_reward_func = reward_func(prompts=new_prompts_text, completions=completions, **reward_kwargs)
                 rewards_per_func[:, i] = torch.tensor(output_reward_func, dtype=torch.float32, device=device)
 
     rewards_per_func = gather(rewards_per_func)
