@@ -139,7 +139,8 @@ def _generate_and_score_completions(
     prompts_text = [maybe_apply_chat_template(example, self.processing_class)["prompt"] for example in inputs]
 
     # MINWU PRINTS
-    print(f"HOW MANY PROMPT TEXTS: {len(prompts_text)}")
+    if self.accelerator.is_main_process:
+        print(f"HOW MANY PROMPT TEXTS: {len(prompts_text)}", flush=True)
     prompt_inputs = self.processing_class(
         prompts_text, return_tensors="pt", padding=True, padding_side="left", add_special_tokens=False
     )
@@ -170,19 +171,21 @@ def _generate_and_score_completions(
         else:
             a1_ids_list = [None] * len(all_prompts_text)
         # MINWU: MAYBE NOT NECESSARY
-        # a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
+        a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
         process_slice = slice(
             self.accelerator.process_index * len(prompts),
             (self.accelerator.process_index + 1) * len(prompts),
         )
         a1_ids_list = a1_ids_list[process_slice]
-        print(f"HOW MANY A1 IDS: {len(a1_ids_list)}")
+        if self.accelerator.is_main_process:
+            print(f"HOW MANY A1 IDS: {len(a1_ids_list)}", flush=True)
 
         # Convert and pad A1 token ids
         a1_ids = [torch.tensor(ids, device=self.accelerator.device) for ids in a1_ids_list]
         a1_ids = pad(a1_ids, padding_value=self.processing_class.pad_token_id)
     else:
-        print("SHOULDN'T SEE ME")
+        if self.accelerator.is_main_process:
+            print("SHOULDN'T SEE ME", flush=True)
         # MINWU:SHOULD NOT SEE ME
         # with unwrap_model_for_generation(self.model_wrapped, self.accelerator) as unwrapped_model:
         #     a1_ids = unwrapped_model.generate(
@@ -205,8 +208,9 @@ def _generate_and_score_completions(
 
     new_prompts_text = [orig + a1 + added_instruction for orig, a1 in zip(prompts_text, a1_text)]
     # MINWU PRINTS
-    print(f"HOW MANY NEW PROMPT TEXTS: {len(new_prompts_text)}")
-    print(f"NEW PROMPT TEXT EXAMPLE: {new_prompts_text[0]}")
+    if self.accelerator.is_main_process:
+        print(f"HOW MANY NEW PROMPT TEXTS: {len(new_prompts_text)}", flush=True)
+        print(f"NEW PROMPT TEXT EXAMPLE: {new_prompts_text[0]}", flush=True)
     
     # Preprocess the new prompt (Q, A1, added_instruction)
     new_prompt_inputs = self.processing_class(
@@ -241,14 +245,16 @@ def _generate_and_score_completions(
         )
         a2_ids_list = a2_ids_list[process_slice]
         # MINWU PRINTS
-        print(f"HOW MANY A2 IDS: {len(a2_ids_list)}")
+        if self.accelerator.is_main_process:
+            print(f"HOW MANY A2 IDS: {len(a2_ids_list)}", flush=True)
 
         # Convert and pad A2 token ids, then concatenate with the new prompt tokens
         a2_ids = [torch.tensor(ids, device=self.accelerator.device) for ids in a2_ids_list]
         a2_ids = pad(a2_ids, padding_value=self.processing_class.pad_token_id)
         prompt_completion_ids = torch.cat([new_prompt_ids, a2_ids], dim=1)
     else:
-        print("SHOULDN'T SEE ME")
+        if self.accelerator.is_main_process:
+            print("SHOULDN'T SEE ME", flush=True)
         # MINWU: SHOULD NOT SEE ME
         # with unwrap_model_for_generation(self.model_wrapped, self.accelerator) as unwrapped_model:
         #     prompt_completion_ids = unwrapped_model.generate(
@@ -297,9 +303,9 @@ def _generate_and_score_completions(
             completions.append([{"role": "assistant", "content": bootstrap + completion}])
     else:
         completions = completions_text
-
-    print(f"HOW MANY COMPLETIONS: {len(completions)}")
-    print(f"COMPLETIONS EXAMPLE: {completions[0]}")
+    if self.accelerator.is_main_process:
+        print(f"HOW MANY COMPLETIONS: {len(completions)}", flush=True)
+        print(f"COMPLETIONS EXAMPLE: {completions[0]}", flush=True)
 
     # 6. Compute rewards based on A2 completions, following the original reward processing
     rewards_per_func = torch.zeros(len(prompts), len(self.reward_funcs), device=device)
