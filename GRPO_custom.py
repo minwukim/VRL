@@ -20,66 +20,66 @@ import wandb
 
 import time
 
-# from rich.console import Console
-# from rich.panel import Panel
-# from rich.table import Table
-# from rich.text import Text
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
 
 from copy import deepcopy
 
 
-# def print_prompt_completions_sample(prompts: list[str], completions: list[str], rewards: list[int], step: int) -> None:
-#     """
-#     Print out a sample of model completions to the console.
+def print_prompt_completions_sample(prompts: list[str], completions: list[str], rewards: list[int], step: int) -> None:
+    """
+    Print out a sample of model completions to the console.
 
-#     This function creates a nicely formatted table showing prompt-completion pairs, useful for monitoring model outputs
-#     during training. It requires the `rich` library to be installed.
+    This function creates a nicely formatted table showing prompt-completion pairs, useful for monitoring model outputs
+    during training. It requires the `rich` library to be installed.
 
-#     Args:
-#         prompts (`list[str]`):
-#             List of prompts.
-#         completions (`list[str]`):
-#             List of completions corresponding to the prompts.
-#         reward (`list[float]`):
-#             List of rewards corresponding to the completions.
-#         step (`int`):
-#             Current training step number, used in the output title.
+    Args:
+        prompts (`list[str]`):
+            List of prompts.
+        completions (`list[str]`):
+            List of completions corresponding to the prompts.
+        reward (`list[float]`):
+            List of rewards corresponding to the completions.
+        step (`int`):
+            Current training step number, used in the output title.
 
-#     Example:
-#     ```python
-#     >>> from trl.trainer.utils import print_prompt_completions_sample
-#     >>> prompts = ["The sky is", "The sun is"]
-#     >>> completions = [" blue.", " in the sky."]
-#     >>> rewards = [0.12345, 0.68789]
-#     >>> print_prompt_completions_sample(prompts, completions, rewards, 42)
-#     ╭─────────────── Step 42 ────────────────╮
-#     │ ┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━┓ │
-#     │ ┃ Prompt     ┃ Completion   ┃ Reward ┃ │
-#     │ ┡━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━┩ │
-#     │ │ The sky is │  blue.       │   0.12 │ │
-#     │ ├────────────┼──────────────┼────────┤ │
-#     │ │ The sun is │  in the sky. │   0.68 │ │
-#     │ └────────────┴──────────────┴────────┘ │
-#     ╰────────────────────────────────────────╯
-#     ```
-#     """
-#     # if not is_rich_available():
-#     #     raise ImportError("This feature requires `rich` to be installed. Please install it first: `pip install rich`")
+    Example:
+    ```python
+    >>> from trl.trainer.utils import print_prompt_completions_sample
+    >>> prompts = ["The sky is", "The sun is"]
+    >>> completions = [" blue.", " in the sky."]
+    >>> rewards = [0.12345, 0.68789]
+    >>> print_prompt_completions_sample(prompts, completions, rewards, 42)
+    ╭─────────────── Step 42 ────────────────╮
+    │ ┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━┓ │
+    │ ┃ Prompt     ┃ Completion   ┃ Reward ┃ │
+    │ ┡━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━┩ │
+    │ │ The sky is │  blue.       │   0.12 │ │
+    │ ├────────────┼──────────────┼────────┤ │
+    │ │ The sun is │  in the sky. │   0.68 │ │
+    │ └────────────┴──────────────┴────────┘ │
+    ╰────────────────────────────────────────╯
+    ```
+    """
+    # if not is_rich_available():
+    #     raise ImportError("This feature requires `rich` to be installed. Please install it first: `pip install rich`")
 
-#     console = Console()
-#     table = Table(show_header=True, header_style="bold white", expand=True)
+    console = Console()
+    table = Table(show_header=True, header_style="bold white", expand=True)
 
-#     # Add columns
-#     table.add_column("Prompt", style="bright_yellow")
-#     table.add_column("Completion", style="bright_green")
-#     table.add_column("Reward", style="bold cyan", justify="right")
+    # Add columns
+    table.add_column("Prompt", style="bright_yellow")
+    table.add_column("Completion", style="bright_green")
+    table.add_column("Reward", style="bold cyan", justify="right")
 
-#     for prompt, completion, reward in zip(prompts, completions, rewards, strict=True):
-#         table.add_row(Text(prompt), Text(completion), f"{reward:.2f}")  # Formatting reward to 2 decimal places
-#         table.add_section()  # Adds a separator between rows
+    for prompt, completion, reward in zip(prompts, completions, rewards, strict=True):
+        table.add_row(Text(prompt), Text(completion), f"{reward:.2f}")  # Formatting reward to 2 decimal places
+        table.add_section()  # Adds a separator between rows
 
-#     panel = Panel(table, expand=False, title=f"Step {step}", border_style="bold white")
-#     console.print(panel)
+    panel = Panel(table, expand=False, title=f"Step {step}", border_style="bold white")
+    console.print(panel)
 
 @contextlib.contextmanager
 def profiling_context(trainer: Trainer, name: str) -> Generator[None, None, None]:
@@ -155,37 +155,42 @@ def _generate_and_score_completions(
     single_sampling_params.n = 1
 
     if self.args.use_vllm:
-        # Gather all prompts from all processes.
         all_prompts_text = gather_object(prompts_text)
         if self.accelerator.is_main_process:
-            # Remove duplicates to generate one A1 per unique prompt.
-            unique_prompts = list(dict.fromkeys(all_prompts_text))
-            with profiling_context(self, "vLLM.generate (A1)"):
-                all_outputs = self.llm.generate(
-                    unique_prompts, sampling_params=single_sampling_params, use_tqdm=False
-                )
-            # Build a dictionary mapping each unique prompt to its generated A1.
-            unique_a1 = {}
-            for prompt, output in zip(unique_prompts, all_outputs):
-                # We take the first generated completion for each unique prompt.
-                token_ids = output.outputs[0].token_ids
-                # Decode the tokens into a string.
-                decoded = self.processing_class.batch_decode(
-                    [torch.tensor(token_ids, device=self.accelerator.device)],
-                    skip_special_tokens=True,
-                )[0]
-                unique_a1[prompt] = decoded
+            # Remove duplicates for faster generation of A1
+            ordered_set_of_prompts = list(dict.fromkeys(all_prompts_text))
+            # with profiling_context(self, "vLLM.generate (A1)"):
+            all_outputs = self.llm.generate(
+                ordered_set_of_prompts, sampling_params=single_sampling_params, use_tqdm=False
+            )
+            a1_ids_list = []
+            for outputs in all_outputs:
+                for output in outputs.outputs:
+                    a1_ids_list.append(output.token_ids)
         else:
-            unique_a1 = None
-        # Broadcast the dictionary from the main process to all processes.
-        unique_a1 = broadcast_object_list(unique_a1, from_process=0)
-        # For each original prompt, get its corresponding A1.
-        a1_text = [unique_a1[p] for p in prompts_text]
-        print(f"Example A1: {a1_text[0]}")
-    else:
-        # In case of non-vllm branch (not used here), you would generate A1 per prompt.
-        raise NotImplementedError("Non-vllm branch not implemented in this custom trainer.")
+            a1_ids_list = [None] * len(all_prompts_text)
+        # MINWU: MAYBE NOT NECESSARY
+        # a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
+        process_slice = slice(
+            self.accelerator.process_index * len(prompts),
+            (self.accelerator.process_index + 1) * len(prompts),
+        )
+        a1_ids_list = a1_ids_list[process_slice]
+        print(f"HOW MANY A1 IDS: {len(a1_ids_list)}")
 
+        # Convert and pad A1 token ids
+        a1_ids = [torch.tensor(ids, device=self.accelerator.device) for ids in a1_ids_list]
+        a1_ids = pad(a1_ids, padding_value=self.processing_class.pad_token_id)
+    else:
+        print("SHOULDN'T SEE ME")
+        # MINWU:SHOULD NOT SEE ME
+        # with unwrap_model_for_generation(self.model_wrapped, self.accelerator) as unwrapped_model:
+        #     a1_ids = unwrapped_model.generate(
+        #         prompt_ids, attention_mask=prompt_mask, generation_config=single_sampling_params
+        #     )
+
+    # Decode the generated A1 completions
+    a1_text = self.processing_class.batch_decode(a1_ids, skip_special_tokens=True)
 
     # 3. Construct new prompt: (Q, A1) concatenated with extra context (added_instruction)
     added_instruction = (
@@ -195,7 +200,7 @@ def _generate_and_score_completions(
         "i.e., <think> reasoning process here </think> <answer> solution here </answer>. "
         "Ensure the final answer in the solution is formatted within \\boxed{}, so that the response can be directly extracted for grading."
     )
-
+    # MINWU COMEBACK: REMOVE INSTRUCTION.
     new_prompts_text = [orig + a1 + added_instruction for orig, a1 in zip(prompts_text, a1_text)]
     # MINWU PRINTS
     print(f"HOW MANY NEW PROMPT TEXTS: {len(new_prompts_text)}")
@@ -214,65 +219,40 @@ def _generate_and_score_completions(
 
     # 4. Second Generation: Generate A2 using the original sampling_params (multiple generations)
     if self.args.use_vllm:
-        # Use the full list of new_prompts_text (without deduplication)
         all_new_prompts_text = gather_object(new_prompts_text)
         if self.accelerator.is_main_process:
-            with profiling_context(self, "vLLM.generate (A2)"):
-                all_outputs = self.llm.generate(
-                    all_new_prompts_text, sampling_params=self.sampling_params, use_tqdm=False
-                )
-            # all_outputs should now be a list with one output per prompt in all_new_prompts_text.
-            a2_ids_list = [output.outputs[0].token_ids for output in all_outputs]
+            ordered_set_of_new_prompts = list(dict.fromkeys(all_new_prompts_text))
+            # with profiling_context(self, "vLLM.generate (A2)"):
+            all_outputs = self.llm.generate(
+                ordered_set_of_new_prompts, sampling_params=self.sampling_params, use_tqdm=False
+            )
+            a2_ids_list = []
+            for outputs in all_outputs:
+                for output in outputs.outputs:
+                    a2_ids_list.append(output.token_ids)
         else:
             a2_ids_list = [None] * len(all_new_prompts_text)
-        # Broadcast so every process has the same A2 completions.
         a2_ids_list = broadcast_object_list(a2_ids_list, from_process=0)
-        # No slicing is needed now because we have one A2 per new prompt.
-        
+        process_slice = slice(
+            self.accelerator.process_index * len(prompts),
+            (self.accelerator.process_index + 1) * len(prompts),
+        )
+        a2_ids_list = a2_ids_list[process_slice]
+        # MINWU PRINTS
+        print(f"HOW MANY A2 IDS: {len(a2_ids_list)}")
+
         # Convert and pad A2 token ids, then concatenate with the new prompt tokens
         a2_ids = [torch.tensor(ids, device=self.accelerator.device) for ids in a2_ids_list]
         a2_ids = pad(a2_ids, padding_value=self.processing_class.pad_token_id)
         prompt_completion_ids = torch.cat([new_prompt_ids, a2_ids], dim=1)
     else:
-        raise NotImplementedError("Non-vllm branch not implemented in this custom trainer.")
-
-
-    # # 4 OLD. Second Generation: Generate A2 using the original sampling_params (multiple generations)
-    # if self.args.use_vllm:
-    #     all_new_prompts_text = gather_object(new_prompts_text)
-    #     if self.accelerator.is_main_process:
-    #         ordered_set_of_new_prompts = list(dict.fromkeys(all_new_prompts_text))
-    #         with profiling_context(self, "vLLM.generate (A2)"):
-    #             all_outputs = self.llm.generate(
-    #                 ordered_set_of_new_prompts, sampling_params=self.sampling_params, use_tqdm=False
-    #             )
-    #         a2_ids_list = []
-    #         for outputs in all_outputs:
-    #             for output in outputs.outputs:
-    #                 a2_ids_list.append(output.token_ids)
-    #     else:
-    #         a2_ids_list = [None] * len(all_new_prompts_text)
-    #     a2_ids_list = broadcast_object_list(a2_ids_list, from_process=0)
-    #     process_slice = slice(
-    #         self.accelerator.process_index * len(prompts),
-    #         (self.accelerator.process_index + 1) * len(prompts),
-    #     )
-    #     a2_ids_list = a2_ids_list[process_slice]
-    #     # MINWU PRINTS
-    #     print(f"HOW MANY A2 IDS: {len(a2_ids_list)}")
-
-    #     # Convert and pad A2 token ids, then concatenate with the new prompt tokens
-    #     a2_ids = [torch.tensor(ids, device=self.accelerator.device) for ids in a2_ids_list]
-    #     a2_ids = pad(a2_ids, padding_value=self.processing_class.pad_token_id)
-    #     prompt_completion_ids = torch.cat([new_prompt_ids, a2_ids], dim=1)
-    # else:
-    #     print("SHOULDN'T SEE ME")
-    #     # MINWU: SHOULD NOT SEE ME
-    #     # with unwrap_model_for_generation(self.model_wrapped, self.accelerator) as unwrapped_model:
-    #     #     prompt_completion_ids = unwrapped_model.generate(
-    #     #         new_prompt_ids, attention_mask=new_prompt_mask, generation_config=self.generation_config
-    #     #     )
-    #     # a2_ids = prompt_completion_ids[:, new_prompt_ids.size(1):]
+        print("SHOULDN'T SEE ME")
+        # MINWU: SHOULD NOT SEE ME
+        # with unwrap_model_for_generation(self.model_wrapped, self.accelerator) as unwrapped_model:
+        #     prompt_completion_ids = unwrapped_model.generate(
+        #         new_prompt_ids, attention_mask=new_prompt_mask, generation_config=self.generation_config
+        #     )
+        # a2_ids = prompt_completion_ids[:, new_prompt_ids.size(1):]
 
     # 5. Create completion mask: mask tokens after the first EOS in A2
     device = self.accelerator.device
@@ -315,6 +295,7 @@ def _generate_and_score_completions(
             completions.append([{"role": "assistant", "content": bootstrap + completion}])
     else:
         completions = completions_text
+
     print(f"HOW MANY COMPLETIONS: {len(completions)}")
     print(f"COMPLETIONS EXAMPLE: {completions[0]}")
 
@@ -327,24 +308,24 @@ def _generate_and_score_completions(
             reward_func_name = f"reward {reward_func.config._name_or_path.split('/')[-1]}"
         else:
             reward_func_name = reward_func.__name__
-        with profiling_context(self, reward_func_name):
-            if isinstance(reward_func, nn.Module):
-                if is_conversational(inputs[0]):
-                    messages = [{"messages": p + c} for p, c in zip(new_prompts_text, completions)]
-                    texts = [apply_chat_template(x, reward_processing_class)["text"] for x in messages]
-                else:
-                    texts = [p + c for p, c in zip(new_prompts_text, completions)]
-                reward_inputs = reward_processing_class(
-                    texts, return_tensors="pt", padding=True, padding_side="right", add_special_tokens=False
-                )
-                reward_inputs = super()._prepare_inputs(reward_inputs)
-                with torch.inference_mode():
-                    rewards_per_func[:, i] = reward_func(**reward_inputs).logits[:, 0]
+        # with profiling_context(self, reward_func_name):
+        if isinstance(reward_func, nn.Module):
+            if is_conversational(inputs[0]):
+                messages = [{"messages": p + c} for p, c in zip(new_prompts_text, completions)]
+                texts = [apply_chat_template(x, reward_processing_class)["text"] for x in messages]
             else:
-                keys = [key for key in inputs[0] if key not in ["prompt", "completion"]]
-                reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
-                output_reward_func = reward_func(prompts=new_prompts_text, completions=completions, **reward_kwargs)
-                rewards_per_func[:, i] = torch.tensor(output_reward_func, dtype=torch.float32, device=device)
+                texts = [p + c for p, c in zip(new_prompts_text, completions)]
+            reward_inputs = reward_processing_class(
+                texts, return_tensors="pt", padding=True, padding_side="right", add_special_tokens=False
+            )
+            reward_inputs = super()._prepare_inputs(reward_inputs)
+            with torch.inference_mode():
+                rewards_per_func[:, i] = reward_func(**reward_inputs).logits[:, 0]
+        else:
+            keys = [key for key in inputs[0] if key not in ["prompt", "completion"]]
+            reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
+            output_reward_func = reward_func(prompts=new_prompts_text, completions=completions, **reward_kwargs)
+            rewards_per_func[:, i] = torch.tensor(output_reward_func, dtype=torch.float32, device=device)
 
     rewards_per_func = gather(rewards_per_func)
     rewards = (rewards_per_func * self.reward_weights.to(device).unsqueeze(0)).sum(dim=1)
