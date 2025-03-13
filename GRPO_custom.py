@@ -195,8 +195,6 @@ def _generate_and_score_completions(
         "i.e., <think> reasoning process here </think> <answer> solution here </answer>. "
         "Ensure the final answer in the solution is formatted within \\boxed{}, so that the response can be directly extracted for grading."
     )
-    # MINWU COMEBACK: REMOVE INSTRUCTION.
-
 
     new_prompts_text = [orig + a1 + added_instruction for orig, a1 in zip(prompts_text, a1_text)]
     # MINWU PRINTS
@@ -216,40 +214,65 @@ def _generate_and_score_completions(
 
     # 4. Second Generation: Generate A2 using the original sampling_params (multiple generations)
     if self.args.use_vllm:
+        # Use the full list of new_prompts_text (without deduplication)
         all_new_prompts_text = gather_object(new_prompts_text)
         if self.accelerator.is_main_process:
-            ordered_set_of_new_prompts = list(dict.fromkeys(all_new_prompts_text))
             with profiling_context(self, "vLLM.generate (A2)"):
                 all_outputs = self.llm.generate(
-                    ordered_set_of_new_prompts, sampling_params=self.sampling_params, use_tqdm=False
+                    all_new_prompts_text, sampling_params=self.sampling_params, use_tqdm=False
                 )
-            a2_ids_list = []
-            for outputs in all_outputs:
-                for output in outputs.outputs:
-                    a2_ids_list.append(output.token_ids)
+            # all_outputs should now be a list with one output per prompt in all_new_prompts_text.
+            a2_ids_list = [output.outputs[0].token_ids for output in all_outputs]
         else:
             a2_ids_list = [None] * len(all_new_prompts_text)
+        # Broadcast so every process has the same A2 completions.
         a2_ids_list = broadcast_object_list(a2_ids_list, from_process=0)
-        process_slice = slice(
-            self.accelerator.process_index * len(prompts),
-            (self.accelerator.process_index + 1) * len(prompts),
-        )
-        a2_ids_list = a2_ids_list[process_slice]
-        # MINWU PRINTS
-        print(f"HOW MANY A2 IDS: {len(a2_ids_list)}")
-
+        # No slicing is needed now because we have one A2 per new prompt.
+        
         # Convert and pad A2 token ids, then concatenate with the new prompt tokens
         a2_ids = [torch.tensor(ids, device=self.accelerator.device) for ids in a2_ids_list]
         a2_ids = pad(a2_ids, padding_value=self.processing_class.pad_token_id)
         prompt_completion_ids = torch.cat([new_prompt_ids, a2_ids], dim=1)
     else:
-        print("SHOULDN'T SEE ME")
-        # MINWU: SHOULD NOT SEE ME
-        # with unwrap_model_for_generation(self.model_wrapped, self.accelerator) as unwrapped_model:
-        #     prompt_completion_ids = unwrapped_model.generate(
-        #         new_prompt_ids, attention_mask=new_prompt_mask, generation_config=self.generation_config
-        #     )
-        # a2_ids = prompt_completion_ids[:, new_prompt_ids.size(1):]
+        raise NotImplementedError("Non-vllm branch not implemented in this custom trainer.")
+
+
+    # # 4 OLD. Second Generation: Generate A2 using the original sampling_params (multiple generations)
+    # if self.args.use_vllm:
+    #     all_new_prompts_text = gather_object(new_prompts_text)
+    #     if self.accelerator.is_main_process:
+    #         ordered_set_of_new_prompts = list(dict.fromkeys(all_new_prompts_text))
+    #         with profiling_context(self, "vLLM.generate (A2)"):
+    #             all_outputs = self.llm.generate(
+    #                 ordered_set_of_new_prompts, sampling_params=self.sampling_params, use_tqdm=False
+    #             )
+    #         a2_ids_list = []
+    #         for outputs in all_outputs:
+    #             for output in outputs.outputs:
+    #                 a2_ids_list.append(output.token_ids)
+    #     else:
+    #         a2_ids_list = [None] * len(all_new_prompts_text)
+    #     a2_ids_list = broadcast_object_list(a2_ids_list, from_process=0)
+    #     process_slice = slice(
+    #         self.accelerator.process_index * len(prompts),
+    #         (self.accelerator.process_index + 1) * len(prompts),
+    #     )
+    #     a2_ids_list = a2_ids_list[process_slice]
+    #     # MINWU PRINTS
+    #     print(f"HOW MANY A2 IDS: {len(a2_ids_list)}")
+
+    #     # Convert and pad A2 token ids, then concatenate with the new prompt tokens
+    #     a2_ids = [torch.tensor(ids, device=self.accelerator.device) for ids in a2_ids_list]
+    #     a2_ids = pad(a2_ids, padding_value=self.processing_class.pad_token_id)
+    #     prompt_completion_ids = torch.cat([new_prompt_ids, a2_ids], dim=1)
+    # else:
+    #     print("SHOULDN'T SEE ME")
+    #     # MINWU: SHOULD NOT SEE ME
+    #     # with unwrap_model_for_generation(self.model_wrapped, self.accelerator) as unwrapped_model:
+    #     #     prompt_completion_ids = unwrapped_model.generate(
+    #     #         new_prompt_ids, attention_mask=new_prompt_mask, generation_config=self.generation_config
+    #     #     )
+    #     # a2_ids = prompt_completion_ids[:, new_prompt_ids.size(1):]
 
     # 5. Create completion mask: mask tokens after the first EOS in A2
     device = self.accelerator.device
