@@ -159,10 +159,10 @@ def _generate_and_score_completions(
         if self.accelerator.is_main_process:
             # Remove duplicates for faster generation of A1
             ordered_set_of_prompts = list(dict.fromkeys(all_prompts_text))
-            # with profiling_context(self, "vLLM.generate (A1)"):
-            all_outputs = self.llm.generate(
-                ordered_set_of_prompts, sampling_params=single_sampling_params, use_tqdm=False
-            )
+            with profiling_context(self, "vLLM.generate (A1)"):
+                all_outputs = self.llm.generate(
+                    ordered_set_of_prompts, sampling_params=single_sampling_params, use_tqdm=False
+                )
             a1_ids_list = []
             for outputs in all_outputs:
                 for output in outputs.outputs:
@@ -222,10 +222,10 @@ def _generate_and_score_completions(
         all_new_prompts_text = gather_object(new_prompts_text)
         if self.accelerator.is_main_process:
             ordered_set_of_new_prompts = list(dict.fromkeys(all_new_prompts_text))
-            # with profiling_context(self, "vLLM.generate (A2)"):
-            all_outputs = self.llm.generate(
-                ordered_set_of_new_prompts, sampling_params=self.sampling_params, use_tqdm=False
-            )
+            with profiling_context(self, "vLLM.generate (A2)"):
+                all_outputs = self.llm.generate(
+                    ordered_set_of_new_prompts, sampling_params=self.sampling_params, use_tqdm=False
+                )
             a2_ids_list = []
             for outputs in all_outputs:
                 for output in outputs.outputs:
@@ -308,24 +308,24 @@ def _generate_and_score_completions(
             reward_func_name = f"reward {reward_func.config._name_or_path.split('/')[-1]}"
         else:
             reward_func_name = reward_func.__name__
-        # with profiling_context(self, reward_func_name):
-        if isinstance(reward_func, nn.Module):
-            if is_conversational(inputs[0]):
-                messages = [{"messages": p + c} for p, c in zip(new_prompts_text, completions)]
-                texts = [apply_chat_template(x, reward_processing_class)["text"] for x in messages]
+        with profiling_context(self, reward_func_name):
+            if isinstance(reward_func, nn.Module):
+                if is_conversational(inputs[0]):
+                    messages = [{"messages": p + c} for p, c in zip(new_prompts_text, completions)]
+                    texts = [apply_chat_template(x, reward_processing_class)["text"] for x in messages]
+                else:
+                    texts = [p + c for p, c in zip(new_prompts_text, completions)]
+                reward_inputs = reward_processing_class(
+                    texts, return_tensors="pt", padding=True, padding_side="right", add_special_tokens=False
+                )
+                reward_inputs = super()._prepare_inputs(reward_inputs)
+                with torch.inference_mode():
+                    rewards_per_func[:, i] = reward_func(**reward_inputs).logits[:, 0]
             else:
-                texts = [p + c for p, c in zip(new_prompts_text, completions)]
-            reward_inputs = reward_processing_class(
-                texts, return_tensors="pt", padding=True, padding_side="right", add_special_tokens=False
-            )
-            reward_inputs = super()._prepare_inputs(reward_inputs)
-            with torch.inference_mode():
-                rewards_per_func[:, i] = reward_func(**reward_inputs).logits[:, 0]
-        else:
-            keys = [key for key in inputs[0] if key not in ["prompt", "completion"]]
-            reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
-            output_reward_func = reward_func(prompts=new_prompts_text, completions=completions, **reward_kwargs)
-            rewards_per_func[:, i] = torch.tensor(output_reward_func, dtype=torch.float32, device=device)
+                keys = [key for key in inputs[0] if key not in ["prompt", "completion"]]
+                reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
+                output_reward_func = reward_func(prompts=new_prompts_text, completions=completions, **reward_kwargs)
+                rewards_per_func[:, i] = torch.tensor(output_reward_func, dtype=torch.float32, device=device)
 
     rewards_per_func = gather(rewards_per_func)
     rewards = (rewards_per_func * self.reward_weights.to(device).unsqueeze(0)).sum(dim=1)
@@ -377,6 +377,8 @@ def _generate_and_score_completions(
                     "prompt": prompts_to_log,
                     "completion": completions_to_log,
                     "reward": rewards.tolist(),
+                    "comp":[completions_text[0]] * len(rewards),
+                    "prom": [new_prompts_text[0]] * len(rewards)
                 }
                 df = pd.DataFrame(table)
                 wandb.log({"completions": wandb.Table(dataframe=df)})
