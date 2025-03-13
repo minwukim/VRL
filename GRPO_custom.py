@@ -1,4 +1,5 @@
-from typing import Callable, Optional, Union, Any, List, Dict
+from typing import Callable, Optional, Union, Any, List, Dict, Generator
+import contextlib
 
 import torch
 from torch import nn
@@ -7,9 +8,113 @@ from accelerate.utils import broadcast_object_list, gather, gather_object
 from datasets import Dataset, IterableDataset
 
 from trl import GRPOTrainer, GRPOConfig
-from trl.data_utils import apply_chat_template, maybe_apply_chat_template
+from trl.data_utils import apply_chat_template, maybe_apply_chat_template, is_conversational
 from trl.trainer.utils import pad
 from copy import deepcopy
+
+from transformers import Trainer, iswandb_available, is_rich_available
+
+if iswandb_available():
+    import wandb
+
+import time
+
+if is_rich_available():
+    from rich.console import Console
+    from rich.panel import Panel
+    from rich.table import Table
+    from rich.text import Text
+
+from copy import deepcopy
+
+
+def print_prompt_completions_sample(prompts: list[str], completions: list[str], rewards: list[int], step: int) -> None:
+    """
+    Print out a sample of model completions to the console.
+
+    This function creates a nicely formatted table showing prompt-completion pairs, useful for monitoring model outputs
+    during training. It requires the `rich` library to be installed.
+
+    Args:
+        prompts (`list[str]`):
+            List of prompts.
+        completions (`list[str]`):
+            List of completions corresponding to the prompts.
+        reward (`list[float]`):
+            List of rewards corresponding to the completions.
+        step (`int`):
+            Current training step number, used in the output title.
+
+    Example:
+    ```python
+    >>> from trl.trainer.utils import print_prompt_completions_sample
+    >>> prompts = ["The sky is", "The sun is"]
+    >>> completions = [" blue.", " in the sky."]
+    >>> rewards = [0.12345, 0.68789]
+    >>> print_prompt_completions_sample(prompts, completions, rewards, 42)
+    ╭─────────────── Step 42 ────────────────╮
+    │ ┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━┓ │
+    │ ┃ Prompt     ┃ Completion   ┃ Reward ┃ │
+    │ ┡━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━┩ │
+    │ │ The sky is │  blue.       │   0.12 │ │
+    │ ├────────────┼──────────────┼────────┤ │
+    │ │ The sun is │  in the sky. │   0.68 │ │
+    │ └────────────┴──────────────┴────────┘ │
+    ╰────────────────────────────────────────╯
+    ```
+    """
+    if not is_rich_available():
+        raise ImportError("This feature requires `rich` to be installed. Please install it first: `pip install rich`")
+
+    console = Console()
+    table = Table(show_header=True, header_style="bold white", expand=True)
+
+    # Add columns
+    table.add_column("Prompt", style="bright_yellow")
+    table.add_column("Completion", style="bright_green")
+    table.add_column("Reward", style="bold cyan", justify="right")
+
+    for prompt, completion, reward in zip(prompts, completions, rewards, strict=True):
+        table.add_row(Text(prompt), Text(completion), f"{reward:.2f}")  # Formatting reward to 2 decimal places
+        table.add_section()  # Adds a separator between rows
+
+    panel = Panel(table, expand=False, title=f"Step {step}", border_style="bold white")
+    console.print(panel)
+
+@contextlib.contextmanager
+def profiling_context(trainer: Trainer, name: str) -> Generator[None, None, None]:
+    """
+    A context manager function for profiling a block of code. Results are logged to Weights & Biases if enabled.
+
+    Args:
+        trainer (`~transformers.Trainer`):
+            Trainer object.
+        name (`str`):
+            Name of the block to be profiled. Used as a key in the logged dictionary.
+
+    Example:
+    ```python
+    from transformers import Trainer
+    from trl.extras.profiling import profiling_context
+
+    class MyTrainer(Trainer):
+        def some_method(self):
+            A = np.random.rand(1000, 1000)
+            B = np.random.rand(1000, 1000)
+            with profiling_context(self, "matrix_multiplication"):
+                # Code to profile: simulate a computationally expensive operation
+                result = A @ B  # Matrix multiplication
+    ```
+    """
+    start_time = time.perf_counter()
+    yield
+    end_time = time.perf_counter()
+    duration = end_time - start_time
+
+    if "wandb" in trainer.args.report_to and wandb.run is not None and trainer.accelerator.is_main_process:
+        wandb.log({f"profiling/Time taken: {trainer.__class__.__name__}.{name}": duration})
+
+
 
 # Define RewardFunc as before
 RewardFunc = Union[str, PreTrainedModel, Callable[[list, list], list[float]]]
@@ -25,316 +130,265 @@ class CustomGRPOTrainer(GRPOTrainer):
     which is required for correct grouping and advantage computation in GRPO.
     """
     
-    def _generate_and_score_completions(
-        self, inputs: dict[str, Union[torch.Tensor, Any]]
-    ) -> dict[str, Union[torch.Tensor, Any]]:
-        device = self.accelerator.device
-        
-        # ------------------------------
-        # Step 1: Prepare Original Prompts
-        # ------------------------------
-        # Extract original questions from each input sample.
-        prompts = [x["prompt"] for x in inputs]  # List of questions Q
-        prompts_text = [
-            maybe_apply_chat_template(example, self.processing_class)["prompt"]
-            for example in inputs
-        ]
-        
-        # Convert questions to token IDs
-        prompt_inputs = self.processing_class(
-            prompts_text,
-            return_tensors="pt",
-            padding=True,
-            padding_side="left",
-            add_special_tokens=False,
-        )
+    
+def _generate_and_score_completions(
+    self, inputs: dict[str, Union[torch.Tensor, Any]]
+) -> dict[str, Union[torch.Tensor, Any]]:
+    # 1. Preprocess the original prompt (Q)
+    prompts = [x["prompt"] for x in inputs]
+    prompts_text = [maybe_apply_chat_template(example, self.processing_class)["prompt"] for example in inputs]
 
-        #### MINWU Q: Why not prompt_inputs = super()._prepare_inputs(prompt_inputs)
-        prompt_inputs = Trainer._prepare_inputs(self, prompt_inputs)
-        prompt_ids, prompt_mask = prompt_inputs["input_ids"], prompt_inputs["attention_mask"]
-        
-        if self.max_prompt_length is not None:
-            prompt_ids = prompt_ids[:, -self.max_prompt_length :]
-            prompt_mask = prompt_mask[:, -self.max_prompt_length :]
+    # MINWU PRINTS
+    print(f"HOW MANY PROMPT TEXTS: {len(prompts_text)}")
+    prompt_inputs = self.processing_class(
+        prompts_text, return_tensors="pt", padding=True, padding_side="left", add_special_tokens=False
+    )
+    prompt_inputs = super()._prepare_inputs(prompt_inputs)
+    prompt_ids, prompt_mask = prompt_inputs["input_ids"], prompt_inputs["attention_mask"]
 
-        # ------------------------------
-        # Step 1.1: Remove Duplicate Prompts
-        # ------------------------------
-        # Build a mapping from unique prompt text to indices in the original list.
-        unique_prompts: Dict[str, List[int]] = {}
-        for idx, p in enumerate(prompts_text):
-            unique_prompts.setdefault(p, []).append(idx)
-        
-        unique_prompts_text = list(unique_prompts.keys())
-        
-        # ------------------------------
-        # Step 2: Generate Initial Answer A for Unique Prompts
-        # ------------------------------
-        # Ensure the vLLM weights are reloaded if needed.
-        if self.state.global_step != self._last_loaded_step:
-            self._move_model_to_vllm()
-            self._last_loaded_step = self.state.global_step
+    if self.max_prompt_length is not None:
+        prompt_ids = prompt_ids[:, -self.max_prompt_length :]
+        prompt_mask = prompt_mask[:, -self.max_prompt_length :]
 
-        # Generate initial answer for each unique prompt.
-        if self.args.use_vllm:
-            print("YOU SHOULD SEE ME: using vllm to generate initial answers.")
+    # 2. First Generation: Generate A1 using a modified sampling parameter (n=1)
+    single_sampling_params = deepcopy(self.sampling_params)
+    single_sampling_params.n = 1
 
-            # Create a copy of sampling_params with n set to 1.
-            single_sampling_params = deepcopy(self.sampling_params)
-            single_sampling_params.n = 1
-            
-            all_unique_prompts = gather_object(unique_prompts_text)
-            if self.accelerator.is_main_process:
-                initial_outputs = self.llm.generate(
-                    all_unique_prompts,
-                    sampling_params=single_sampling_params,
-                    use_tqdm=False,
+    if self.args.use_vllm:
+        all_prompts_text = gather_object(prompts_text)
+        if self.accelerator.is_main_process:
+            # Remove duplicates for faster generation of A1
+            ordered_set_of_prompts = list(dict.fromkeys(all_prompts_text))
+            with profiling_context(self, "vLLM.generate (A1)"):
+                all_outputs = self.llm.generate(
+                    ordered_set_of_prompts, sampling_params=single_sampling_params, use_tqdm=False
                 )
-
-                unique_initial_answer_ids = []
-                for outputs in initial_outputs:
-                    # Taking the first generation from vLLM output for each unique prompt.
-                    unique_initial_answer_ids.append(
-                        torch.tensor(outputs.outputs[0].token_ids, device=device)
-                    )
-            else:
-                unique_initial_answer_ids = [None] * len(unique_prompts_text)
-            unique_initial_answer_ids = broadcast_object_list(unique_initial_answer_ids, from_process=0)
-            # Pad the list of generated token IDs into a tensor.
-            unique_initial_answer_ids = pad(unique_initial_answer_ids, padding_value=self.processing_class.pad_token_id)
+            a1_ids_list = []
+            for outputs in all_outputs:
+                for output in outputs.outputs:
+                    a1_ids_list.append(output.token_ids)
         else:
-            print("YOU SHOULD NOT SEE ME: using model to generate initial answers.")
-            with torch.no_grad():
-                unique_prompt_inputs = self.processing_class(
-                    unique_prompts_text,
-                    return_tensors="pt",
-                    padding=True,
-                    padding_side="left",
-                    add_special_tokens=False,
-                )
-                unique_prompt_inputs = Trainer._prepare_inputs(self, unique_prompt_inputs)
-                unique_prompt_ids = unique_prompt_inputs["input_ids"]
-                unique_prompt_mask = unique_prompt_inputs["attention_mask"]
-                if self.max_prompt_length is not None:
-                    unique_prompt_ids = unique_prompt_ids[:, -self.max_prompt_length :]
-                    unique_prompt_mask = unique_prompt_mask[:, -self.max_prompt_length :]
-                generated = self.model.generate(
-                    unique_prompt_ids,
-                    attention_mask=unique_prompt_mask,
-                    max_new_tokens=self.max_completion_length,
-                    generation_config=self.generation_config,
-                )
-                # Keep only the answer part.
-                unique_initial_answer_ids = generated[:, unique_prompt_ids.shape[1]:]
-        
-        # Decode generated answers to text
-        unique_answers_text = self.processing_class.batch_decode(unique_initial_answer_ids, skip_special_tokens=True)
-        print(f"Generated {len(unique_answers_text)} initial answers.")
-        print(unique_answers_text[0])
-        
-        # Map the unique answers back to the original prompt order.
-        answers_text = [None] * len(prompts_text)
-        for prompt_text, indices in unique_prompts.items():
-            # All instances of the same prompt receive the same answer.
-            unique_idx = unique_prompts_text.index(prompt_text)
-            answer = unique_answers_text[unique_idx]
-            for idx in indices:
-                answers_text[idx] = answer
-        
-        # ------------------------------
-        # Step 2.1: Duplicate (Q,A) Pair by num_generations
-        # ------------------------------
-        # GRPO expects each prompt to be repeated num_generations times.
-        # We duplicate the prompt text and its corresponding answer accordingly.
-        duplicated_prompts_text = []
-        duplicated_answers_text = []
-        for q, a in zip(prompts_text, answers_text):
-            # for _ in range(self.num_generations):
-            for _ in range(1):
-                duplicated_prompts_text.append(q)
-                duplicated_answers_text.append(a)
-        
-        print(f"Generated {len(duplicated_prompts_text)} duplicated prompts.")
-        # ------------------------------
-        # Step 3: Construct New Prompts for Judgment
-        # ------------------------------
-        # Build new prompts by combining duplicated question and answer with an added instruction.
-        added_instruction = (
-            "\n Given the question and the response provided, go through the reasoning process of the response and check if the response is correct or not. "
-            "Then, try to resolve the problem if incorrect, and return the same final answer if you think it is correct. "
-            "Enclose your reasoning of checking and resolving process within <think> </think> tags and the final solution within <answer> </answer> tags, "
-            "i.e., <think> reasoning process here </think> <answer> solution here </answer>. "
-            "Ensure the final answer in the solution is formatted within \\boxed{}, so that the response can be directly extracted for grading."
+            a1_ids_list = [None] * len(all_prompts_text)
+        # MINWU: MAYBE NOT NECESSARY
+        # a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
+        process_slice = slice(
+            self.accelerator.process_index * len(prompts),
+            (self.accelerator.process_index + 1) * len(prompts),
         )
+        a1_ids_list = a1_ids_list[process_slice]
+        print(f"HOW MANY A1 IDS: {len(a1_ids_list)}")
 
-        new_prompts_text = []
-        for q, a in zip(duplicated_prompts_text, duplicated_answers_text):
-            new_prompt = f"Question: {q}\nAnswer: {a}{added_instruction}"
-            new_prompts_text.append(new_prompt)
-        
-        # Tokenize the new prompts.
-        new_prompt_inputs = self.processing_class(
-            new_prompts_text,
-            return_tensors="pt",
-            padding=True,
-            padding_side="left",
-            add_special_tokens=False,
-        )
-        new_prompt_inputs = Trainer._prepare_inputs(self, new_prompt_inputs)
-        new_prompt_ids, new_prompt_mask = new_prompt_inputs["input_ids"], new_prompt_inputs["attention_mask"]
-        if self.max_prompt_length is not None:
-            new_prompt_ids = new_prompt_ids[:, -self.max_prompt_length :]
-            new_prompt_mask = new_prompt_mask[:, -self.max_prompt_length :]
-        
-        # ------------------------------
-        # Step 4: Generate Judgment J
-        # ------------------------------
-        # Generate the judgment (expected to be "correct" or "incorrect")
-        if self.args.use_vllm:
-            all_new_prompts = gather_object(new_prompts_text)
-            if self.accelerator.is_main_process:
-                judgment_outputs = self.llm.generate(
-                    all_new_prompts,
-                    sampling_params=self.sampling_params,
-                    use_tqdm=False,
+        # Convert and pad A1 token ids
+        a1_ids = [torch.tensor(ids, device=self.accelerator.device) for ids in a1_ids_list]
+        a1_ids = pad(a1_ids, padding_value=self.processing_class.pad_token_id)
+    else:
+        print("SHOULDN'T SEE ME")
+        # MINWU:SHOULD NOT SEE ME
+        # with unwrap_model_for_generation(self.model_wrapped, self.accelerator) as unwrapped_model:
+        #     a1_ids = unwrapped_model.generate(
+        #         prompt_ids, attention_mask=prompt_mask, generation_config=single_sampling_params
+        #     )
+
+    # Decode the generated A1 completions
+    a1_text = self.processing_class.batch_decode(a1_ids, skip_special_tokens=True)
+
+    # 3. Construct new prompt: (Q, A1) concatenated with extra context (added_instruction)
+    added_instruction = (
+        "\n Given the question and the response provided, go through the reasoning process of the response and check if the response is correct or not. "
+        "Then, try to resolve the problem if incorrect, and return the same final answer if you think it is correct. "
+        "Enclose your reasoning of checking and resolving process within <think> </think> tags and the final solution within <answer> </answer> tags, "
+        "i.e., <think> reasoning process here </think> <answer> solution here </answer>. "
+        "Ensure the final answer in the solution is formatted within \\boxed{}, so that the response can be directly extracted for grading."
+    )
+    # MINWU COMEBACK: REMOVE INSTRUCTION.
+    new_prompts_text = [orig + a1 + added_instruction for orig, a1 in zip(prompts_text, a1_text)]
+    # MINWU PRINTS
+    print(f"HOW MANY NEW PROMPT TEXTS: {len(new_prompts_text)}")
+    print(f"NEW PROMPT TEXT EXAMPLE: {new_prompts_text[0]}")
+    
+    # Preprocess the new prompt (Q, A1, added_instruction)
+    new_prompt_inputs = self.processing_class(
+        new_prompts_text, return_tensors="pt", padding=True, padding_side="left", add_special_tokens=False
+    )
+    new_prompt_inputs = super()._prepare_inputs(new_prompt_inputs)
+    new_prompt_ids, new_prompt_mask = new_prompt_inputs["input_ids"], new_prompt_inputs["attention_mask"]
+
+    if self.max_prompt_length is not None:
+        new_prompt_ids = new_prompt_ids[:, -self.max_prompt_length :]
+        new_prompt_mask = new_prompt_mask[:, -self.max_prompt_length :]
+
+    # 4. Second Generation: Generate A2 using the original sampling_params (multiple generations)
+    if self.args.use_vllm:
+        all_new_prompts_text = gather_object(new_prompts_text)
+        if self.accelerator.is_main_process:
+            ordered_set_of_new_prompts = list(dict.fromkeys(all_new_prompts_text))
+            with profiling_context(self, "vLLM.generate (A2)"):
+                all_outputs = self.llm.generate(
+                    ordered_set_of_new_prompts, sampling_params=self.sampling_params, use_tqdm=False
                 )
-                judgment_ids_list = []
-                for outputs in judgment_outputs:
-                    judgment_ids_list.append(
-                        torch.tensor(outputs.outputs[0].token_ids, device=device)
-                    )
-            else:
-                judgment_ids_list = [None] * len(new_prompts_text)
-            judgment_ids_list = broadcast_object_list(judgment_ids_list, from_process=0)
-            judgment_ids = pad(judgment_ids_list, padding_value=self.processing_class.pad_token_id)
+            a2_ids_list = []
+            for outputs in all_outputs:
+                for output in outputs.outputs:
+                    a2_ids_list.append(output.token_ids)
         else:
-            with torch.no_grad():
-                judgment_ids = self.model.generate(
-                    new_prompt_ids,
-                    attention_mask=new_prompt_mask,
-                    max_new_tokens=self.max_completion_length,  # adjust if judgment is expected to be short
-                    generation_config=self.generation_config,
-                )
-                judgment_ids = judgment_ids[:, new_prompt_ids.shape[1]:]
-        
-        judgments_text = self.processing_class.batch_decode(judgment_ids, skip_special_tokens=True)
-        completion_mask = (judgment_ids != self.processing_class.pad_token_id).long()
-        print(f"Generated {len(judgments_text)} judgments.")
-        print(judgments_text[0])
-        
-        # ------------------------------
-        # Step 5: Prepare for Log Probability Computation & Reward Calculation
-        # ------------------------------
-        # Concatenate the original question (from first stage) with the judgment tokens.
-        prompt_completion_ids = torch.cat([prompt_ids, judgment_ids], dim=1)
-        attention_mask = torch.cat([prompt_mask, completion_mask], dim=1)
-        logits_to_keep = judgment_ids.size(1)
-        
-        with torch.no_grad():
-            if self.num_iterations > 1:
-                old_per_token_logps = self._get_per_token_logps(
+            a2_ids_list = [None] * len(all_new_prompts_text)
+        a2_ids_list = broadcast_object_list(a2_ids_list, from_process=0)
+        process_slice = slice(
+            self.accelerator.process_index * len(prompts),
+            (self.accelerator.process_index + 1) * len(prompts),
+        )
+        a2_ids_list = a2_ids_list[process_slice]
+        # MINWU PRINTS
+        print(f"HOW MANY A2 IDS: {len(a2_ids_list)}")
+
+        # Convert and pad A2 token ids, then concatenate with the new prompt tokens
+        a2_ids = [torch.tensor(ids, device=self.accelerator.device) for ids in a2_ids_list]
+        a2_ids = pad(a2_ids, padding_value=self.processing_class.pad_token_id)
+        prompt_completion_ids = torch.cat([new_prompt_ids, a2_ids], dim=1)
+    else:
+        print("SHOULDN'T SEE ME")
+        # MINWU: SHOULD NOT SEE ME
+        # with unwrap_model_for_generation(self.model_wrapped, self.accelerator) as unwrapped_model:
+        #     prompt_completion_ids = unwrapped_model.generate(
+        #         new_prompt_ids, attention_mask=new_prompt_mask, generation_config=self.generation_config
+        #     )
+        # a2_ids = prompt_completion_ids[:, new_prompt_ids.size(1):]
+
+    # 5. Create completion mask: mask tokens after the first EOS in A2
+    device = self.accelerator.device
+    is_eos = a2_ids == self.processing_class.eos_token_id
+    eos_idx = torch.full((is_eos.size(0),), is_eos.size(1), dtype=torch.long, device=device)
+    eos_idx[is_eos.any(dim=1)] = is_eos.int().argmax(dim=1)[is_eos.any(dim=1)]
+    sequence_indices = torch.arange(is_eos.size(1), device=device).expand(is_eos.size(0), -1)
+    completion_mask = (sequence_indices <= eos_idx.unsqueeze(1)).int()
+
+    # Concatenate the new prompt mask with the A2 completion mask for logit computation
+    attention_mask = torch.cat([new_prompt_mask, completion_mask], dim=1)  # (B, P+A2)
+    logits_to_keep = a2_ids.size(1)  # we only need logits for A2 tokens
+
+    with torch.no_grad():
+        if self.num_iterations > 1:
+            old_per_token_logps = self._get_per_token_logps(
+                self.model, prompt_completion_ids, attention_mask, logits_to_keep
+            )
+        else:
+            old_per_token_logps = None
+
+        if self.beta == 0.0:
+            ref_per_token_logps = None
+        elif self.ref_model is not None:
+            ref_per_token_logps = self._get_per_token_logps(
+                self.ref_model, prompt_completion_ids, attention_mask, logits_to_keep
+            )
+        else:
+            with self.accelerator.unwrap_model(self.model).disable_adapter():
+                ref_per_token_logps = self._get_per_token_logps(
                     self.model, prompt_completion_ids, attention_mask, logits_to_keep
                 )
-            else:
-                old_per_token_logps = None
 
-            if self.beta == 0.0:
-                ref_per_token_logps = None
-            elif self.ref_model is not None:
-                ref_per_token_logps = self._get_per_token_logps(
-                    self.ref_model, prompt_completion_ids, attention_mask, logits_to_keep
-                )
-            else:
-                with self.accelerator.unwrap_model(self.model).disable_adapter():
-                    ref_per_token_logps = self._get_per_token_logps(
-                        self.model, prompt_completion_ids, attention_mask, logits_to_keep
-                    )
-        
-        # ------------------------------
-        # Step 6: Compute Rewards & Advantages Based on Judgment
-        # ------------------------------
-        rewards_per_func = torch.zeros(len(duplicated_prompts_text), len(self.reward_funcs), device=device)
-        for i, reward_func in enumerate(self.reward_funcs):
-            # If reward_func is a module, prepare its input via its processing class.
+    # Decode the generated A2 completions
+    completions_text = self.processing_class.batch_decode(a2_ids, skip_special_tokens=True)
+    if is_conversational(inputs[0]):
+        completions = []
+        for prompt, completion in zip(prompts, completions_text):
+            bootstrap = prompt.pop()["content"] if prompt[-1]["role"] == "assistant" else ""
+            completions.append([{"role": "assistant", "content": bootstrap + completion}])
+    else:
+        completions = completions_text
+
+    print(f"HOW MANY COMPLETIONS: {len(completions)}")
+    print(f"COMPLETIONS EXAMPLE: {completions[0]}")
+
+    # 6. Compute rewards based on A2 completions, following the original reward processing
+    rewards_per_func = torch.zeros(len(prompts), len(self.reward_funcs), device=device)
+    for i, (reward_func, reward_processing_class) in enumerate(
+        zip(self.reward_funcs, self.reward_processing_classes)
+    ):
+        if isinstance(reward_func, nn.Module):
+            reward_func_name = f"reward {reward_func.config._name_or_path.split('/')[-1]}"
+        else:
+            reward_func_name = reward_func.__name__
+        with profiling_context(self, reward_func_name):
             if isinstance(reward_func, nn.Module):
-                # Here, we assume that self.reward_processing_classes has been set up.
-                reward_processing_class = self.reward_processing_classes[i]
-                # If working with conversational data, you could wrap the texts accordingly.
-                # For simplicity, we just concatenate the duplicated prompt and judgment.
-                texts = [q + j for q, j in zip(duplicated_prompts_text, judgments_text)]
+                if is_conversational(inputs[0]):
+                    messages = [{"messages": p + c} for p, c in zip(prompts, completions)]
+                    texts = [apply_chat_template(x, reward_processing_class)["text"] for x in messages]
+                else:
+                    texts = [p + c for p, c in zip(prompts, completions)]
                 reward_inputs = reward_processing_class(
-                    texts,
-                    return_tensors="pt",
-                    padding=True,
-                    padding_side="right",
-                    add_special_tokens=False,
+                    texts, return_tensors="pt", padding=True, padding_side="right", add_special_tokens=False
                 )
                 reward_inputs = super()._prepare_inputs(reward_inputs)
                 with torch.inference_mode():
-                    rewards_per_func[:, i] = reward_func(**reward_inputs).logits[:, 0]  # Shape (B*G,)
+                    rewards_per_func[:, i] = reward_func(**reward_inputs).logits[:, 0]
             else:
-                # For non-module reward functions, pass along any extra keys if needed.
                 keys = [key for key in inputs[0] if key not in ["prompt", "completion"]]
                 reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
-                output_reward = reward_func(prompts=duplicated_prompts_text, completions=judgments_text, **reward_kwargs)
-                rewards_per_func[:, i] = torch.tensor(output_reward, dtype=torch.float32, device=device)
-        
-        rewards_per_func = gather(rewards_per_func)
-        rewards = (rewards_per_func * self.reward_weights.to(device).unsqueeze(0)).sum(dim=1)
-        mean_grouped_rewards = rewards.view(-1, self.num_generations).mean(dim=1)
-        std_grouped_rewards = rewards.view(-1, self.num_generations).std(dim=1)
-        mean_grouped_rewards = mean_grouped_rewards.repeat_interleave(self.num_generations, dim=0)
-        std_grouped_rewards = std_grouped_rewards.repeat_interleave(self.num_generations, dim=0)
-        advantages = (rewards - mean_grouped_rewards) / (std_grouped_rewards + 1e-4)
-        process_slice = slice(
-            self.accelerator.process_index * len(duplicated_prompts_text),
-            (self.accelerator.process_index + 1) * len(duplicated_prompts_text),
-        )
-        advantages = advantages[process_slice]
+                output_reward_func = reward_func(prompts=prompts, completions=completions, **reward_kwargs)
+                rewards_per_func[:, i] = torch.tensor(output_reward_func, dtype=torch.float32, device=device)
 
-        
-        # ------------------------------
-        # Step 7: Logging Metrics (Optional)
-        # ------------------------------
-        mode = "eval" if self.control.should_evaluate else "train"
-        completion_length = self.accelerator.gather_for_metrics(completion_mask.sum(1)).float().mean().item()
-        self._metrics[mode]["completion_length"].append(completion_length)
-        reward_per_func = rewards_per_func.mean(0)
-        for i, reward_func in enumerate(self.reward_funcs):
+    rewards_per_func = gather(rewards_per_func)
+    rewards = (rewards_per_func * self.reward_weights.to(device).unsqueeze(0)).sum(dim=1)
+    mean_grouped_rewards = rewards.view(-1, self.num_generations).mean(dim=1)
+    std_grouped_rewards = rewards.view(-1, self.num_generations).std(dim=1)
+
+    mean_grouped_rewards = mean_grouped_rewards.repeat_interleave(self.num_generations, dim=0)
+    std_grouped_rewards = std_grouped_rewards.repeat_interleave(self.num_generations, dim=0)
+    advantages = (rewards - mean_grouped_rewards) / (std_grouped_rewards + 1e-4)
+
+    process_slice = slice(
+        self.accelerator.process_index * len(prompts),
+        (self.accelerator.process_index + 1) * len(prompts),
+    )
+    advantages = advantages[process_slice]
+
+    # 7. Log metrics as before
+    mode = "eval" if self.control.should_evaluate else "train"
+    completion_length = self.accelerator.gather_for_metrics(completion_mask.sum(1)).float().mean().item()
+    self._metrics[mode]["completion_length"].append(completion_length)
+
+    reward_per_func = rewards_per_func.mean(0)
+    for i, reward_func in enumerate(self.reward_funcs):
+        if isinstance(reward_func, nn.Module):
+            reward_func_name = reward_func.config._name_or_path.split("/")[-1]
+        else:
             reward_func_name = reward_func.__name__
-            self._metrics[mode][f"rewards/{reward_func_name}"].append(reward_per_func[i].item())
-        self._metrics[mode]["reward"].append(rewards.mean().item())
-        self._metrics[mode]["reward_std"].append(std_grouped_rewards.mean().item())
-        
-        if self.log_completions and self.state.global_step % self.args.logging_steps == 0:
-            prompts_to_log = gather_object(prompts_text)
-            judgments_to_log = gather_object(judgments_text)
-            rewards_to_log = rewards.tolist()
-            if self.accelerator.is_main_process:
-                if hasattr(self, "print_func") and callable(self.print_func):
-                    self.print_func(prompts_to_log, judgments_to_log, rewards_to_log, self.state.global_step)
-                try:
-                    import wandb
-                    import pandas as pd
-                    table = {
-                        "step": [str(self.state.global_step)] * len(rewards),
-                        "prompt": prompts_to_log,
-                        "judgment": judgments_to_log,
-                        "reward": rewards.tolist(),
-                    }
-                    df = pd.DataFrame(table)
-                    print(df)
-                    wandb.log({"completions": wandb.Table(dataframe=df)})
-                except Exception:
-                    print("YOU SHOULDN'T SEE ME: Failed to log completions.")
-                    pass
-        
-        return {
-            "prompt_ids": prompt_ids,
-            "prompt_mask": prompt_mask,
-            "completion_ids": judgment_ids,
-            "completion_mask": completion_mask,
-            "old_per_token_logps": old_per_token_logps,
-            "ref_per_token_logps": ref_per_token_logps,
-            "advantages": advantages,
-        }
+        self._metrics[mode][f"rewards/{reward_func_name}"].append(reward_per_func[i].item())
+
+    self._metrics[mode]["reward"].append(rewards.mean().item())
+    self._metrics[mode]["reward_std"].append(std_grouped_rewards.mean().item())
+
+    if self.log_completions and self.state.global_step % self.args.logging_steps == 0:
+        prompts_to_log = gather_object(new_prompts_text)
+        completions_to_log = gather_object(completions_text)
+        rewards_to_log = rewards.tolist()
+
+        if self.accelerator.is_main_process:
+            if is_rich_available():
+                print_prompt_completions_sample(
+                    prompts_to_log,
+                    completions_to_log,
+                    rewards_to_log,
+                    self.state.global_step,
+                )
+            if self.args.report_to and "wandb" in self.args.report_to and wandb.run is not None:
+                import pandas as pd
+                table = {
+                    "step": [str(self.state.global_step)] * len(rewards),
+                    "prompt": prompts_to_log,
+                    "completion": completions_to_log,
+                    "reward": rewards.tolist(),
+                }
+                df = pd.DataFrame(table)
+                wandb.log({"completions": wandb.Table(dataframe=df)})
+
+    # 8. Return final values (using new prompt and A2 completions)
+    return {
+        "prompt_ids": new_prompt_ids,
+        "prompt_mask": new_prompt_mask,
+        "completion_ids": a2_ids,
+        "completion_mask": completion_mask,
+        "old_per_token_logps": old_per_token_logps,
+        "ref_per_token_logps": ref_per_token_logps,
+        "advantages": advantages,
+    }
