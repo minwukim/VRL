@@ -11,8 +11,8 @@ model_name = "Qwen/Qwen2-0.5B-Instruct"
 SYSTEM_PROMPT = """
 Answer the question below in the specified format. 
 First, carefully think through the reasoning process. Then, provide a refined solution explaining the steps of the solution. 
-Enclose the reasoning process within <think> </think> tags and the final solution within <answer> </answer> tags, i.e., <think> reasoning process here </think> <answer> solution here </answer>. 
-Ensure the final answer in the solution is formatted within \\boxed{}.
+Enclose the reasoning process within <think> </think> tags and the final solution within <answer> </answer> tags, i.e., <think> reasoning process here </think> <answer> \\boxed{final answer here} </answer>. 
+Ensure the final answer in the solution is formatted within \\boxed{} so that it is directly extracted and graded.
 """
 
 def extract_ground_truth(text: str) -> str | None:
