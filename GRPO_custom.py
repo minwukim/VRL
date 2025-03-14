@@ -160,6 +160,7 @@ class CustomGRPOTrainer(GRPOTrainer):
         single_sampling_params.n = 1
 
         if self.args.use_vllm:
+            print("SHOULD SEE ME")
             all_prompts_text = gather_object(prompts_text)
             if self.accelerator.is_main_process:
                 # Remove duplicates for faster generation of A1
@@ -176,11 +177,11 @@ class CustomGRPOTrainer(GRPOTrainer):
                 a1_ids_list = [None] * len(all_prompts_text)
             # MINWU: MAYBE NOT NECESSARY
             # a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
-            process_slice = slice(
-                self.accelerator.process_index * len(prompts),
-                (self.accelerator.process_index + 1) * len(prompts),
-            )
-            a1_ids_list = a1_ids_list[process_slice]
+            # process_slice = slice(
+            #     self.accelerator.process_index * len(prompts),
+            #     (self.accelerator.process_index + 1) * len(prompts),
+            # )
+            # a1_ids_list = a1_ids_list[process_slice]
             print(f"HOW MANY A1 IDS: {len(a1_ids_list)}")
 
             # Convert and pad A1 token ids
