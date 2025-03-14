@@ -148,7 +148,7 @@ class CustomGRPOTrainer(GRPOTrainer):
         prompt_inputs = self.processing_class(
             prompts_text, return_tensors="pt", padding=True, padding_side="left", add_special_tokens=False
         )
-        prompt_inputs = super()._prepare_inputs(prompt_inputs)
+        prompt_inputs = A._prepare_inputs(prompt_inputs)
         prompt_ids, prompt_mask = prompt_inputs["input_ids"], prompt_inputs["attention_mask"]
 
         if self.max_prompt_length is not None:
@@ -216,7 +216,7 @@ class CustomGRPOTrainer(GRPOTrainer):
         new_prompt_inputs = self.processing_class(
             new_prompts_text, return_tensors="pt", padding=True, padding_side="left", add_special_tokens=False
         )
-        new_prompt_inputs = super()._prepare_inputs(new_prompt_inputs)
+        new_prompt_inputs = A._prepare_inputs(new_prompt_inputs)
         new_prompt_ids, new_prompt_mask = new_prompt_inputs["input_ids"], new_prompt_inputs["attention_mask"]
 
         if self.max_prompt_length is not None:
