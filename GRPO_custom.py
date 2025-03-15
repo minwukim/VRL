@@ -219,8 +219,8 @@ class CustomGRPOTrainer(GRPOTrainer):
 
         # 3. Construct new prompt: (Q, A1) concatenated with extra context (added_instruction)
         added_instruction = (
-            "Given the question and the response provided below, go through the reasoning process of the response and check if the response is correct or not. "
-            "Then, try to fix the errors and re-solve the problem if incorrect, and return the same final answer if you think it is correct. "
+            "Given the question and the response provided below, go through and explain every step of the reasoning process of the response to check if the response is correct or not. "
+            "Then, try to fix the errors and re-solve the problem if the response is incorrect, and return the same final answer if you think it is correct. "
             "Enclose your reasoning of checking and resolving process within <think> </think> tags and the final solution within <answer> </answer> tags, "
             "i.e., <think> reasoning process here </think> <answer> solution here </answer>. "
             "Ensure the final answer in the solution is formatted within \\boxed{}, so that the response can be directly extracted for grading."
@@ -244,7 +244,8 @@ class CustomGRPOTrainer(GRPOTrainer):
                     },
                     {
                         "content": "\nQuestion:\n" + remove_tokens(extract_user_text(q_text)) + 
-                                   "\nResponse:\n" + remove_tokens(a1),
+                                   "\n\nResponse:\n" + remove_tokens(a1) +
+                                   "\n",
                         "role": "user"
                     }
                 ],
