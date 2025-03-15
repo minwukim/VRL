@@ -131,7 +131,7 @@ class CustomGRPOTrainer(GRPOTrainer):
     """
     
     
-    def _generate_and_score_completions2(
+    def _generate_and_score_completions(
         self, inputs: dict[str, Union[torch.Tensor, Any]]
     ) -> dict[str, Union[torch.Tensor, Any]]:
         # 1. Preprocess the original prompt (Q)
@@ -207,7 +207,7 @@ class CustomGRPOTrainer(GRPOTrainer):
             "Ensure the final answer in the solution is formatted within \\boxed{}, so that the response can be directly extracted for grading."
         )
         # MINWU COMEBACK: REMOVE INSTRUCTION.
-        new_prompts_text = [orig + a1 + added_instruction for orig, a1 in zip(prompts_text, a1_text)]
+        new_prompts_text = [orig + a1 + added_instruction for orig, a1 in zip(prompts_text, a1_text)] * self.sampling_params.n
         # MINWU PRINTS
         print(f"HOW MANY NEW PROMPT TEXTS: {len(new_prompts_text)}")
         print(f"NEW PROMPT TEXT EXAMPLE: {new_prompts_text[0]}")
@@ -250,6 +250,8 @@ class CustomGRPOTrainer(GRPOTrainer):
             # Convert and pad A2 token ids, then concatenate with the new prompt tokens
             a2_ids = [torch.tensor(ids, device=self.accelerator.device) for ids in a2_ids_list]
             a2_ids = pad(a2_ids, padding_value=self.processing_class.pad_token_id)
+            print(f"HOW MANY A2 IDS: {len(a2_ids)}")
+            print(f"HOW MANY NEW PROMPT IDS: {len(new_prompt_ids)}")
             prompt_completion_ids = torch.cat([new_prompt_ids, a2_ids], dim=1)
         else:
             print("SHOULDN'T SEE ME")
@@ -398,7 +400,7 @@ class CustomGRPOTrainer(GRPOTrainer):
             "advantages": advantages,
         }
 
-    def _generate_and_score_completions(
+    def _generate_and_score_completions2(
         self, inputs: dict[str, Union[torch.Tensor, Any]]
     ) -> dict[str, Union[torch.Tensor, Any]]:
         device = self.accelerator.device
@@ -456,6 +458,8 @@ class CustomGRPOTrainer(GRPOTrainer):
             # Pad the completions, and concatenate them with the prompts
             completion_ids = [torch.tensor(ids, device=device) for ids in completion_ids]
             completion_ids = pad(completion_ids, padding_value=self.processing_class.pad_token_id)
+            print(f"HOW MANY COMPLETION IDS: {len(completion_ids)}")
+            print(f"HOW MANY PROMPT IDS: {len(prompt_ids)}")
             prompt_completion_ids = torch.cat([prompt_ids, completion_ids], dim=1)
         else:
             # Regular generation path
