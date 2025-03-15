@@ -25,6 +25,8 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+import re
+
 from copy import deepcopy
 
 
@@ -155,8 +157,11 @@ class CustomGRPOTrainer(GRPOTrainer):
     ) -> dict[str, Union[torch.Tensor, Any]]:
         # 1. Preprocess the original prompt (Q)
         prompts = [x["prompt"] for x in inputs]
+        print("PROMPTS[0]")
+        print(prompts[0])
         prompts_text = [maybe_apply_chat_template(example, self.processing_class)["prompt"] for example in inputs]
-
+        print("PROMPT_TEXT[0]")
+        print(prompts_text[0])
         # MINWU PRINTS
         print(f"HOW MANY PROMPT TEXTS: {len(prompts_text)}")
         prompt_inputs = self.processing_class(
@@ -220,12 +225,38 @@ class CustomGRPOTrainer(GRPOTrainer):
             "i.e., <think> reasoning process here </think> <answer> solution here </answer>. "
             "Ensure the final answer in the solution is formatted within \\boxed{}, so that the response can be directly extracted for grading."
         )
+
+        new_prompts_text = []
+        # --- CHANGES MADE BELOW ---
+        # Instead of iterating over just the prompt texts and a1_text, we iterate over the full input examples and a1_text.
+        # This allows us to extract the 'solution' field and include it in the new prompt.
+        for input_example, a1 in zip(inputs, a1_text):
+            # Use maybe_apply_chat_template to get the formatted prompt text.
+            q_text = maybe_apply_chat_template(input_example, self.processing_class)["prompt"]
+            # Extract the solution from the input.
+            answer_text = input_example.get("answer", "")
+            # Build the new prompt message that includes both the question and the solution.
+            example = {
+                "prompt": [
+                    {
+                        "content": added_instruction,
+                        "role": "system"
+                    },
+                    {
+                        "content": "\nQuestion:\n" + remove_tokens(extract_user_text(q_text)) + 
+                                   "\nResponse:\n" + remove_tokens(a1),
+                        "role": "user"
+                    }
+                ],
+                "answer": answer_text
+            }
+            # Replicate for self.sampling_params.n times.
+            for i in range(self.sampling_params.n):
+                new_prompts_text.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
         
-        # MINWU COMEBACK: REMOVE INSTRUCTION.
-        new_prompts_text = [added_instruction + "\nQuestion:\n" + remove_tokens(extract_user_text(q1) + "\nResponse:\n" + remove_tokens(a1)) for q1, a1 in zip(prompts_text, a1_text)] * self.sampling_params.n
         # MINWU PRINTS
-        # print(f"HOW MANY NEW PROMPT TEXTS: {len(new_prompts_text)}")
-        # print(f"NEW PROMPT TEXT EXAMPLE: {new_prompts_text[0]}")
+        print(f"HOW MANY NEW PROMPT TEXTS: {len(new_prompts_text)}")
+        print(f"NEW PROMPT TEXT EXAMPLE: {new_prompts_text[0]}")
         
         # Preprocess the new prompt (Q, A1, added_instruction)
         new_prompt_inputs = self.processing_class(
@@ -309,8 +340,6 @@ class CustomGRPOTrainer(GRPOTrainer):
 
         # Decode the generated A2 completions
         completions_text = self.processing_class.batch_decode(a2_ids, skip_special_tokens=True)
-        print(f"HOW MANY COMPLETIONS TEXT: {len(completions_text)}")
-        print(f"COMPLETIONS TEXT EXAMPLE: {completions_text[0]}")
         if is_conversational(inputs[0]):
             completions = []
             for prompt, completion in zip(prompts, completions_text):
@@ -319,8 +348,8 @@ class CustomGRPOTrainer(GRPOTrainer):
         else:
             completions = completions_text
 
-        # print(f"HOW MANY COMPLETIONS: {len(completions)}")
-        # print(f"COMPLETIONS EXAMPLE: {completions[0]}")
+        print(f"HOW MANY COMPLETIONS: {len(completions)}")
+        print(f"COMPLETIONS EXAMPLE: {completions[0]}")
 
         # 6. Compute rewards based on A2 completions, following the original reward processing
         rewards_per_func = torch.zeros(len(prompts), len(self.reward_funcs), device=device)
