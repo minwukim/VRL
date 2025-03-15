@@ -3,8 +3,8 @@ from datasets import load_dataset, Dataset
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
 from trl import GRPOConfig, GRPOTrainer
 from GRPO_custom import CustomGRPOTrainer
-max_seq_length = 1000
-max_prompt_length = 1000
+max_seq_length = 1500
+max_prompt_length = 1500 + 500
 
 model_name = "Qwen/Qwen2.5-3B-Instruct"
 

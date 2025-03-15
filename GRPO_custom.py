@@ -28,6 +28,25 @@ from rich.text import Text
 from copy import deepcopy
 
 
+def extract_user_text(text):
+    """
+    Extracts text from the user block, ignoring any preceding system instructions.
+    It looks for text between '<|im_start|>user' and '<|im_end|>' markers.
+    """
+    match = re.search(r"<\|im_start\|>user(.*?)<\|im_end\|>", text, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    return text.strip()
+
+def remove_tokens(text):
+    """
+    Removes unnecessary tokens such as '<|im_start|>assistant', '<|im_start|>system', and '<|im_end|>'.
+    """
+    tokens = ["<|im_start|>assistant", "<|im_start|>system", "<|im_end|>"]
+    for token in tokens:
+        text = text.replace(token, "")
+    return text.strip()
+
 def print_prompt_completions_sample(prompts: list[str], completions: list[str], rewards: list[int], step: int) -> None:
     """
     Print out a sample of model completions to the console.
@@ -135,11 +154,6 @@ class CustomGRPOTrainer(GRPOTrainer):
         self, inputs: dict[str, Union[torch.Tensor, Any]]
     ) -> dict[str, Union[torch.Tensor, Any]]:
         # 1. Preprocess the original prompt (Q)
-        print(inputs)
-        print("====================================================")
-        print(type(inputs))
-        print("====================================================")
-
         prompts = [x["prompt"] for x in inputs]
         prompts_text = [maybe_apply_chat_template(example, self.processing_class)["prompt"] for example in inputs]
 
@@ -200,17 +214,18 @@ class CustomGRPOTrainer(GRPOTrainer):
 
         # 3. Construct new prompt: (Q, A1) concatenated with extra context (added_instruction)
         added_instruction = (
-            "\n Given the question and the response provided, go through the reasoning process of the response and check if the response is correct or not. "
-            "Then, try to resolve the problem if incorrect, and return the same final answer if you think it is correct. "
+            "Given the question and the response provided below, go through the reasoning process of the response and check if the response is correct or not. "
+            "Then, try to fix the errors and re-solve the problem if incorrect, and return the same final answer if you think it is correct. "
             "Enclose your reasoning of checking and resolving process within <think> </think> tags and the final solution within <answer> </answer> tags, "
             "i.e., <think> reasoning process here </think> <answer> solution here </answer>. "
             "Ensure the final answer in the solution is formatted within \\boxed{}, so that the response can be directly extracted for grading."
         )
+        
         # MINWU COMEBACK: REMOVE INSTRUCTION.
-        new_prompts_text = [orig + a1 + added_instruction for orig, a1 in zip(prompts_text, a1_text)] * self.sampling_params.n
+        new_prompts_text = [added_instruction + "\nQuestion:\n" + remove_tokens(extract_user_text(q1) + "\nResponse:\n" + remove_tokens(a1)) for q1, a1 in zip(prompts_text, a1_text)] * self.sampling_params.n
         # MINWU PRINTS
-        print(f"HOW MANY NEW PROMPT TEXTS: {len(new_prompts_text)}")
-        print(f"NEW PROMPT TEXT EXAMPLE: {new_prompts_text[0]}")
+        # print(f"HOW MANY NEW PROMPT TEXTS: {len(new_prompts_text)}")
+        # print(f"NEW PROMPT TEXT EXAMPLE: {new_prompts_text[0]}")
         
         # Preprocess the new prompt (Q, A1, added_instruction)
         new_prompt_inputs = self.processing_class(
@@ -244,14 +259,12 @@ class CustomGRPOTrainer(GRPOTrainer):
                 (self.accelerator.process_index + 1) * len(prompts),
             )
             a2_ids_list = a2_ids_list[process_slice]
-            # MINWU PRINTS
-            print(f"HOW MANY A2 IDS: {len(a2_ids_list)}")
 
             # Convert and pad A2 token ids, then concatenate with the new prompt tokens
             a2_ids = [torch.tensor(ids, device=self.accelerator.device) for ids in a2_ids_list]
             a2_ids = pad(a2_ids, padding_value=self.processing_class.pad_token_id)
-            print(f"HOW MANY A2 IDS: {len(a2_ids)}")
-            print(f"HOW MANY NEW PROMPT IDS: {len(new_prompt_ids)}")
+            # print(f"HOW MANY A2 IDS: {len(a2_ids)}")
+            # print(f"HOW MANY NEW PROMPT IDS: {len(new_prompt_ids)}")
             prompt_completion_ids = torch.cat([new_prompt_ids, a2_ids], dim=1)
         else:
             print("SHOULDN'T SEE ME")
@@ -296,6 +309,8 @@ class CustomGRPOTrainer(GRPOTrainer):
 
         # Decode the generated A2 completions
         completions_text = self.processing_class.batch_decode(a2_ids, skip_special_tokens=True)
+        print(f"HOW MANY COMPLETIONS TEXT: {len(completions_text)}")
+        print(f"COMPLETIONS TEXT EXAMPLE: {completions_text[0]}")
         if is_conversational(inputs[0]):
             completions = []
             for prompt, completion in zip(prompts, completions_text):
@@ -304,8 +319,8 @@ class CustomGRPOTrainer(GRPOTrainer):
         else:
             completions = completions_text
 
-        print(f"HOW MANY COMPLETIONS: {len(completions)}")
-        print(f"COMPLETIONS EXAMPLE: {completions[0]}")
+        # print(f"HOW MANY COMPLETIONS: {len(completions)}")
+        # print(f"COMPLETIONS EXAMPLE: {completions[0]}")
 
         # 6. Compute rewards based on A2 completions, following the original reward processing
         rewards_per_func = torch.zeros(len(prompts), len(self.reward_funcs), device=device)
