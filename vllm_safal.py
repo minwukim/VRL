@@ -6,7 +6,9 @@ from math_verify import verify, parse
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
 
 # Load trained model
-model_path = "./outputs/qwen2.5-3b-grpo-full/checkpoint-400" # Update with actual model path 
+model_path = "Qwen/Qwen2.5-3B-Instruct" # Update with actual model path 
+file_path = "3B_vanilla.csv"
+
 llm = LLM(model=model_path)
 
 SYSTEM_PROMPT = """
@@ -86,7 +88,7 @@ def main():
         })
     
     df = pd.DataFrame(results)
-    df.to_csv("0312_cp400.csv", index=False)
+    df.to_csv(file_path, index=False)
     
     total_correctness = df["Correctness_Score"].sum()
     total_correct_and_format = df["Correctness_and_Format_Score"].sum()
