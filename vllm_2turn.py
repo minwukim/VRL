@@ -4,107 +4,82 @@ from datasets import load_dataset
 from vllm import LLM, SamplingParams
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
 from math_verify import verify, parse
+import re
+import pandas as pd
+from datasets import load_dataset
+from vllm import LLM, SamplingParams
+from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
+from math_verify import verify, parse
 
 ##############################################
-# Single-file script that performs two-stage evaluation.
-# 1) First turn: generates an answer for each item.
-# 2) Second turn: re-evaluates each item using the first turn's output.
-# 3) Exports a single CSV file containing the results for both turns.
-# 4) Prints out the same statistics as in the previous code.
+# Settings and Model Initialization
 ##############################################
+model_path = "./outputs/qwen2.5-3b-grpo-full/checkpoint-400"  # or update to your desired model path
+csv_file_path = "cp400_2stage.csv"
 
-# Choose your checkpoint path or model name
-path = "Qwen/Qwen2.5-3B-Instruct"
+# First turn prompt template
+SYSTEM_PROMPT_FIRST = """
+A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
+The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
+The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively.
+i.e., <think> reasoning process here </think> <answer> answer here </answer>.
+User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>.
+And your final answer will be extracted automatically by the \\boxed{{}} tag.
+{prompt}
+Assistant: <think>
+"""
 
-# The path name for the final CSV file to save the combined results.
-csv_file_path = "two_stage_results.csv"
-
-##############################################
-# System Prompt and Additional Instruction
-##############################################
-# SYSTEM_PROMPT = (
-#     "A conversation between User and Assistant. The user asks a question, and the Assistant solves it. "
-#     "The assistant first thinks about the reasoning process in the mind and then provides the user with the answer. "
-#     "The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, "
-#     "i.e., <think> reasoning process here </think><answer> answer here </answer>. "
-#     "Ensure that the final answer in the solution is formatted within \\boxed{}, "
-#     "as this formatting is required for correct extraction."
-# )
-
-SYSTEM_PROMPT = "A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in the mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer>. User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag."
-
+# Instruction for the second turn (correction/verification)
 ADDED_INSTRUCTION = (
-    "\n Given the question and the response provided, go through the reasoning process of the response and check if the response is correct or not. "
+    "Given the question and the response provided, go through the reasoning process of the response and check if the response is correct or not. "
     "Then, try to resolve the problem if incorrect, and return the same final answer if you think it is correct. "
     "Enclose your reasoning of checking and resolving process within <think> </think> tags and the final solution within <answer> </answer> tags, "
     "i.e., <think> reasoning process here </think> <answer> solution here </answer>. "
     "Ensure that the final answer in the solution is formatted within \\boxed{}, as this formatting is required for correct extraction."
 )
 
-##############################################
-# Helper Functions
-##############################################
-def make_conversation(example):
-    return {
-        "prompt": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": "\nQuestion: " + example["problem"]},
-        ],
-    }
+# Second turn prompt template
+SYSTEM_PROMPT_SECOND = """
+{instruction}
+Question: {question}
+Response: {first_answer}
+Assistant: <think>
+"""
 
-def make_second_turn_conversation(question_text, first_answer):
-    # For the second turn, the system prompt is ADDED_INSTRUCTION,
-    # and the user content is: "Question: <question_text>, Response: <first_answer>"
-    return {
-        "prompt": [
-            {"role": "system", "content": ADDED_INSTRUCTION},
-            {"role": "user", "content": f"\nQuestion: {question_text}\nResponse: {first_answer}"},
-        ],
-    }
+##############################################
+# Prompt and Utility Functions
+##############################################
+def build_prompt_first(problem: str) -> str:
+    """Build the first-turn prompt by inserting the problem into the system prompt."""
+    return SYSTEM_PROMPT_FIRST.format(prompt=problem)
 
-def build_prompt_from_conversation(conversation):
-    # Convert a conversation object to a single prompt string
-    return "\n".join(f"{msg['role'].capitalize()}: {msg['content']}" for msg in conversation["prompt"])
+def build_prompt_second(question: str, first_answer: str) -> str:
+    """Build the second-turn prompt using the original problem and the first-turn answer."""
+    return SYSTEM_PROMPT_SECOND.format(instruction=ADDED_INSTRUCTION, question=question, first_answer=first_answer)
 
 def extract_ground_truth(text: str) -> str | None:
-    # Extract the last boxed answer from the reference solution.
+    """Extract the last boxed answer from the reference solution."""
     return last_boxed_only_string(text)
 
-##############################################
-# Reward Functions
-##############################################
-def correct_and_format(prompt: str, completion: str, ground_truth: str) -> float:
-    # Extract the answer enclosed within <answer>...</answer>
-    pattern = r"</think>\n?<answer>([\s\S]*)</answer>"
-    match = re.search(pattern, completion)
-    content = match.group(1) if match else ""
-    return 1.0 if verify(parse(content), parse(ground_truth)) else 0.0
-
 def correct_reward_func(completion: str, ground_truth: str) -> float:
-    # Checks if the entire completion matches the ground truth
+    """Return 1.0 if the parsed completion matches the ground truth; otherwise 0.0."""
     return 1.0 if verify(parse(completion), parse(ground_truth)) else 0.0
 
 def boxed_format_reward_func(completion: str) -> float:
-    # A small reward if there's at least one '\\boxed{}' in the text
+    """Return 0.1 if there is at least one '\\boxed{}' in the completion; otherwise 0.0."""
     match = re.search(r"\\boxed\{(.*?)\}", completion)
     return 0.1 if match else 0.0
 
-##############################################
-# Load the MATH-500 Dataset
-##############################################
 def get_math_test_data():
     source_name = "HuggingFaceH4/MATH-500"
     data = load_dataset(source_name, trust_remote_code=True)["test"]
     return data
 
 ##############################################
-# LLM Initialization
+# LLM and Sampling Parameters
 ##############################################
-llm = LLM(
-    model=path
-)
+llm = LLM(model=model_path)
 
-# Deterministic generation
 sampling_params = SamplingParams(
     temperature=0.0,
     top_p=1.0,
@@ -112,7 +87,7 @@ sampling_params = SamplingParams(
 )
 
 ##############################################
-# Statistics / Confusion Matrix Helpers
+# Statistics and Confusion Matrix Helpers
 ##############################################
 def print_turn_stats(df, turn_label="A1"):
     print(f"\nAverage Metrics for {turn_label}:")
@@ -153,31 +128,21 @@ def main():
     print("Loading dataset...")
     data = get_math_test_data()
 
-    # Prepare empty list to store final results
-    results = []
-
-    print("\nRunning FIRST TURN for all examples...")
-    # Build all conversations and gather ground truths
-    conversations = []
+    # --- FIRST TURN ---
+    prompts_first = []
     ground_truths = []
     for example in data:
-        conv = make_conversation(example)
+        prompt_first = build_prompt_first(example["problem"])
         gt = extract_ground_truth(example["solution"])
-        conversations.append(conv)
+        prompts_first.append(prompt_first)
         ground_truths.append(gt)
 
-    # Build prompts for turn 1
-    prompts_turn1 = [build_prompt_from_conversation(c) for c in conversations]
+    print("\nRunning FIRST TURN for all examples...")
+    outputs_turn1 = llm.generate(prompts_first, sampling_params)
 
-    # Generate outputs for turn 1
-    outputs_turn1 = llm.generate(prompts_turn1, sampling_params)
-
-    # Create a partial results list that we can fill in turn2
     partial_data = []
     for idx, out in enumerate(outputs_turn1):
-        # Turn 1 answer
         A1 = out.outputs[0].text
-        prompt = prompts_turn1[idx]
         gt = ground_truths[idx]
 
         score_corr_A1 = correct_reward_func(A1, gt)
@@ -186,7 +151,8 @@ def main():
         token_length_A1 = len(llm.get_tokenizer().encode(A1))
 
         partial_data.append({
-            "first_question": prompt,
+            "problem": data[idx]["problem"],
+            "prompt_first": prompts_first[idx],
             "ground_truth": gt,
             "A1": A1,
             "A1_correctness": score_corr_A1,
@@ -195,56 +161,31 @@ def main():
             "A1_token_length": token_length_A1,
         })
 
-    # Convert partial_data to a DataFrame so we can do stats
     df_tmp = pd.DataFrame(partial_data)
-
-    # Print stats for A1
     print_turn_stats(df_tmp, turn_label="A1")
 
+    # --- SECOND TURN ---
+    prompts_second = []
+    for item in partial_data:
+        # Use the original problem and the first-turn answer to build the second prompt.
+        prompt_second = build_prompt_second(item["problem"], item["A1"])
+        prompts_second.append(prompt_second)
+
     print("\nRunning SECOND TURN for all examples...")
-    second_prompts = []
+    outputs_turn2 = llm.generate(prompts_second, sampling_params)
 
-    # Build second turn prompts using the output of turn1, but in a conversation style.
-    for idx, row in df_tmp.iterrows():
-        # We'll remove system lines from the original question so we can isolate the user question.
-        question_content = row["first_question"]
-        lines = question_content.split("\n")
-        user_lines = [l for l in lines if l.startswith("User:" )]
-        if user_lines:
-            # user_lines[0] might look like "User: <stuff>"
-            # so we can strip off "User: " to isolate the question
-            actual_question = user_lines[0].replace("User: ", "").strip()
-        else:
-            # fallback if something unexpected
-            actual_question = question_content
-
-        # The first-turn answer
-        A1 = row["A1"]
-
-        # Create a new conversation for turn 2 using our helper
-        second_conv = make_second_turn_conversation(actual_question, A1)
-        # Build the prompt
-        new_prompt = build_prompt_from_conversation(second_conv)
-        second_prompts.append(new_prompt)
-
-    # Generate outputs for turn 2
-    outputs_turn2 = llm.generate(second_prompts, sampling_params)
-
-    # Merge the second turn results into the same partial_data records
     final_data = []
-    for idx, row in enumerate(partial_data):
+    for idx, item in enumerate(partial_data):
         A2 = outputs_turn2[idx].outputs[0].text
-        gt = row["ground_truth"]
-        second_prompt = second_prompts[idx]
-
+        gt = item["ground_truth"]
         score_corr_A2 = correct_reward_func(A2, gt)
         score_box_A2 = boxed_format_reward_func(A2)
         total_reward_A2 = score_corr_A2 + score_box_A2
         token_length_A2 = len(llm.get_tokenizer().encode(A2))
 
         merged = {
-            **row,  # all A1 stuff
-            "second_question": second_prompt,
+            **item,
+            "prompt_second": prompts_second[idx],
             "A2": A2,
             "A2_correctness": score_corr_A2,
             "A2_boxed_format": score_box_A2,
@@ -254,16 +195,274 @@ def main():
         final_data.append(merged)
 
     df_final = pd.DataFrame(final_data)
-
-    # Print stats for A2
     print_turn_stats(df_final, turn_label="A2")
-
-    # Confusion matrix
     print_confusion_matrix(df_final)
 
-    # Save everything into a single CSV
     df_final.to_csv(csv_file_path, index=False)
     print(f"\nAll done. Results saved to '{csv_file_path}'.")
 
 if __name__ == "__main__":
     main()
+
+# ##############################################
+# # Single-file script that performs two-stage evaluation.
+# # 1) First turn: generates an answer for each item.
+# # 2) Second turn: re-evaluates each item using the first turn's output.
+# # 3) Exports a single CSV file containing the results for both turns.
+# # 4) Prints out the same statistics as in the previous code.
+# ##############################################
+
+# # Choose your checkpoint path or model name
+# path = "Qwen/Qwen2.5-3B-Instruct"
+
+# # The path name for the final CSV file to save the combined results.
+# csv_file_path = "two_stage_results.csv"
+
+# ##############################################
+# # System Prompt and Additional Instruction
+# ##############################################
+# # SYSTEM_PROMPT = (
+# #     "A conversation between User and Assistant. The user asks a question, and the Assistant solves it. "
+# #     "The assistant first thinks about the reasoning process in the mind and then provides the user with the answer. "
+# #     "The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, "
+# #     "i.e., <think> reasoning process here </think><answer> answer here </answer>. "
+# #     "Ensure that the final answer in the solution is formatted within \\boxed{}, "
+# #     "as this formatting is required for correct extraction."
+# # )
+
+# SYSTEM_PROMPT = "A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in the mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer>. User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag."
+
+# ADDED_INSTRUCTION = (
+#     "\n Given the question and the response provided, go through the reasoning process of the response and check if the response is correct or not. "
+#     "Then, try to resolve the problem if incorrect, and return the same final answer if you think it is correct. "
+#     "Enclose your reasoning of checking and resolving process within <think> </think> tags and the final solution within <answer> </answer> tags, "
+#     "i.e., <think> reasoning process here </think> <answer> solution here </answer>. "
+#     "Ensure that the final answer in the solution is formatted within \\boxed{}, as this formatting is required for correct extraction."
+# )
+
+# ##############################################
+# # Helper Functions
+# ##############################################
+# def make_conversation(example):
+#     return {
+#         "prompt": [
+#             {"role": "system", "content": SYSTEM_PROMPT},
+#             {"role": "user", "content": "\nQuestion: " + example["problem"]},
+#         ],
+#     }
+
+# def make_second_turn_conversation(question_text, first_answer):
+#     # For the second turn, the system prompt is ADDED_INSTRUCTION,
+#     # and the user content is: "Question: <question_text>, Response: <first_answer>"
+#     return {
+#         "prompt": [
+#             {"role": "system", "content": ADDED_INSTRUCTION},
+#             {"role": "user", "content": f"\nQuestion: {question_text}\nResponse: {first_answer}"},
+#         ],
+#     }
+
+# def build_prompt_from_conversation(conversation):
+#     # Convert a conversation object to a single prompt string
+#     return "\n".join(f"{msg['role'].capitalize()}: {msg['content']}" for msg in conversation["prompt"])
+
+# def extract_ground_truth(text: str) -> str | None:
+#     # Extract the last boxed answer from the reference solution.
+#     return last_boxed_only_string(text)
+
+# ##############################################
+# # Reward Functions
+# ##############################################
+# def correct_and_format(prompt: str, completion: str, ground_truth: str) -> float:
+#     # Extract the answer enclosed within <answer>...</answer>
+#     pattern = r"</think>\n?<answer>([\s\S]*)</answer>"
+#     match = re.search(pattern, completion)
+#     content = match.group(1) if match else ""
+#     return 1.0 if verify(parse(content), parse(ground_truth)) else 0.0
+
+# def correct_reward_func(completion: str, ground_truth: str) -> float:
+#     # Checks if the entire completion matches the ground truth
+#     return 1.0 if verify(parse(completion), parse(ground_truth)) else 0.0
+
+# def boxed_format_reward_func(completion: str) -> float:
+#     # A small reward if there's at least one '\\boxed{}' in the text
+#     match = re.search(r"\\boxed\{(.*?)\}", completion)
+#     return 0.1 if match else 0.0
+
+# ##############################################
+# # Load the MATH-500 Dataset
+# ##############################################
+# def get_math_test_data():
+#     source_name = "HuggingFaceH4/MATH-500"
+#     data = load_dataset(source_name, trust_remote_code=True)["test"]
+#     return data
+
+# ##############################################
+# # LLM Initialization
+# ##############################################
+# llm = LLM(
+#     model=path
+# )
+
+# # Deterministic generation
+# sampling_params = SamplingParams(
+#     temperature=0.0,
+#     top_p=1.0,
+#     max_tokens=4000
+# )
+
+# ##############################################
+# # Statistics / Confusion Matrix Helpers
+# ##############################################
+# def print_turn_stats(df, turn_label="A1"):
+#     print(f"\nAverage Metrics for {turn_label}:")
+#     avg_corr = df[f"{turn_label}_correctness"].mean()
+#     avg_boxed = df[f"{turn_label}_boxed_format"].mean()
+#     avg_reward = df[f"{turn_label}_total_reward"].mean()
+#     avg_length = df[f"{turn_label}_token_length"].mean()
+
+#     print(f"  Correctness: {avg_corr}")
+#     print(f"  Boxed Format: {avg_boxed}")
+#     print(f"  Total Reward: {avg_reward}")
+#     print(f"  Token Length: {avg_length}")
+
+#     total_examples = len(df)
+#     correct_count = (df[f"{turn_label}_correctness"] == 1.0).sum()
+#     incorrect_count = (df[f"{turn_label}_correctness"] == 0.0).sum()
+
+#     print(f"\n{turn_label} Accuracy:")
+#     print(f"  Correct: {correct_count} ({(correct_count / total_examples)*100:.2f}%)")
+#     print(f"  Incorrect: {incorrect_count} ({(incorrect_count / total_examples)*100:.2f}%)")
+
+# def print_confusion_matrix(df):
+#     correct_to_correct = ((df["A1_correctness"] == 1.0) & (df["A2_correctness"] == 1.0)).sum()
+#     correct_to_incorrect = ((df["A1_correctness"] == 1.0) & (df["A2_correctness"] == 0.0)).sum()
+#     incorrect_to_correct = ((df["A1_correctness"] == 0.0) & (df["A2_correctness"] == 1.0)).sum()
+#     incorrect_to_incorrect = ((df["A1_correctness"] == 0.0) & (df["A2_correctness"] == 0.0)).sum()
+
+#     print("\nConfusion Matrix (A1 -> A2):")
+#     print(f"  Correct to Correct: {correct_to_correct}")
+#     print(f"  Correct to Incorrect: {correct_to_incorrect}")
+#     print(f"  Incorrect to Correct: {incorrect_to_correct}")
+#     print(f"  Incorrect to Incorrect: {incorrect_to_incorrect}")
+
+# ##############################################
+# # Main Two-Stage Process
+# ##############################################
+# def main():
+#     print("Loading dataset...")
+#     data = get_math_test_data()
+
+#     # Prepare empty list to store final results
+#     results = []
+
+#     print("\nRunning FIRST TURN for all examples...")
+#     # Build all conversations and gather ground truths
+#     conversations = []
+#     ground_truths = []
+#     for example in data:
+#         conv = make_conversation(example)
+#         gt = extract_ground_truth(example["solution"])
+#         conversations.append(conv)
+#         ground_truths.append(gt)
+
+#     # Build prompts for turn 1
+#     prompts_turn1 = [build_prompt_from_conversation(c) for c in conversations]
+
+#     # Generate outputs for turn 1
+#     outputs_turn1 = llm.generate(prompts_turn1, sampling_params)
+
+#     # Create a partial results list that we can fill in turn2
+#     partial_data = []
+#     for idx, out in enumerate(outputs_turn1):
+#         # Turn 1 answer
+#         A1 = out.outputs[0].text
+#         prompt = prompts_turn1[idx]
+#         gt = ground_truths[idx]
+
+#         score_corr_A1 = correct_reward_func(A1, gt)
+#         score_box_A1 = boxed_format_reward_func(A1)
+#         total_reward_A1 = score_corr_A1 + score_box_A1
+#         token_length_A1 = len(llm.get_tokenizer().encode(A1))
+
+#         partial_data.append({
+#             "first_question": prompt,
+#             "ground_truth": gt,
+#             "A1": A1,
+#             "A1_correctness": score_corr_A1,
+#             "A1_boxed_format": score_box_A1,
+#             "A1_total_reward": total_reward_A1,
+#             "A1_token_length": token_length_A1,
+#         })
+
+#     # Convert partial_data to a DataFrame so we can do stats
+#     df_tmp = pd.DataFrame(partial_data)
+
+#     # Print stats for A1
+#     print_turn_stats(df_tmp, turn_label="A1")
+
+#     print("\nRunning SECOND TURN for all examples...")
+#     second_prompts = []
+
+#     # Build second turn prompts using the output of turn1, but in a conversation style.
+#     for idx, row in df_tmp.iterrows():
+#         # We'll remove system lines from the original question so we can isolate the user question.
+#         question_content = row["first_question"]
+#         lines = question_content.split("\n")
+#         user_lines = [l for l in lines if l.startswith("User:" )]
+#         if user_lines:
+#             # user_lines[0] might look like "User: <stuff>"
+#             # so we can strip off "User: " to isolate the question
+#             actual_question = user_lines[0].replace("User: ", "").strip()
+#         else:
+#             # fallback if something unexpected
+#             actual_question = question_content
+
+#         # The first-turn answer
+#         A1 = row["A1"]
+
+#         # Create a new conversation for turn 2 using our helper
+#         second_conv = make_second_turn_conversation(actual_question, A1)
+#         # Build the prompt
+#         new_prompt = build_prompt_from_conversation(second_conv)
+#         second_prompts.append(new_prompt)
+
+#     # Generate outputs for turn 2
+#     outputs_turn2 = llm.generate(second_prompts, sampling_params)
+
+#     # Merge the second turn results into the same partial_data records
+#     final_data = []
+#     for idx, row in enumerate(partial_data):
+#         A2 = outputs_turn2[idx].outputs[0].text
+#         gt = row["ground_truth"]
+#         second_prompt = second_prompts[idx]
+
+#         score_corr_A2 = correct_reward_func(A2, gt)
+#         score_box_A2 = boxed_format_reward_func(A2)
+#         total_reward_A2 = score_corr_A2 + score_box_A2
+#         token_length_A2 = len(llm.get_tokenizer().encode(A2))
+
+#         merged = {
+#             **row,  # all A1 stuff
+#             "second_question": second_prompt,
+#             "A2": A2,
+#             "A2_correctness": score_corr_A2,
+#             "A2_boxed_format": score_box_A2,
+#             "A2_total_reward": total_reward_A2,
+#             "A2_token_length": token_length_A2,
+#         }
+#         final_data.append(merged)
+
+#     df_final = pd.DataFrame(final_data)
+
+#     # Print stats for A2
+#     print_turn_stats(df_final, turn_label="A2")
+
+#     # Confusion matrix
+#     print_confusion_matrix(df_final)
+
+#     # Save everything into a single CSV
+#     df_final.to_csv(csv_file_path, index=False)
+#     print(f"\nAll done. Results saved to '{csv_file_path}'.")
+
+# if __name__ == "__main__":
+#     main()
