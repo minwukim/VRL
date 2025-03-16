@@ -14,11 +14,10 @@ from math_verify import verify, parse
 ##############################################
 
 # Choose your checkpoint path or model name
-# path = "Qwen/Qwen2.5-3B-Instruct"
-path = "./outputs/qwen2.5-3b-grpo-full/checkpoint-400"
+path = "Qwen/Qwen2.5-3B-Instruct"
 
 # The path name for the final CSV file to save the combined results.
-csv_file_path = "2stage_qwen2.5_3b_it_cp400_to_cp400.csv"
+csv_file_path = "two_stage_results.csv"
 
 ##############################################
 # System Prompt and Additional Instruction
@@ -47,7 +46,17 @@ def make_conversation(example):
     return {
         "prompt": [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": "\nQuestion: " + example["problem"]},
+            {"role": "user", "content": example["problem"]},
+        ],
+    }
+
+def make_second_turn_conversation(question_text, first_answer):
+    # For the second turn, the system prompt is ADDED_INSTRUCTION,
+    # and the user content is: "Question: <question_text>, Response: <first_answer>"
+    return {
+        "prompt": [
+            {"role": "system", "content": ADDED_INSTRUCTION},
+            {"role": "user", "content": f"Question: {question_text}\nResponse: {first_answer}"},
         ],
     }
 
@@ -69,8 +78,7 @@ def correct_and_format(prompt: str, completion: str, ground_truth: str) -> float
     content = match.group(1) if match else ""
     return 1.0 if verify(parse(content), parse(ground_truth)) else 0.0
 
-# Renamed this function from `format_reward_func` to `correct_reward_func`
-def correct_reward_func(completion: str, ground_truth: str) -> float:
+def format_reward_func(completion: str, ground_truth: str) -> float:
     # Checks if the entire completion matches the ground truth
     return 1.0 if verify(parse(completion), parse(ground_truth)) else 0.0
 
@@ -126,7 +134,6 @@ def print_turn_stats(df, turn_label="A1"):
     print(f"  Correct: {correct_count} ({(correct_count / total_examples)*100:.2f}%)")
     print(f"  Incorrect: {incorrect_count} ({(incorrect_count / total_examples)*100:.2f}%)")
 
-
 def print_confusion_matrix(df):
     correct_to_correct = ((df["A1_correctness"] == 1.0) & (df["A2_correctness"] == 1.0)).sum()
     correct_to_incorrect = ((df["A1_correctness"] == 1.0) & (df["A2_correctness"] == 0.0)).sum()
@@ -168,14 +175,13 @@ def main():
     # Create a partial results list that we can fill in turn2
     partial_data = []
     for idx, out in enumerate(outputs_turn1):
+        # Turn 1 answer
         A1 = out.outputs[0].text
         prompt = prompts_turn1[idx]
         gt = ground_truths[idx]
 
-        # Use correct_reward_func instead of correct_and_format
-        score_corr_A1 = correct_reward_func(A1, gt)
-        # Renamed format_reward_func call -> correct_reward_func
-        score_format_A1 = correct_reward_func(A1, gt)
+        score_corr_A1 = correct_and_format(prompt, A1, gt)
+        score_format_A1 = format_reward_func(A1, gt)
         score_box_A1 = boxed_format_reward_func(A1)
         total_reward_A1 = score_corr_A1 + score_format_A1 + score_box_A1
         token_length_A1 = len(llm.get_tokenizer().encode(A1))
@@ -198,40 +204,49 @@ def main():
     print_turn_stats(df_tmp, turn_label="A1")
 
     print("\nRunning SECOND TURN for all examples...")
-    # Now build second turn prompts using the output of turn1
     second_prompts = []
+
+    # Build second turn prompts using the output of turn1, but in a conversation style.
     for idx, row in df_tmp.iterrows():
-        # Remove system lines from the question
+        # We'll remove system lines from the original question so we can isolate the user question.
         question_content = row["question"]
         lines = question_content.split("\n")
-        user_lines = [l for l in lines if not l.startswith("System:")]
-        question_without_system = "\n".join(user_lines)
+        user_lines = [l for l in lines if l.startswith("User:" )]
+        if user_lines:
+            # user_lines[0] might look like "User: <stuff>"
+            # so we can strip off "User: " to isolate the question
+            actual_question = user_lines[0].replace("User: ", "").strip()
+        else:
+            # fallback if something unexpected
+            actual_question = question_content
 
+        # The first-turn answer
         A1 = row["A1"]
 
-        # Build second turn prompt
-        new_prompt = f"{question_without_system}\nAssistant: {A1}{ADDED_INSTRUCTION}"
+        # Create a new conversation for turn 2 using our helper
+        second_conv = make_second_turn_conversation(actual_question, A1)
+        # Build the prompt
+        new_prompt = build_prompt_from_conversation(second_conv)
         second_prompts.append(new_prompt)
 
     # Generate outputs for turn 2
     outputs_turn2 = llm.generate(second_prompts, sampling_params)
 
+    # Merge the second turn results into the same partial_data records
     final_data = []
     for idx, row in enumerate(partial_data):
         A2 = outputs_turn2[idx].outputs[0].text
         gt = row["ground_truth"]
         second_prompt = second_prompts[idx]
 
-        # Again, measure correctness with correct_reward_func
-        score_corr_A2 = correct_reward_func(A2, gt)
-        score_format_A2 = correct_reward_func(A2, gt)
+        score_corr_A2 = correct_and_format(second_prompt, A2, gt)
+        score_format_A2 = format_reward_func(A2, gt)
         score_box_A2 = boxed_format_reward_func(A2)
         total_reward_A2 = score_corr_A2 + score_format_A2 + score_box_A2
         token_length_A2 = len(llm.get_tokenizer().encode(A2))
 
         merged = {
-            **row,
-            "second_prompt": second_prompt,
+            **row,  # all A1 stuff
             "A2": A2,
             "A2_correctness": score_corr_A2,
             "A2_token_format": score_format_A2,
@@ -255,11 +270,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-# SYSTEM_PROMPT = (
-#     "You are an assitant solving a math problem. The user asks a question, and the Assistant solves it. "
-#     "Ensure that the final answer in the solution is formatted within \\boxed{}, "
-#     "as this formatting is required for correct extraction."
-# )
