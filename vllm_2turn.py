@@ -22,14 +22,16 @@ csv_file_path = "two_stage_results.csv"
 ##############################################
 # System Prompt and Additional Instruction
 ##############################################
-SYSTEM_PROMPT = (
-    "A conversation between User and Assistant. The user asks a question, and the Assistant solves it. "
-    "The assistant first thinks about the reasoning process in the mind and then provides the user with the answer. "
-    "The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, "
-    "i.e., <think> reasoning process here </think><answer> answer here </answer>. "
-    "Ensure that the final answer in the solution is formatted within \\boxed{}, "
-    "as this formatting is required for correct extraction."
-)
+# SYSTEM_PROMPT = (
+#     "A conversation between User and Assistant. The user asks a question, and the Assistant solves it. "
+#     "The assistant first thinks about the reasoning process in the mind and then provides the user with the answer. "
+#     "The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, "
+#     "i.e., <think> reasoning process here </think><answer> answer here </answer>. "
+#     "Ensure that the final answer in the solution is formatted within \\boxed{}, "
+#     "as this formatting is required for correct extraction."
+# )
+
+SYSTEM_PROMPT = "A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in the mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer>. User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag."
 
 ADDED_INSTRUCTION = (
     "\n Given the question and the response provided, go through the reasoning process of the response and check if the response is correct or not. "
@@ -78,7 +80,7 @@ def correct_and_format(prompt: str, completion: str, ground_truth: str) -> float
     content = match.group(1) if match else ""
     return 1.0 if verify(parse(content), parse(ground_truth)) else 0.0
 
-def format_reward_func(completion: str, ground_truth: str) -> float:
+def correct_reward_func(completion: str, ground_truth: str) -> float:
     # Checks if the entire completion matches the ground truth
     return 1.0 if verify(parse(completion), parse(ground_truth)) else 0.0
 
@@ -180,10 +182,9 @@ def main():
         prompt = prompts_turn1[idx]
         gt = ground_truths[idx]
 
-        score_corr_A1 = correct_and_format(prompt, A1, gt)
-        score_format_A1 = format_reward_func(A1, gt)
+        score_corr_A1 = correct_reward_func(A1, gt)
         score_box_A1 = boxed_format_reward_func(A1)
-        total_reward_A1 = score_corr_A1 + score_format_A1 + score_box_A1
+        total_reward_A1 = score_corr_A1 + score_box_A1
         token_length_A1 = len(llm.get_tokenizer().encode(A1))
 
         partial_data.append({
@@ -191,7 +192,6 @@ def main():
             "ground_truth": gt,
             "A1": A1,
             "A1_correctness": score_corr_A1,
-            "A1_token_format": score_format_A1,
             "A1_boxed_format": score_box_A1,
             "A1_total_reward": total_reward_A1,
             "A1_token_length": token_length_A1,
@@ -239,10 +239,9 @@ def main():
         gt = row["ground_truth"]
         second_prompt = second_prompts[idx]
 
-        score_corr_A2 = correct_and_format(second_prompt, A2, gt)
-        score_format_A2 = format_reward_func(A2, gt)
+        score_corr_A2 = correct_reward_func(A2, gt)
         score_box_A2 = boxed_format_reward_func(A2)
-        total_reward_A2 = score_corr_A2 + score_format_A2 + score_box_A2
+        total_reward_A2 = score_corr_A2 + score_box_A2
         token_length_A2 = len(llm.get_tokenizer().encode(A2))
 
         merged = {
@@ -250,7 +249,6 @@ def main():
             "second_question": second_prompt,
             "A2": A2,
             "A2_correctness": score_corr_A2,
-            "A2_token_format": score_format_A2,
             "A2_boxed_format": score_box_A2,
             "A2_total_reward": total_reward_A2,
             "A2_token_length": token_length_A2,
