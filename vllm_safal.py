@@ -17,7 +17,7 @@ The assistant first thinks about the reasoning process in the mind and then prov
 The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively.
 i.e., <think> reasoning process here </think> <answer> answer here </answer>.
 User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>.
-And your final answer will be extracted automatically by the \boxed{{}} tag.
+And your final answer will be extracted automatically by the \\boxed{{}} tag.
 {prompt}
 Assistant: <think>
 """
