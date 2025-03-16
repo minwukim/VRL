@@ -14,10 +14,11 @@ from math_verify import verify, parse
 ##############################################
 
 # Choose your checkpoint path or model name
-path = "Qwen/Qwen2.5-3B-Instruct"
+# path = "Qwen/Qwen2.5-3B-Instruct"
+path = "./outputs/qwen2.5-3b-grpo-full/checkpoint-400"
 
 # The path name for the final CSV file to save the combined results.
-csv_file_path = "2stage_qwen2.5_3b_it_original.csv"
+csv_file_path = "2stage_qwen2.5_3b_it_cp400_to_cp400.csv"
 
 ##############################################
 # System Prompt and Additional Instruction
