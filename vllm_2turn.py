@@ -15,9 +15,9 @@ from math_verify import verify, parse
 # Settings and Model Initialization
 ##############################################
 # model_path = "./outputs/qwen2.5-3b-grpo-full/checkpoint-400"  # or update to your desired model path
-# model_path = "Qwen/Qwen2.5-3B-Instruct"
-model_path = "hkust-nlp/Qwen-2.5-Math-7B-SimpleRL-Zero"
-csv_file_path = "simpleRL_2stage.csv"
+model_path = "Qwen/Qwen2.5-7B-Instruct"
+# model_path = "hkust-nlp/Qwen-2.5-Math-7B-SimpleRL-Zero"
+csv_file_path = "qwen7b_cp0_2stage.csv"
 
 # First turn prompt template
 SYSTEM_PROMPT_FIRST = """
