@@ -117,13 +117,11 @@ sampling_params = SamplingParams(
 def print_turn_stats(df, turn_label="A1"):
     print(f"\nAverage Metrics for {turn_label}:")
     avg_corr = df[f"{turn_label}_correctness"].mean()
-    avg_format = df[f"{turn_label}_token_format"].mean()
     avg_boxed = df[f"{turn_label}_boxed_format"].mean()
     avg_reward = df[f"{turn_label}_total_reward"].mean()
     avg_length = df[f"{turn_label}_token_length"].mean()
 
     print(f"  Correctness: {avg_corr}")
-    print(f"  Token Format: {avg_format}")
     print(f"  Boxed Format: {avg_boxed}")
     print(f"  Total Reward: {avg_reward}")
     print(f"  Token Length: {avg_length}")
