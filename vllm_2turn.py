@@ -46,7 +46,7 @@ def make_conversation(example):
     return {
         "prompt": [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": example["problem"]},
+            {"role": "user", "content": "\nQuestion: " + example["problem"]},
         ],
     }
 
@@ -56,7 +56,7 @@ def make_second_turn_conversation(question_text, first_answer):
     return {
         "prompt": [
             {"role": "system", "content": ADDED_INSTRUCTION},
-            {"role": "user", "content": f"Question: {question_text}\nResponse: {first_answer}"},
+            {"role": "user", "content": f"\nQuestion: {question_text}\nResponse: {first_answer}"},
         ],
     }
 
@@ -187,7 +187,7 @@ def main():
         token_length_A1 = len(llm.get_tokenizer().encode(A1))
 
         partial_data.append({
-            "question": prompt,
+            "first question": prompt,
             "ground_truth": gt,
             "A1": A1,
             "A1_correctness": score_corr_A1,
@@ -247,6 +247,7 @@ def main():
 
         merged = {
             **row,  # all A1 stuff
+            "second_question": second_prompt,
             "A2": A2,
             "A2_correctness": score_corr_A2,
             "A2_token_format": score_format_A2,
