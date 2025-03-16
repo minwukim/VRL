@@ -17,7 +17,7 @@ from math_verify import verify, parse
 path = "Qwen/Qwen2.5-3B-Instruct"
 
 # The path name for the final CSV file to save the combined results.
-csv_file_path = "two_stage_results.csv"
+csv_file_path = "2stage_qwen2.5_3b_it_original.csv"
 
 ##############################################
 # System Prompt and Additional Instruction
