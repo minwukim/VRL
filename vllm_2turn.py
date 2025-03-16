@@ -103,9 +103,9 @@ def print_turn_stats(df, turn_label="A1"):
     print(f"  Total Reward: {avg_reward}")
     print(f"  Token Length: {avg_length}")
 
-    total_examples = len(df.shape[0])
-    correct_count = (df[f"{turn_label}_correctness"] == 1.0).sum()
-    incorrect_count = (df[f"{turn_label}_correctness"] == 0.0).sum()
+    total_examples = df.shape[0]
+    correct_count = df[f"{turn_label}_correctness"].sum()
+    incorrect_count = df.shape[0] - correct_count
 
     print(f"\n{turn_label} Accuracy:")
     print(f"  Correct: {correct_count} ({(correct_count / total_examples)*100:.2f}%)")
