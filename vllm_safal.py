@@ -80,15 +80,20 @@ def main():
             "Prompt": prompts[idx],
             "Generated Answer": generated_text,
             "Ground Truth": gt,
-            "Correctness Score": score_corr,
-            "Correctness and Format Score": score_correct_and_format
+            "Correctness_Score": score_corr,
+            "Correctness_and_Format_Score": score_correct_and_format,
+            "Response Length": token_length
         })
     
     df = pd.DataFrame(results)
     df.to_csv("0312_cp400.csv", index=False)
     
-    print(f"Average Correctness Score: {total_correctness / num_samples:.4f}")
-    print(f"Average Correctness and Format Score: {total_correct_and_format / num_samples:.4f}")
+    total_correctness = df["Correctness_Score"].sum()
+    total_correct_and_format = df["Correctness_and_Format_Score"].sum()
+    total_length = df["Response Length"].sum()
+
+    print(f"Average Correctness Score: {total_correctness / num_samples:.2f}")
+    print(f"Average Correctness and Format Score: {total_correct_and_format / num_samples:.2f}")
     print(f"Average Response Length: {total_length / num_samples:.2f} tokens")
 
 if __name__ == "__main__":
