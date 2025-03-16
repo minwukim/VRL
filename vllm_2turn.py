@@ -187,7 +187,7 @@ def main():
         token_length_A1 = len(llm.get_tokenizer().encode(A1))
 
         partial_data.append({
-            "first question": prompt,
+            "first_question": prompt,
             "ground_truth": gt,
             "A1": A1,
             "A1_correctness": score_corr_A1,
@@ -209,7 +209,7 @@ def main():
     # Build second turn prompts using the output of turn1, but in a conversation style.
     for idx, row in df_tmp.iterrows():
         # We'll remove system lines from the original question so we can isolate the user question.
-        question_content = row["question"]
+        question_content = row["first_question"]
         lines = question_content.split("\n")
         user_lines = [l for l in lines if l.startswith("User:" )]
         if user_lines:
