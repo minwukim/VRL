@@ -15,9 +15,9 @@ from math_verify import verify, parse
 # Settings and Model Initialization
 ##############################################
 # model_path = "./outputs/qwen2.5-3b-grpo-full/checkpoint-400"  # or update to your desired model path
-model_path = "Qwen/Qwen2.5-7B-Instruct"
+model_path = "Qwen/Qwen2.5-3B-Instruct"
 # model_path = "hkust-nlp/Qwen-2.5-Math-7B-SimpleRL-Zero"
-csv_file_path = "qwen7b_cp0_2stage.csv"
+csv_file_path = "cp0_2stage.csv"
 
 # First turn prompt template
 SYSTEM_PROMPT_FIRST = """
@@ -103,7 +103,7 @@ def print_turn_stats(df, turn_label="A1"):
     print(f"  Total Reward: {avg_reward}")
     print(f"  Token Length: {avg_length}")
 
-    total_examples = len(df)
+    total_examples = len(df.shape[0])
     correct_count = (df[f"{turn_label}_correctness"] == 1.0).sum()
     incorrect_count = (df[f"{turn_label}_correctness"] == 0.0).sum()
 
