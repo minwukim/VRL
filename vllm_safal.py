@@ -6,8 +6,8 @@ from math_verify import verify, parse
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
 
 # Load trained model
-model_path = "./outputs/qwen2.5-3b-grpo-full/checkpoint-400" # Update with actual model path 
-file_path = "new_400.csv"
+model_path = "./outputs/qwen2.5-3b-grpo-full/checkpoint-200" # Update with actual model path 
+file_path = "new_200.csv"
 
 llm = LLM(model=model_path, max_model_len=5000, gpu_memory_utilization=0.7)
 

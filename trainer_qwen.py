@@ -43,6 +43,7 @@ class MyArguments:
     evaluation_strategy: str
     eval_steps: int
     eval_on_start: bool
+    checkpoint_path: str = None
     resume_from_checkpoint: bool = False
 
 
@@ -99,8 +100,8 @@ def get_dataset():
 
 train, test = get_dataset()
 
-model_name = training_args.model_name
-model_name = AutoModelForCausalLM.from_pretrained("/home/VRL/outputs/qwen2.5-3b-grpo-full/checkpoint-400")
+model_path = training_args.model_name if not training_args.resume_from_checkpoint else training_args.checkpoint_path
+model_name = AutoModelForCausalLM.from_pretrained(model_path)
 
 grpo_config_args = GRPOConfig(
     output_dir=training_args.output_dir,
@@ -142,4 +143,4 @@ trainer = GRPOTrainer(
     train_dataset=train,
     eval_dataset=test,
 )
-trainer.train(resume_from_checkpoint=training_args.resume_from_checkpoint)
+trainer.train(resume_from_checkpoint=training_args.checkpoint_path)
