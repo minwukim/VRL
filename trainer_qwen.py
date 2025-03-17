@@ -100,6 +100,7 @@ def get_dataset():
 train, test = get_dataset()
 
 model_name = training_args.model_name
+model_name = AutoModelForCausalLM.from_pretrained("/home/VRL/outputs/qwen2.5-3b-grpo-full/checkpoint-400")
 
 grpo_config_args = GRPOConfig(
     output_dir=training_args.output_dir,

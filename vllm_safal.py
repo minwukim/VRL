@@ -6,10 +6,10 @@ from math_verify import verify, parse
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
 
 # Load trained model
-model_path = "Qwen/Qwen2.5-3B-Instruct" # Update with actual model path 
-file_path = "3B_vanilla.csv"
+model_path = "./outputs/qwen2.5-3b-grpo-full/checkpoint-400" # Update with actual model path 
+file_path = "new_400.csv"
 
-llm = LLM(model=model_path)
+llm = LLM(model=model_path, max_model_len=5000, gpu_memory_utilization=0.7)
 
 SYSTEM_PROMPT = """
 A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
@@ -48,12 +48,12 @@ def get_math_test_prompts():
         gt = extract_boxed_answer(example['solution'])
         prompts.append(prompt)
         ground_truths.append(gt)
-    return prompts, ground_truths
+    return prompts[:100], ground_truths[:100]
 
 def main():
     prompts, ground_truths = get_math_test_prompts()
     sampling_params = SamplingParams(
-        temperature=0.0,
+        temperature=1.0,
         top_p=1.0,
         max_tokens=4000
     )
