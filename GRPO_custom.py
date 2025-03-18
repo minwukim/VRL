@@ -35,6 +35,7 @@ def extract_user_text(text):
     Extracts text from the user block, ignoring any preceding system instructions.
     It looks for text between '<|im_start|>user' and '<|im_end|>' markers.
     """
+    return text
     match = re.search(r"<\|im_start\|>user(.*?)<\|im_end\|>", text, re.DOTALL)
     if match:
         return match.group(1).strip()
@@ -44,6 +45,7 @@ def remove_tokens(text):
     """
     Removes unnecessary tokens such as '<|im_start|>assistant', '<|im_start|>system', and '<|im_end|>'.
     """
+    return text
     tokens = ["<|im_start|>assistant", "<|im_start|>system", "<|im_end|>"]
     for token in tokens:
         text = text.replace(token, "")
