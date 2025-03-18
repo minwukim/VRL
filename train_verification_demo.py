@@ -18,47 +18,6 @@ max_prompt_length = 1500 + 500
 
 model_name = "Qwen/Qwen2.5-3B-Instruct"
 
-@dataclass
-class MyArguments: 
-    model_name: str
-    output_dir: str
-    run_name: str
-    learning_rate: float
-    beta: float
-    adam_beta1: float
-    adam_beta2: float
-    weight_decay: float
-    warmup_steps: int
-    lr_scheduler_type: str
-    logging_steps: float
-    bf16: bool
-    bf16_full_eval: bool
-    per_device_train_batch_size: int
-    gradient_accumulation_steps: int
-    gradient_checkpointing: bool
-    num_generations: int
-    max_prompt_length: int
-    max_completion_length: int
-    num_train_epochs: int
-    save_steps: int
-    max_grad_norm: float
-    report_to: str
-    use_vllm: bool
-    vllm_max_model_len: int
-    max_steps: int
-    log_completions: bool
-    evaluation_strategy: str
-    eval_steps: int
-    eval_on_start: bool
-    checkpoint_path: str = None
-    resume_from_checkpoint: bool = False
-
-
-parser = TrlParser(dataclass_types=[MyArguments])
-
-training_args = parser.parse_args_and_config()[0]
-print(training_args)
-
 SYSTEM="""A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in the mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer>. User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag.
 {prompt}
 Assistant: <think>"""
@@ -136,4 +95,4 @@ trainer = CustomGRPOTrainer(
     train_dataset=train,
     eval_dataset=test,
 )
-trainer.train(resume_from_checkpoint=training_args.checkpoint_path)
+trainer.train()
