@@ -491,15 +491,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
 
 
 class SwitchingGRPOTrainer(GRPOTrainer):
-    """
-    Custom GRPOTrainer with modified generation:
-      1. For each unique question Q (after removing duplicates), generate one initial answer A.
-      2. Then replicate (Q, A) pairs by num_generations times.
-      3. Construct new prompts using the duplicated (Q, A) pairs and an added instruction.
-      4. Generate judgment J from these identical prompts.
-    This ensures that all duplicates of a prompt Q share the same initial answer A,
-    which is required for correct grouping and advantage computation in GRPO.
-    """
+
     
     def _generate_and_score_completions(
         self, inputs: dict[str, Union[torch.Tensor, Any]]
@@ -817,6 +809,26 @@ class SwitchingGRPOTrainer(GRPOTrainer):
         else:
             # In evaluation, we don't reuse completions across multiple updates, so we don't need to buffer inputs.
             inputs = self._generate_and_score_completions(inputs)
+        return inputs
+    
+
+    @profiling_decorator
+    def _prepare_inputs(self, inputs: dict[str, Union[torch.Tensor, Any]]) -> dict[str, Union[torch.Tensor, Any]]:
+        mode = "eval" if self.control.should_evaluate else "train"
+        if mode == "train":
+            if self.state.global_step % self.num_iterations == 0:
+                if self.state.global_step // 2 == 0:
+                    inputs = self._generate_and_score_completions(inputs)
+                    self._buffered_inputs[self._step % self.args.gradient_accumulation_steps] = inputs
+                else:
+                    inputs = super()._generate_and_score_completions(inputs)
+                    self._buffered_inputs[self._step % self.args.gradient_accumulation_steps] = inputs
+            else:
+                inputs = self._buffered_inputs[self._step % self.args.gradient_accumulation_steps]
+            self._step += 1
+        else:
+            # In evaluation, we don't reuse completions across multiple updates, so we don't need to buffer inputs.
+            inputs = super()._generate_and_score_completions(inputs)
         return inputs
 
  

@@ -88,20 +88,20 @@ training_args = GRPOConfig(
     eval_steps = 200,
     log_completions = True
 )
-trainer = VerificationGRPOTrainer(
-    model=model_name,
-    reward_funcs=[reward_correct, reward_correct_and_format],
-    args = training_args,
-    train_dataset=train,
-    eval_dataset=test,
-)
-
-# trainer = SwitchingGRPOTrainer(
+# trainer = VerificationGRPOTrainer(
 #     model=model_name,
 #     reward_funcs=[reward_correct, reward_correct_and_format],
 #     args = training_args,
 #     train_dataset=train,
 #     eval_dataset=test,
-#     num_iterations=2
 # )
+
+trainer = SwitchingGRPOTrainer(
+    model=model_name,
+    reward_funcs=[reward_correct, reward_correct_and_format],
+    args = training_args,
+    train_dataset=train,
+    eval_dataset=test,
+    num_iterations=2
+)
 trainer.train()
