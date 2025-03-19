@@ -855,6 +855,8 @@ class SwitchingGRPOTrainer(GRPOTrainer):
         mode = "eval" if self.control.should_evaluate else "train"
         if mode == "train":
             if self.state.global_step % self.num_iterations == 0:
+                print("globals step: ", self.state.global_step)
+                print("num iterations: ", self.num_iterations)
                 if self.state.global_step // 2 == 1:
                     print("2 TURN TRAINING")
                     inputs = self._generate_and_score_completions(inputs)
