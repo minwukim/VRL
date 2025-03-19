@@ -1,6 +1,7 @@
 import pandas as pd
 from datasets import load_dataset
 from vllm import LLM, SamplingParams
+import torch
 from math_verify import verify, parse
 
 def last_boxed_only_string(string):
@@ -56,39 +57,47 @@ def get_math_test_prompts():
         ground_truths.append(gt)
     return prompts, ground_truths
 
-
-# Set up the model and sampling parameters
+# Set up the model with dtype explicitly set to float16 for Tesla V100 GPUs
 model_path = "hkust-nlp/Qwen-2.5-Math-7B-SimpleRL-Zero"
-llm = LLM(model=model_path)
+llm = LLM(model=model_path, dtype=torch.float16)
+
 sampling_params = SamplingParams(
-    temperature=0.9,  # You can set temperature=0 for deterministic output if desired
+    temperature=0.9,  # Set temperature=0 for deterministic output if desired
     top_p=1.0,
     max_tokens=4000
 )
 
-# Get the first 10 prompts and corresponding ground truth answers
+# Retrieve prompts and ground truth answers for the first 10 examples
 prompts, ground_truths = get_math_test_prompts()
 
+# Create a single list containing each prompt repeated 20 times
+num_samples = 20
+all_prompts = []
+for prompt in prompts:
+    all_prompts.extend([prompt] * num_samples)
+
+# Generate outputs for all prompts in one call
+outputs = llm.generate(all_prompts, sampling_params)
+
+# Process the outputs and compile results in a single list
 results = []
+for idx, output in enumerate(outputs):
+    # Determine the corresponding original question index
+    question_idx = idx // num_samples
+    prompt_text = output.prompt
+    # Assuming the first generation is the desired response
+    generated_text = output.outputs[0].text
+    score = judge_response(generated_text, ground_truths[question_idx])
+    token_length = len(generated_text.split())
+    results.append({
+        "question": prompt_text,
+        "response": generated_text,
+        "ground_truth": ground_truths[question_idx],
+        "judge_response_score": score,
+        "token_length": token_length
+    })
 
-
-# For each prompt (question) generate 20 responses
-for prompt, ground_truth in zip(prompts, ground_truths):
-    # Generate 20 responses for the same prompt using list replication
-    responses = llm.generate([prompt] * 2, sampling_params)
-    for response in responses:
-        score = judge_response(response, ground_truth)
-        token_length = len(response.split())
-        results.append({
-            "question": prompt,
-            "response": response,
-            "ground_truth": ground_truth,
-            "judge_response_score": score,
-            "token_length": token_length
-        })
-
-# Create a DataFrame and export the results as a CSV file.
+# Convert results to a DataFrame and export to CSV
 df = pd.DataFrame(results)
 df.to_csv("results.csv", index=False)
 print("CSV file 'results.csv' has been exported.")
-
