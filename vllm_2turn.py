@@ -9,10 +9,11 @@ from math_verify import verify, parse
 # Settings and Model Initialization
 ##############################################
 # model_path = "./outputs/qwen2.5-3b-grpo-full/checkpoint-400"  # or update to your desired model path
-# model_path = "./outputs/qwen2.5-3b-grpo-large/checkpoint-100"  # or update to your desired model path
-model_path = "Qwen/Qwen2.5-3B"
+model_path = "./outputs/qwen2.5-3b-grpo-large/checkpoint-100"  # or update to your desired model path
+# model_path = "Qwen/Qwen2.5-3B"
 # model_path = "hkust-nlp/Qwen-2.5-Math-7B-SimpleRL-Zero"
-csv_file_path = "qwen2.5-3b-grpo-large/checkpoint-100_2stage.csv"
+csv_file_path = "qwen2.5-3b-grpo-large_checkpoint-100_2stage.csv"
+
 
 # First turn prompt template
 SYSTEM_PROMPT_FIRST = """A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user
@@ -72,6 +73,14 @@ def reward_func(s: str, gt: str) -> float:
     return 2 if verify(parse(ext_string), parse(gt)) else -0.5
 
 
+def format_agnostic_reward_func(completion: str, ground_truth: str) -> float:
+    """
+    Directly computes the correctness regardless of formatting.
+    Returns 1.0 if the parsed completion matches the ground truth; otherwise 0.0.
+    """
+    return 1.0 if verify(parse(completion), parse(ground_truth)) else 0.0
+
+
 def extract_ground_truth(text: str) -> str:
     """Extract the last boxed answer from the reference solution."""
     return last_boxed_only_string(text)
@@ -108,35 +117,54 @@ def print_turn_stats(df, turn_label="A1"):
     correct_count = (df[f"{turn_label}_total_reward"] == 2).sum()
     incorrect_count = total_examples - correct_count
 
-    # Count individual reward values
-    count_2 = (df[f"{turn_label}_total_reward"] == 2).sum()
+    # Count individual reward values from reward_func
+    count_2   = (df[f"{turn_label}_total_reward"] == 2).sum()
     count_m05 = (df[f"{turn_label}_total_reward"] == -0.5).sum()
-    count_m1 = (df[f"{turn_label}_total_reward"] == -1).sum()
-    count_m2 = (df[f"{turn_label}_total_reward"] == -2).sum()
+    count_m1  = (df[f"{turn_label}_total_reward"] == -1).sum()
+    count_m2  = (df[f"{turn_label}_total_reward"] == -2).sum()
 
-    print(f"\n{turn_label} Accuracy:")
+    print(f"\n{turn_label} Reward (using reward_func) Accuracy:")
     print(f"  Correct: {correct_count} ({(correct_count / total_examples)*100:.2f}%)")
     print(f"  Incorrect: {incorrect_count} ({(incorrect_count / total_examples)*100:.2f}%)")
-
-    print(f"\n{turn_label} Reward Counts:")
+    print(f"\n{turn_label} Reward (using reward_func) Counts:")
     print(f"  2     : {count_2}")
     print(f"  -0.5  : {count_m05}")
     print(f"  -1    : {count_m1}")
     print(f"  -2    : {count_m2}")
+    
+    # If format-agnostic scores are available, print their counts.
+    if f"{turn_label}_format_agnostic" in df.columns:
+        count_1 = (df[f"{turn_label}_format_agnostic"] == 1).sum()
+        count_0 = (df[f"{turn_label}_format_agnostic"] == 0).sum()
+        print(f"\n{turn_label} Format-Agnostic Reward Counts:")
+        print(f"  1 : {count_1}")
+        print(f"  0 : {count_0}")
 
 
 def print_confusion_matrix(df):
-    # Using reward_func, correct = reward value of 2; any other value is incorrect.
+    # Confusion matrix for reward_func-based scores (correct = 2)
     correct_to_correct = ((df["A1_total_reward"] == 2) & (df["A2_total_reward"] == 2)).sum()
     correct_to_incorrect = ((df["A1_total_reward"] == 2) & (df["A2_total_reward"] != 2)).sum()
     incorrect_to_correct = ((df["A1_total_reward"] != 2) & (df["A2_total_reward"] == 2)).sum()
     incorrect_to_incorrect = ((df["A1_total_reward"] != 2) & (df["A2_total_reward"] != 2)).sum()
 
-    print("\nConfusion Matrix (A1 -> A2):")
+    print("\nConfusion Matrix (reward_func scores, A1 -> A2):")
     print(f"  Correct to Correct: {correct_to_correct}")
     print(f"  Correct to Incorrect: {correct_to_incorrect}")
     print(f"  Incorrect to Correct: {incorrect_to_correct}")
     print(f"  Incorrect to Incorrect: {incorrect_to_incorrect}")
+
+    # Confusion matrix for format-agnostic scores (correct = 1)
+    fa_correct_to_correct = ((df["A1_format_agnostic"] == 1) & (df["A2_format_agnostic"] == 1)).sum()
+    fa_correct_to_incorrect = ((df["A1_format_agnostic"] == 1) & (df["A2_format_agnostic"] == 0)).sum()
+    fa_incorrect_to_correct = ((df["A1_format_agnostic"] == 0) & (df["A2_format_agnostic"] == 1)).sum()
+    fa_incorrect_to_incorrect = ((df["A1_format_agnostic"] == 0) & (df["A2_format_agnostic"] == 0)).sum()
+
+    print("\nConfusion Matrix (Format-Agnostic scores, A1 -> A2):")
+    print(f"  Correct to Correct: {fa_correct_to_correct}")
+    print(f"  Correct to Incorrect: {fa_correct_to_incorrect}")
+    print(f"  Incorrect to Correct: {fa_incorrect_to_correct}")
+    print(f"  Incorrect to Incorrect: {fa_incorrect_to_incorrect}")
 
 ##############################################
 # Main Two-Stage Process
@@ -162,6 +190,7 @@ def main():
         A1 = out.outputs[0].text
         gt = ground_truths[idx]
         score_A1 = reward_func(A1, gt)
+        fa_A1 = format_agnostic_reward_func(A1, gt)
         total_reward_A1 = score_A1
         token_length_A1 = len(llm.get_tokenizer().encode(A1))
 
@@ -171,6 +200,7 @@ def main():
             "ground_truth": gt,
             "A1": A1,
             "A1_total_reward": total_reward_A1,
+            "A1_format_agnostic": fa_A1,
             "A1_token_length": token_length_A1,
         })
 
@@ -191,6 +221,7 @@ def main():
         A2 = outputs_turn2[idx].outputs[0].text
         gt = item["ground_truth"]
         score_A2 = reward_func(A2, gt)
+        fa_A2 = format_agnostic_reward_func(A2, gt)
         total_reward_A2 = score_A2
         token_length_A2 = len(llm.get_tokenizer().encode(A2))
 
@@ -199,6 +230,7 @@ def main():
             "prompt_second": prompts_second[idx],
             "A2": A2,
             "A2_total_reward": total_reward_A2,
+            "A2_format_agnostic": fa_A2,
             "A2_token_length": token_length_A2,
         }
         final_data.append(merged)
@@ -212,6 +244,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 # ##############################################
