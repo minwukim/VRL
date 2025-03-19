@@ -4,39 +4,28 @@ from datasets import load_dataset
 from vllm import LLM, SamplingParams
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
 from math_verify import verify, parse
-import re
-import pandas as pd
-from datasets import load_dataset
-from vllm import LLM, SamplingParams
-from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
-from math_verify import verify, parse
 
 ##############################################
 # Settings and Model Initialization
 ##############################################
 # model_path = "./outputs/qwen2.5-3b-grpo-full/checkpoint-400"  # or update to your desired model path
-model_path = "Qwen/Qwen2.5-7B-Instruct"
+model_path = "./outputs/qwen2.5-3b-grpo-large/checkpoint-100"  # or update to your desired model path
 # model_path = "hkust-nlp/Qwen-2.5-Math-7B-SimpleRL-Zero"
-csv_file_path = "cp400_2stage.csv"
+csv_file_path = "qwen2.5-3b-grpo-large/checkpoint-100_2stage.csv"
 
 # First turn prompt template
-SYSTEM_PROMPT_FIRST = """
-A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
-The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
-The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively.
-i.e., <think> reasoning process here </think> <answer> answer here </answer>.
-User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>.
-And your final answer will be extracted automatically by the \boxed{{}} tag.
+SYSTEM_PROMPT_FIRST = """A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user
+ with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> final answer inside \\boxed{{}} tag </answer>. User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the
+ \\boxed{{}} tag.
 {prompt}
-Assistant: <think>
-"""
+Assistant: <think>"""
 
 # Instruction for the second turn (correction/verification)
 ADDED_INSTRUCTION = (
-    "Given the question and the response provided, go through the reasoning process of the response and check if the response is correct or not. "
-    "Then, try to resolve the problem if incorrect, and return the same final answer if you think it is correct. "
-    "Enclose your reasoning of checking and resolving process within <think> </think> tags and the final solution within <answer> </answer> tags, "
-    "i.e., <think> reasoning process here </think> <answer> solution here </answer>. "
+    "A conversation between User and Assistant. Given the question and the response provided, Assistant goes through the reasoning process of the response and check if the response is correct or not. "
+    "Then, Assistant tries to re-solve the problem if incorrect, and returns the same final answer if you think it is correct. "
+    "User: You must enclose reasoning of checking and resolving process within <think> </think> tags and the final solution within <answer> </answer> tags, "
+    "i.e., <think> reasoning process here </think> <answer> final answer inside \\boxed{{}} tag </answer>. "
     "Ensure that the final answer in the solution is formatted within \\boxed{}, as this formatting is required for correct extraction."
 )
 
@@ -55,22 +44,37 @@ def build_prompt_first(problem: str) -> str:
     """Build the first-turn prompt by inserting the problem into the system prompt."""
     return SYSTEM_PROMPT_FIRST.format(prompt=problem)
 
+
 def build_prompt_second(question: str, first_answer: str) -> str:
     """Build the second-turn prompt using the original problem and the first-turn answer."""
     return SYSTEM_PROMPT_SECOND.format(instruction=ADDED_INSTRUCTION, question=question, first_answer=first_answer)
 
-def extract_ground_truth(text: str) -> str | None:
+
+def reward_func(s: str, gt: str) -> float:
+    """
+    Computes a reward for the given answer string `s` using the ground truth `gt`.
+    Returns 2 if the answer is correctly formatted and the extracted final answer matches the ground truth.
+    Otherwise returns other values (e.g., -2, -1, or -0.5) indicating error cases.
+    """
+    pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
+    # Check that the answer has the proper number of tokens.
+    if not (s.count("</think>") == 1 and s.count("<answer>") == 1 and s.count("</answer>") == 1):
+        return -2
+    match = re.search(pattern, s, re.DOTALL)
+    if not match:
+        return -2
+    # Answer format is correct; now extract the answer inside the boxed tag.
+    ext_string = last_boxed_only_string(match.group(1))
+    if ext_string is None:
+        return -1   # No boxed tag found
+    # Return 2 if the parsed answer matches the ground truth, else return -0.5.
+    return 2 if verify(parse(ext_string), parse(gt)) else -0.5
+
+
+def extract_ground_truth(text: str) -> str:
     """Extract the last boxed answer from the reference solution."""
     return last_boxed_only_string(text)
 
-def correct_reward_func(completion: str, ground_truth: str) -> float:
-    """Return 1.0 if the parsed completion matches the ground truth; otherwise 0.0."""
-    return 1.0 if verify(parse(completion), parse(ground_truth)) else 0.0
-
-def boxed_format_reward_func(completion: str) -> float:
-    """Return 0.1 if there is at least one '\\boxed{}' in the completion; otherwise 0.0."""
-    match = re.search(r"\\boxed\{(.*?)\}", completion)
-    return 0.1 if match else 0.0
 
 def get_math_test_data():
     source_name = "HuggingFaceH4/MATH-500"
@@ -93,29 +97,39 @@ sampling_params = SamplingParams(
 ##############################################
 def print_turn_stats(df, turn_label="A1"):
     print(f"\nAverage Metrics for {turn_label}:")
-    avg_corr = df[f"{turn_label}_correctness"].mean()
-    avg_boxed = df[f"{turn_label}_boxed_format"].mean()
     avg_reward = df[f"{turn_label}_total_reward"].mean()
     avg_length = df[f"{turn_label}_token_length"].mean()
 
-    print(f"  Correctness: {avg_corr}")
-    print(f"  Boxed Format: {avg_boxed}")
     print(f"  Total Reward: {avg_reward}")
     print(f"  Token Length: {avg_length}")
 
     total_examples = df.shape[0]
-    correct_count = df[f"{turn_label}_correctness"].sum()
-    incorrect_count = df.shape[0] - correct_count
+    correct_count = (df[f"{turn_label}_total_reward"] == 2).sum()
+    incorrect_count = total_examples - correct_count
+
+    # Count individual reward values
+    count_2 = (df[f"{turn_label}_total_reward"] == 2).sum()
+    count_m05 = (df[f"{turn_label}_total_reward"] == -0.5).sum()
+    count_m1 = (df[f"{turn_label}_total_reward"] == -1).sum()
+    count_m2 = (df[f"{turn_label}_total_reward"] == -2).sum()
 
     print(f"\n{turn_label} Accuracy:")
     print(f"  Correct: {correct_count} ({(correct_count / total_examples)*100:.2f}%)")
     print(f"  Incorrect: {incorrect_count} ({(incorrect_count / total_examples)*100:.2f}%)")
 
+    print(f"\n{turn_label} Reward Counts:")
+    print(f"  2     : {count_2}")
+    print(f"  -0.5  : {count_m05}")
+    print(f"  -1    : {count_m1}")
+    print(f"  -2    : {count_m2}")
+
+
 def print_confusion_matrix(df):
-    correct_to_correct = ((df["A1_correctness"] == 1.0) & (df["A2_correctness"] == 1.0)).sum()
-    correct_to_incorrect = ((df["A1_correctness"] == 1.0) & (df["A2_correctness"] == 0.0)).sum()
-    incorrect_to_correct = ((df["A1_correctness"] == 0.0) & (df["A2_correctness"] == 1.0)).sum()
-    incorrect_to_incorrect = ((df["A1_correctness"] == 0.0) & (df["A2_correctness"] == 0.0)).sum()
+    # Using reward_func, correct = reward value of 2; any other value is incorrect.
+    correct_to_correct = ((df["A1_total_reward"] == 2) & (df["A2_total_reward"] == 2)).sum()
+    correct_to_incorrect = ((df["A1_total_reward"] == 2) & (df["A2_total_reward"] != 2)).sum()
+    incorrect_to_correct = ((df["A1_total_reward"] != 2) & (df["A2_total_reward"] == 2)).sum()
+    incorrect_to_incorrect = ((df["A1_total_reward"] != 2) & (df["A2_total_reward"] != 2)).sum()
 
     print("\nConfusion Matrix (A1 -> A2):")
     print(f"  Correct to Correct: {correct_to_correct}")
@@ -146,10 +160,8 @@ def main():
     for idx, out in enumerate(outputs_turn1):
         A1 = out.outputs[0].text
         gt = ground_truths[idx]
-
-        score_corr_A1 = correct_reward_func(A1, gt)
-        score_box_A1 = boxed_format_reward_func(A1)
-        total_reward_A1 = score_corr_A1 + score_box_A1
+        score_A1 = reward_func(A1, gt)
+        total_reward_A1 = score_A1
         token_length_A1 = len(llm.get_tokenizer().encode(A1))
 
         partial_data.append({
@@ -157,8 +169,6 @@ def main():
             "prompt_first": prompts_first[idx],
             "ground_truth": gt,
             "A1": A1,
-            "A1_correctness": score_corr_A1,
-            "A1_boxed_format": score_box_A1,
             "A1_total_reward": total_reward_A1,
             "A1_token_length": token_length_A1,
         })
@@ -169,7 +179,6 @@ def main():
     # --- SECOND TURN ---
     prompts_second = []
     for item in partial_data:
-        # Use the original problem and the first-turn answer to build the second prompt.
         prompt_second = build_prompt_second(item["problem"], item["A1"])
         prompts_second.append(prompt_second)
 
@@ -180,17 +189,14 @@ def main():
     for idx, item in enumerate(partial_data):
         A2 = outputs_turn2[idx].outputs[0].text
         gt = item["ground_truth"]
-        score_corr_A2 = correct_reward_func(A2, gt)
-        score_box_A2 = boxed_format_reward_func(A2)
-        total_reward_A2 = score_corr_A2 + score_box_A2
+        score_A2 = reward_func(A2, gt)
+        total_reward_A2 = score_A2
         token_length_A2 = len(llm.get_tokenizer().encode(A2))
 
         merged = {
             **item,
             "prompt_second": prompts_second[idx],
             "A2": A2,
-            "A2_correctness": score_corr_A2,
-            "A2_boxed_format": score_box_A2,
             "A2_total_reward": total_reward_A2,
             "A2_token_length": token_length_A2,
         }
@@ -205,6 +211,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 # ##############################################
 # # Single-file script that performs two-stage evaluation.
