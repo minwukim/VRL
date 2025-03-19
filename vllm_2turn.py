@@ -9,7 +9,8 @@ from math_verify import verify, parse
 # Settings and Model Initialization
 ##############################################
 # model_path = "./outputs/qwen2.5-3b-grpo-full/checkpoint-400"  # or update to your desired model path
-model_path = "./outputs/qwen2.5-3b-grpo-large/checkpoint-100"  # or update to your desired model path
+# model_path = "./outputs/qwen2.5-3b-grpo-large/checkpoint-100"  # or update to your desired model path
+model_path = "Qwen/Qwen2.5-3B"
 # model_path = "hkust-nlp/Qwen-2.5-Math-7B-SimpleRL-Zero"
 csv_file_path = "qwen2.5-3b-grpo-large/checkpoint-100_2stage.csv"
 
