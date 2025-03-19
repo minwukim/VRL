@@ -30,6 +30,60 @@ import functools
 
 from copy import deepcopy
 
+
+def print_prompt_completions_sample(prompts: list[str], completions: list[str], rewards: list[int], step: int) -> None:
+    """
+    Print out a sample of model completions to the console.
+
+    This function creates a nicely formatted table showing prompt-completion pairs, useful for monitoring model outputs
+    during training. It requires the `rich` library to be installed.
+
+    Args:
+        prompts (`list[str]`):
+            List of prompts.
+        completions (`list[str]`):
+            List of completions corresponding to the prompts.
+        reward (`list[float]`):
+            List of rewards corresponding to the completions.
+        step (`int`):
+            Current training step number, used in the output title.
+
+    Example:
+    ```python
+    >>> from trl.trainer.utils import print_prompt_completions_sample
+    >>> prompts = ["The sky is", "The sun is"]
+    >>> completions = [" blue.", " in the sky."]
+    >>> rewards = [0.12345, 0.68789]
+    >>> print_prompt_completions_sample(prompts, completions, rewards, 42)
+    ╭─────────────── Step 42 ────────────────╮
+    │ ┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━┓ │
+    │ ┃ Prompt     ┃ Completion   ┃ Reward ┃ │
+    │ ┡━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━┩ │
+    │ │ The sky is │  blue.       │   0.12 │ │
+    │ ├────────────┼──────────────┼────────┤ │
+    │ │ The sun is │  in the sky. │   0.68 │ │
+    │ └────────────┴──────────────┴────────┘ │
+    ╰────────────────────────────────────────╯
+    ```
+    """
+
+
+    console = Console()
+    table = Table(show_header=True, header_style="bold white", expand=True)
+
+    # Add columns
+    table.add_column("Prompt", style="bright_yellow")
+    table.add_column("Completion", style="bright_green")
+    table.add_column("Reward", style="bold cyan", justify="right")
+
+    for prompt, completion, reward in zip(prompts, completions, rewards):
+        table.add_row(Text(prompt), Text(completion), f"{reward:.2f}")  # Formatting reward to 2 decimal places
+        table.add_section()  # Adds a separator between rows
+
+    panel = Panel(table, expand=False, title=f"Step {step}", border_style="bold white")
+    console.print(panel)
+
+
 def profiling_decorator(func: callable) -> callable:
     """
     Decorator to profile a function and log execution time using [`extras.profiling.profiling_context`].
@@ -749,12 +803,12 @@ class SwitchingGRPOTrainer(GRPOTrainer):
 
             if self.accelerator.is_main_process:
                 # if is_rich_available():
-                # print_prompt_completions_sample(
-                #     prompts_to_log,
-                #     completions_to_log,
-                #     rewards_to_log,
-                #     self.state.global_step,
-                # )
+                print_prompt_completions_sample(
+                    prompts_to_log,
+                    completions_to_log,
+                    rewards_to_log,
+                    self.state.global_step,
+                )
                 if self.args.report_to and "wandb" in self.args.report_to and wandb.run is not None:
                     table = {
                         "step": [str(self.state.global_step)] * len(rewards),
@@ -796,31 +850,18 @@ class SwitchingGRPOTrainer(GRPOTrainer):
     #                    2          7     16  16  16  17  17  17  18  18  18  19  19  19
     #                    2          8     20  20  20  21  21  21  22  22  22  23  23  23
     #       
-    @profiling_decorator
-    def _prepare_inputs(self, inputs: dict[str, Union[torch.Tensor, Any]]) -> dict[str, Union[torch.Tensor, Any]]:
-        mode = "eval" if self.control.should_evaluate else "train"
-        if mode == "train":
-            if self.state.global_step % self.num_iterations == 0:
-                inputs = self._generate_and_score_completions(inputs)
-                self._buffered_inputs[self._step % self.args.gradient_accumulation_steps] = inputs
-            else:
-                inputs = self._buffered_inputs[self._step % self.args.gradient_accumulation_steps]
-            self._step += 1
-        else:
-            # In evaluation, we don't reuse completions across multiple updates, so we don't need to buffer inputs.
-            inputs = self._generate_and_score_completions(inputs)
-        return inputs
-    
 
     @profiling_decorator
     def _prepare_inputs(self, inputs: dict[str, Union[torch.Tensor, Any]]) -> dict[str, Union[torch.Tensor, Any]]:
         mode = "eval" if self.control.should_evaluate else "train"
         if mode == "train":
             if self.state.global_step % self.num_iterations == 0:
-                if self.state.global_step // 2 == 0:
+                if self.state.global_step // 2 == 1:
+                    print("2 TURN TRAINING")
                     inputs = self._generate_and_score_completions(inputs)
                     self._buffered_inputs[self._step % self.args.gradient_accumulation_steps] = inputs
                 else:
+                    print("1 TURN TRAINING")
                     inputs = super()._generate_and_score_completions(inputs)
                     self._buffered_inputs[self._step % self.args.gradient_accumulation_steps] = inputs
             else:
