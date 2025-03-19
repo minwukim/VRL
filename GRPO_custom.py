@@ -612,11 +612,10 @@ class SwitchingGRPOTrainer(GRPOTrainer):
             "Final answer in the solution is formatted within \\boxed{}, so that the response can be directly extracted for grading."
         )
 
-
         added_instruction =(
             "A conversation between User and Assistant. Given a question and the corresponding response, the Assistant systematically reviews and explains each step of the reasoning process to verify the correctness of the response."
             "If errors are found, the Assistant identifies and corrects them, then re-solves the problem. If the response is correct, the Assistant confirms it and returns the same final answer."
-            "The reasoning process, including verification and correction, is enclosed within <think> </think> tags, while the final solution is enclosed within <answer> </answer> tags. The final answer is formatted within \boxed{} to enable direct extraction for grading."
+            "The reasoning process, including verification and correction, is enclosed within <think> </think> tags, while the final solution is enclosed within <answer> </answer> tags. The final answer is formatted within \\boxed{{}} to enable direct extraction for grading."
         )
 
         new_prompts_text = []
