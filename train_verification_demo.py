@@ -102,6 +102,5 @@ trainer = SwitchingGRPOTrainer(
     args = training_args,
     train_dataset=train,
     eval_dataset=test,
-    num_iterations=2
 )
 trainer.train()
