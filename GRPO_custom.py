@@ -315,18 +315,12 @@ class VerificationGRPOTrainer(GRPOTrainer):
 
         # 3. Construct new prompt: (Q, A1) concatenated with extra context (added_instruction)
         added_instruction = (
-            "A conversation between User and Assistant. Given the question and the response provided below, assistant goes through and explain every step of the reasoning process of the response to check if the response is correct or not. "
-            "Then, assisant tries to fix the errors and re-solve the problem if the response is incorrect, and return the same final answer if you think it is correct. "
-            "Reasoning of checking and resolving process are enclosed within <think> </think> tags and the final solution within <answer> </answer> tags, "
-            "i.e., <think> reasoning process here </think> <answer> solution here </answer>. "
-            "Final answer in the solution is formatted within \\boxed{}, so that the response can be directly extracted for grading."
-        )
-
-
-        added_instruction =(
-            "A conversation between User and Assistant. Given a question and the corresponding response, the Assistant systematically reviews and explains each step of the reasoning process to verify the correctness of the response."
+            "A conversation between User and Assistant. Given a question and a corresponding response provided below, the Assistant systematically reviews and explains each step of the reasoning process to verify the correctness of the response."
             "If errors are found, the Assistant identifies and corrects them, then re-solves the problem. If the response is correct, the Assistant confirms it and returns the same final answer."
-            "The reasoning process, including verification and correction, is enclosed within <think> </think> tags, while the final solution is enclosed within <answer> </answer> tags. The final answer is formatted within \boxed{} to enable direct extraction for grading."
+            "The assistant first thinks about the reasoning process in mind, including verification, correction, and resolving the problem if necessary. Then provides the user with the answer."
+            "The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> final answer inside \\boxed{{}} tag </answer>." 
+            "The reasoning process, including verification and correction, is enclosed within <think> </think> tags, while the final solution is enclosed within <answer> </answer> tags. The final answer is formatted within \\boxed{{}} to enable direct extraction for grading."
+            "User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag."
         )
 
         new_prompts_text = []
@@ -604,18 +598,14 @@ class SwitchingGRPOTrainer(GRPOTrainer):
         a1_text = self.processing_class.batch_decode(a1_ids, skip_special_tokens=True)
 
         # 3. Construct new prompt: (Q, A1) concatenated with extra context (added_instruction)
-        added_instruction = (
-            "A conversation between User and Assistant. Given the question and the response provided below, assistant goes through and explain every step of the reasoning process of the response to check if the response is correct or not. "
-            "Then, assisant tries to fix the errors and re-solve the problem if the response is incorrect, and return the same final answer if you think it is correct. "
-            "Reasoning of checking and resolving process are enclosed within <think> </think> tags and the final solution within <answer> </answer> tags, "
-            "i.e., <think> reasoning process here </think> <answer> solution here </answer>. "
-            "Final answer in the solution is formatted within \\boxed{}, so that the response can be directly extracted for grading."
-        )
 
-        added_instruction =(
-            "A conversation between User and Assistant. Given a question and the corresponding response, the Assistant systematically reviews and explains each step of the reasoning process to verify the correctness of the response."
+        added_instruction = (
+            "A conversation between User and Assistant. Given a question and a corresponding response provided below, the Assistant systematically reviews and explains each step of the reasoning process to verify the correctness of the response."
             "If errors are found, the Assistant identifies and corrects them, then re-solves the problem. If the response is correct, the Assistant confirms it and returns the same final answer."
+            "The assistant first thinks about the reasoning process in mind, including verification, correction, and resolving the problem if necessary. Then provides the user with the answer."
+            "The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> final answer inside \\boxed{{}} tag </answer>." 
             "The reasoning process, including verification and correction, is enclosed within <think> </think> tags, while the final solution is enclosed within <answer> </answer> tags. The final answer is formatted within \\boxed{{}} to enable direct extraction for grading."
+            "User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag."
         )
 
         new_prompts_text = []
@@ -854,17 +844,17 @@ class SwitchingGRPOTrainer(GRPOTrainer):
     def _prepare_inputs(self, inputs: dict[str, Union[torch.Tensor, Any]]) -> dict[str, Union[torch.Tensor, Any]]:
         mode = "eval" if self.control.should_evaluate else "train"
         if mode == "train":
-            if self.state.global_step % self.num_iterations == 0:
-                if self.state.global_step % 2 == 1:
-                    print("2 TURN TRAINING")
-                    inputs = self._generate_and_score_completions(inputs)
-                    self._buffered_inputs[self._step % self.args.gradient_accumulation_steps] = inputs
-                else:
-                    print("1 TURN TRAINING")
-                    inputs = super()._generate_and_score_completions(inputs)
-                    self._buffered_inputs[self._step % self.args.gradient_accumulation_steps] = inputs
+            # if self.state.global_step % self.num_iterations == 0:
+            if self.state.global_step % 2 == 1:
+                print("2 TURN TRAINING")
+                inputs = self._generate_and_score_completions(inputs)
+                self._buffered_inputs[self._step % self.args.gradient_accumulation_steps] = inputs
             else:
-                inputs = self._buffered_inputs[self._step % self.args.gradient_accumulation_steps]
+                print("1 TURN TRAINING")
+                inputs = super()._generate_and_score_completions(inputs)
+                self._buffered_inputs[self._step % self.args.gradient_accumulation_steps] = inputs
+            # else:
+            #     inputs = self._buffered_inputs[self._step % self.args.gradient_accumulation_steps]
             self._step += 1
         else:
             # In evaluation, we don't reuse completions across multiple updates, so we don't need to buffer inputs.
