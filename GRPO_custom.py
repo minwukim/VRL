@@ -275,6 +275,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
 
         print("hello")
         print(self.sampling_params)
+        print("=========================")
         # 2. First Generation: Generate A1 using a modified sampling parameter (n=1)
         single_sampling_params = deepcopy(self.sampling_params)
         single_sampling_params.n = 1
