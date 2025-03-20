@@ -273,6 +273,8 @@ class VerificationGRPOTrainer(GRPOTrainer):
             prompt_ids = prompt_ids[:, -self.max_prompt_length :]
             prompt_mask = prompt_mask[:, -self.max_prompt_length :]
 
+        print("hello")
+        print(self.sampling_params)
         # 2. First Generation: Generate A1 using a modified sampling parameter (n=1)
         single_sampling_params = deepcopy(self.sampling_params)
         single_sampling_params.n = 1
