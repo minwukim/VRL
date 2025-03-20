@@ -7,6 +7,7 @@ from trl import GRPOConfig, GRPOTrainer
 from datasets import load_dataset
 from math_verify import verify, parse
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
+from GRPO_custom import VerificationGRPOTrainer, SwitchingGRPOTrainer
 
 from dataclasses import dataclass
 from typing import Optional
@@ -183,7 +184,7 @@ grpo_config_args = GRPOConfig(
     #eval_on_start=training_args.eval_on_start,
 )
 
-trainer = GRPOTrainer(
+trainer = SwitchingGRPOTrainer(
     model=model_name,
     reward_funcs=[reward_correct],
     args=grpo_config_args,
