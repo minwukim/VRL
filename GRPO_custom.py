@@ -292,12 +292,12 @@ class VerificationGRPOTrainer(GRPOTrainer):
             else:
                 a1_ids_list = [None] * len(all_prompts_text)
             # MINWU: MAYBE NOT NECESSARY
-                a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
-                process_slice = slice(
-                    self.accelerator.process_index * len(prompts),
-                    (self.accelerator.process_index + 1) * len(prompts),
-                )
-                a1_ids_list = a1_ids_list[process_slice]
+            a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
+            process_slice = slice(
+                self.accelerator.process_index * len(prompts),
+                (self.accelerator.process_index + 1) * len(prompts),
+            )
+            a1_ids_list = a1_ids_list[process_slice]
 
             # Convert and pad A1 token ids
             a1_ids = [torch.tensor(ids, device=self.accelerator.device) for ids in a1_ids_list]
@@ -378,6 +378,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
                         a2_ids_list.append(output.token_ids)
             else:
                 a2_ids_list = [None] * len(all_new_prompts_text)
+
             a2_ids_list = broadcast_object_list(a2_ids_list, from_process=0)
             process_slice = slice(
                 self.accelerator.process_index * len(prompts),
@@ -572,23 +573,26 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                 for outputs in all_outputs:
                     for output in outputs.outputs:
                         a1_ids_list.append(output.token_ids)
+
             else:
                 a1_ids_list = [None] * len(all_prompts_text)
                 print("++++++++++++++++++++++++++")
                 print(len(all_prompts_text))
                 print("++++++++++++++++++++++++++")
 
-                # MINWU: MAYBE NOT NECESSARY?? IDK
-                a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
-                process_slice = slice(
-                    self.accelerator.process_index * len(prompts),
-                    (self.accelerator.process_index + 1) * len(prompts),
-                )
-                a1_ids_list = a1_ids_list[process_slice]
+            # MINWU: MAYBE NOT NECESSARY?? IDK
+            a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
+            process_slice = slice(
+                self.accelerator.process_index * len(prompts),
+                (self.accelerator.process_index + 1) * len(prompts),
+            )
+            a1_ids_list = a1_ids_list[process_slice]
 
             # Convert and pad A1 token ids
+            print("here1")
             a1_ids = [torch.tensor(ids, device=self.accelerator.device) for ids in a1_ids_list]
             a1_ids = pad(a1_ids, padding_value=self.processing_class.pad_token_id)
+            
         else:
             print("SHOULDN'T SEE ME")
             # with unwrap_model_for_generation(self.model_wrapped, self.accelerator) as unwrapped_model:
@@ -597,6 +601,7 @@ class SwitchingGRPOTrainer(GRPOTrainer):
             #     )
 
         # Decode the generated A1 completions
+        print("here2")
         a1_text = self.processing_class.batch_decode(a1_ids, skip_special_tokens=True)
 
         # 3. Construct new prompt: (Q, A1) concatenated with extra context (added_instruction)
@@ -613,6 +618,7 @@ class SwitchingGRPOTrainer(GRPOTrainer):
         # --- CHANGES MADE BELOW ---
         # Instead of iterating over just the prompt texts and a1_text, we iterate over the full input examples and a1_text.
         # This allows us to extract the 'solution' field and include it in the new prompt.
+        print("here3")
         for input_example, a1 in zip(inputs, a1_text):
             # Use maybe_apply_chat_template to get the formatted prompt text.
             q_text = maybe_apply_chat_template(input_example, self.processing_class)["prompt"]
@@ -638,7 +644,7 @@ class SwitchingGRPOTrainer(GRPOTrainer):
             # Replicate for self.sampling_params.n times.
             for i in range(self.sampling_params.n):
                 new_prompts_text.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
-
+        print("here4")
         # Preprocess the new prompt (Q, A1, added_instruction)
         new_prompt_inputs = self.processing_class(
             new_prompts_text, return_tensors="pt", padding=True, padding_side="left", add_special_tokens=False
@@ -650,10 +656,12 @@ class SwitchingGRPOTrainer(GRPOTrainer):
             new_prompt_ids = new_prompt_ids[:, -self.max_prompt_length :]
             new_prompt_mask = new_prompt_mask[:, -self.max_prompt_length :]
 
+        print("here4")
         # 4. Second Generation: Generate A2 using the original sampling_params (multiple generations)
         if self.args.use_vllm:
             all_new_prompts_text = gather_object(new_prompts_text)
             if self.accelerator.is_main_process:
+                print("here5")
                 ordered_set_of_new_prompts = list(dict.fromkeys(all_new_prompts_text))
                 with profiling_context(self, "vLLM.generate (A2)"):
                     all_outputs = self.llm.generate(
@@ -664,12 +672,14 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                     for output in outputs.outputs:
                         a2_ids_list.append(output.token_ids)
             else:
+                print("here6")
                 a2_ids_list = [None] * len(all_new_prompts_text)
             a2_ids_list = broadcast_object_list(a2_ids_list, from_process=0)
             process_slice = slice(
                 self.accelerator.process_index * len(prompts),
                 (self.accelerator.process_index + 1) * len(prompts),
             )
+            print("here7")
             a2_ids_list = a2_ids_list[process_slice]
 
             # Convert and pad A2 token ids, then concatenate with the new prompt tokens
@@ -686,6 +696,7 @@ class SwitchingGRPOTrainer(GRPOTrainer):
             # a2_ids = prompt_completion_ids[:, new_prompt_ids.size(1):]
 
         # 5. Create completion mask: mask tokens after the first EOS in A2
+        print("here8")
         device = self.accelerator.device
         is_eos = a2_ids == self.processing_class.eos_token_id
         eos_idx = torch.full((is_eos.size(0),), is_eos.size(1), dtype=torch.long, device=device)
@@ -696,6 +707,7 @@ class SwitchingGRPOTrainer(GRPOTrainer):
         # Concatenate the new prompt mask with the A2 completion mask for logit computation
         attention_mask = torch.cat([new_prompt_mask, completion_mask], dim=1)  # (B, P+A2)
         logits_to_keep = a2_ids.size(1)  # we only need logits for A2 tokens
+        print("here9")
 
         with torch.no_grad():
             if self.num_iterations > 1:
