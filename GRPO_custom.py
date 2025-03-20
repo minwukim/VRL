@@ -292,12 +292,12 @@ class VerificationGRPOTrainer(GRPOTrainer):
             else:
                 a1_ids_list = [None] * len(all_prompts_text)
             # MINWU: MAYBE NOT NECESSARY
-            # a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
-            # process_slice = slice(
-            #     self.accelerator.process_index * len(prompts),
-            #     (self.accelerator.process_index + 1) * len(prompts),
-            # )
-            # a1_ids_list = a1_ids_list[process_slice]
+                a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
+                process_slice = slice(
+                    self.accelerator.process_index * len(prompts),
+                    (self.accelerator.process_index + 1) * len(prompts),
+                )
+                a1_ids_list = a1_ids_list[process_slice]
 
             # Convert and pad A1 token ids
             a1_ids = [torch.tensor(ids, device=self.accelerator.device) for ids in a1_ids_list]
