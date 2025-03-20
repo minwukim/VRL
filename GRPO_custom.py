@@ -844,17 +844,17 @@ class SwitchingGRPOTrainer(GRPOTrainer):
     def _prepare_inputs(self, inputs: dict[str, Union[torch.Tensor, Any]]) -> dict[str, Union[torch.Tensor, Any]]:
         mode = "eval" if self.control.should_evaluate else "train"
         if mode == "train":
-            if self.state.global_step % self.num_iterations == 0:
-                if self.state.global_step % 2 == 1:
-                    print("2 TURN TRAINING")
-                    inputs = self._generate_and_score_completions(inputs)
-                    self._buffered_inputs[self._step % self.args.gradient_accumulation_steps] = inputs
-                else:
-                    print("1 TURN TRAINING")
-                    inputs = super()._generate_and_score_completions(inputs)
-                    self._buffered_inputs[self._step % self.args.gradient_accumulation_steps] = inputs
+            # if self.state.global_step % self.num_iterations == 0:
+            if self.state.global_step % 2 == 1:
+                print("2 TURN TRAINING")
+                inputs = self._generate_and_score_completions(inputs)
+                self._buffered_inputs[self._step % self.args.gradient_accumulation_steps] = inputs
             else:
-                inputs = self._buffered_inputs[self._step % self.args.gradient_accumulation_steps]
+                print("1 TURN TRAINING")
+                inputs = super()._generate_and_score_completions(inputs)
+                self._buffered_inputs[self._step % self.args.gradient_accumulation_steps] = inputs
+            # else:
+            #     inputs = self._buffered_inputs[self._step % self.args.gradient_accumulation_steps]
             self._step += 1
         else:
             # In evaluation, we don't reuse completions across multiple updates, so we don't need to buffer inputs.
