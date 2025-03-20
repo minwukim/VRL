@@ -4,7 +4,7 @@ from datasets import load_dataset, Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import GRPOConfig, TrlParser
 
-from GRPO_custom import VerificationGRPOTrainer, SwitchingGRPOTrainer
+from GRPO_custom import VerificationGRPOTrainer, SwitchingGRPOTrainer, ReplicatedGRPOTrainer
 
 from datasets import load_dataset
 from math_verify import verify, parse
@@ -96,7 +96,15 @@ training_args = GRPOConfig(
 #     eval_dataset=test,
 # )
 
-trainer = VerificationGRPOTrainer(
+# trainer = SwitchingGRPOTrainer(
+#     model=model_name,
+#     reward_funcs=[reward_correct, reward_correct_and_format],
+#     args = training_args,
+#     train_dataset=train,
+#     eval_dataset=test,
+# )
+
+trainer = ReplicatedGRPOTrainer(
     model=model_name,
     reward_funcs=[reward_correct, reward_correct_and_format],
     args = training_args,
