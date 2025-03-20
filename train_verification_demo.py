@@ -4,7 +4,7 @@ from datasets import load_dataset, Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import GRPOConfig, TrlParser
 
-from GRPO_custom import VerificationGRPOTrainer, SwitchingGRPOTrainer, ReplicatedGRPOTrainer
+from GRPO_custom import VerificationGRPOTrainer, SwitchingGRPOTrainer
 
 from datasets import load_dataset
 from math_verify import verify, parse
