@@ -7,7 +7,6 @@ from trl import GRPOConfig, GRPOTrainer
 from datasets import load_dataset
 from math_verify import verify, parse
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
-from GRPO_custom import VerificationGRPOTrainer, SwitchingGRPOTrainer
 
 from dataclasses import dataclass
 from typing import Optional
@@ -55,25 +54,72 @@ parser = TrlParser(dataclass_types=[MyArguments])
 training_args = parser.parse_args_and_config()[0]
 print(training_args)
 
-SYSTEM="""A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in the mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer>. User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag.
+SYSTEM="""A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> final answer inside \\boxed{{}} tag </answer>. User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag.
 {prompt}
 Assistant: <think>"""
 
+#def reward_think_answer_format(completions, answer, **kwargs):
+#    # check if the strings ends with </think><answer>...</answer>
+#    def check_format(s):
+#        pattern = r".+</think>\s*<answer>.+</answer>\s*$"
+#        if s.count("</think>") == 1 and s.count("<answer>") == 1 and s.count("</answer>") == 1:
+#            if bool(re.fullmatch(pattern, s, re.DOTALL)): return 0
+#        return -1
+#
+#    return [check_format(completion) for completion in completions]
+#
+#def reward_boxed_format(completions, answer, **kwargs):
+#    # check if the strings ends with </think><answer>[boxed answer]</answer>
+#    def check_format(s):
+#        pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
+#        if s.count("</think>") == 1 and s.count("<answer>") == 1 and s.count("</answer>") == 1:
+#            match = re.search(pattern, s, re.DOTALL)
+#            if not match: return 0
+#            else:
+#                if last_boxed_only_string(match.group(1)): return 0
+#                else: return -0.5
+#        else: return 0
+#
+#    return [check_format(completion) for completion in completions]
 
-def reward_correct_and_format(completions, answer, **kwargs):
-    # Regular expression to capture content inside \boxed{}
-    matches = [re.search(r"</think>\n?<answer>([\s\S]*)</answer>", completion) for completion in completions] 
-    completions = [match.group(1) if match else "" for match in matches]
-    matches = [re.search(r"\\boxed\{(.*?)\}", completion) for completion in completions]
-    contents = [match.group(1) if match else "" for match in matches]
-    # Reward 1 if the content is the same as the ground truth, 0 otherwise
-    correct_with_format = [1.0 if verify(parse(c), parse(gt))  else 0.0 for c, gt in zip(contents, answer)]
-
-    return correct_with_format
 
 def reward_correct(completions, answer, **kwargs):
-    correct = [1.0 if verify(parse(c), parse(gt))  else 0.0 for c, gt in zip(completions, answer)]
-    return correct
+    # check if the strings ends with </think><answer>[boxed answer]</answer>
+    def check_format(s, gt):
+        pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
+        if not (s.count("</think>") == 1 and s.count("<answer>") == 1 and s.count("</answer>") == 1):
+            # incorrect amount of tokens
+            return -2 
+        match = re.search(pattern, s, re.DOTALL)
+        # if answer doesn't match provided format
+        if not match: return -2
+
+        # answer format is correct now
+        # look for boxed tag
+        ext_string = last_boxed_only_string(match.group(1))
+        if ext_string is None: return -1   #No boxed tag found
+        
+        # if correct, then reward 2
+        if verify(parse(ext_string), parse(gt)): return 2
+        else: return -0.5 # extracted but incorrect then reward -0.5
+
+    return [check_format(c, gt) for c, gt in zip(completions, answer)]
+
+#def reward_correct_and_format(completions, answer, **kwargs):
+#    # Regular expression to capture content inside \boxed{}
+#    matches = [re.search(r"</think>\n?<answer>([\s\S]*)</answer>", completion) for completion in completions] 
+#    completions = [match.group(1) if match else "" for match in matches]
+#    matches = [re.search(r"\\boxed\{(.*?)\}", completion) for completion in completions]
+#    contents = [match.group(1) if match else "" for match in matches]
+#    # Reward 1 if the content is the same as the ground truth, 0 otherwise
+#    correct_with_format = [1.0 if verify(parse(c), parse(gt))  else 0.0 for c, gt in zip(contents, answer)]
+#
+#    return correct_with_format
+
+#def reward_correct(completions, answer, **kwargs):
+#
+#    correct = [1.0 if verify(parse(c), parse(gt))  else 0.0 for c, gt in zip(completions, answer)]
+#    return correct
 
 def extract_boxed_answer(solution):
     return last_boxed_only_string(solution)
@@ -108,7 +154,7 @@ grpo_config_args = GRPOConfig(
     output_dir=training_args.output_dir,
     run_name=training_args.run_name,
     learning_rate=training_args.learning_rate,
-    resume_from_checkpoint=training_args.resume_from_checkpoint,
+    # resume_from_checkpoint=training_args.resume_from_checkpoint,
     beta=training_args.beta,
     adam_beta1=training_args.adam_beta1,
     adam_beta2=training_args.adam_beta2,
@@ -137,14 +183,13 @@ grpo_config_args = GRPOConfig(
     #eval_on_start=training_args.eval_on_start,
 )
 
-trainer = SwitchingGRPOTrainer(
+trainer = GRPOTrainer(
     model=model_name,
-    reward_funcs=[reward_correct, reward_correct_and_format],
+    reward_funcs=[reward_correct],
     args=grpo_config_args,
     train_dataset=train,
     eval_dataset=test,
 )
-
+# trainer.train(resume_from_checkpoint=training_args.checkpoint_path if training_args.resume_from_checkpoint else False)
 trainer.train()
-# trainer.train(resume_from_checkpoint=training_args.checkpoint_path)
 
