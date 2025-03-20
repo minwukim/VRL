@@ -256,6 +256,10 @@ class VerificationGRPOTrainer(GRPOTrainer):
     This ensures that all duplicates of a prompt Q share the same initial answer A,
     which is required for correct grouping and advantage computation in GRPO.
     """
+
+    def __init__(self, *args, **kwargs):
+        # Call the parent's __init__ to initialize all necessary attributes.
+        super().__init__(*args, **kwargs)
     
     def _generate_and_score_completions(
         self, inputs: dict[str, Union[torch.Tensor, Any]]
@@ -540,7 +544,11 @@ class VerificationGRPOTrainer(GRPOTrainer):
 
 class SwitchingGRPOTrainer(GRPOTrainer):
 
-    
+
+    def __init__(self, *args, **kwargs):
+        # Call the parent's __init__ to initialize all necessary attributes.
+        super().__init__(*args, **kwargs)
+          
     def _generate_and_score_completions(
         self, inputs: dict[str, Union[torch.Tensor, Any]]
     ) -> dict[str, Union[torch.Tensor, Any]]:
