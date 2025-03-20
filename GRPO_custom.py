@@ -273,17 +273,13 @@ class VerificationGRPOTrainer(GRPOTrainer):
             prompt_ids = prompt_ids[:, -self.max_prompt_length :]
             prompt_mask = prompt_mask[:, -self.max_prompt_length :]
 
-        print("hello")
-        print(self.sampling_params)
-        print("=========================")
         # 2. First Generation: Generate A1 using a modified sampling parameter (n=1)
-        single_sampling_params = deepcopy(self.sampling_params)
-        single_sampling_params.n = 1
-
         if self.args.use_vllm:
             all_prompts_text = gather_object(prompts_text)
             if self.accelerator.is_main_process:
                 # Remove duplicates for faster generation of A1
+                single_sampling_params = deepcopy(self.sampling_params)
+                single_sampling_params.n = 1
                 ordered_set_of_prompts = list(dict.fromkeys(all_prompts_text))
                 with profiling_context(self, "vLLM.generate (A1)"):
                     all_outputs = self.llm.generate(
@@ -561,13 +557,12 @@ class SwitchingGRPOTrainer(GRPOTrainer):
             prompt_mask = prompt_mask[:, -self.max_prompt_length :]
 
         # 2. First Generation: Generate A1 using a modified sampling parameter (n=1)
-        single_sampling_params = deepcopy(self.sampling_params)
-        single_sampling_params.n = 1
-
         if self.args.use_vllm:
             all_prompts_text = gather_object(prompts_text)
             if self.accelerator.is_main_process:
                 # Remove duplicates for faster generation of A1
+                single_sampling_params = deepcopy(self.sampling_params)
+                single_sampling_params.n = 1
                 ordered_set_of_prompts = list(dict.fromkeys(all_prompts_text))
                 with profiling_context(self, "vLLM.generate (A1)"):
                     all_outputs = self.llm.generate(
