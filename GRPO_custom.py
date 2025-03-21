@@ -346,8 +346,8 @@ class VerificationGRPOTrainer(GRPOTrainer):
                     }
                     print(self.accelerator.is_main_process,"here61main process")
                     # For each original prompt, replicate n times for new sampling
-                    # (in case self.sampling_params.n > 1)
-                    for _ in range(self.sampling_params.n):
+                    # (in case self.num_generations > 1)
+                    for _ in range(self.num_generations):
                         new_prompts_text_all.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
 
                 print(self.accelerator.is_main_process,"here7main process")
@@ -439,9 +439,9 @@ class VerificationGRPOTrainer(GRPOTrainer):
         # a1_ids_list is of length = sum of prompts across processes, so slice it for local usage
         local_a1_ids_list = a1_ids_list[process_slice]
 
-        # For A2, each prompt was expanded `self.sampling_params.n` times. So total length is
+        # For A2, each prompt was expanded `self.num_generations` times. So total length is
         # sum(len(prompts)*n) across all processes. We want exactly len(prompts)*n per process.
-        local_len_new = len(prompts) * self.sampling_params.n
+        local_len_new = len(prompts) * self.num_generations
         start_idx = self.accelerator.process_index * local_len_new
         end_idx = (self.accelerator.process_index + 1) * local_len_new
         local_a2_ids_list = a2_ids_list[start_idx:end_idx]
@@ -486,7 +486,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 ),
                 "answer": answer_text,
             }
-            for _ in range(self.sampling_params.n):
+            for _ in range(self.num_generations):
                 new_prompts_text.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
 
         print(self.accelerator.is_main_process,"here17")
@@ -790,8 +790,8 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                 # ],
                 "answer": answer_text
             }
-            # Replicate for self.sampling_params.n times.
-            for i in range(self.sampling_params.n):
+            # Replicate for self.num_generations times.
+            for i in range(self.num_generations):
                 new_prompts_text.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
         print("here42")
         # Preprocess the new prompt (Q, A1, added_instruction)
