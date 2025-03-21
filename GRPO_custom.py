@@ -350,6 +350,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
                     for _ in range(self.num_generations):
                         new_prompts_text_all.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
 
+                print("newpromptstextall[0]",new_prompts_text_all[0])
                 print(self.accelerator.is_main_process,"here7main process")
                 # --- Now generate A2 using the new prompts ---
                 # Deduplicate again so we do not generate multiple times for duplicates
@@ -367,8 +368,9 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 for outputs in all_outputs_a2:
                     for output in outputs.outputs:
                         unique_a2_ids_list.append(output.token_ids)
-                
+            
                 print(self.accelerator.is_main_process,"here9:main process")
+                print(self.accelerator.is_main_process, "unique_a2_ids_list[0]", unique_a2_ids_list[0])
                 # Create mapping new_prompt -> a2_ids
                 new_prompt_to_a2 = {}
                 for np_str, np_ids in zip(ordered_set_of_new_prompts, unique_a2_ids_list):
@@ -427,6 +429,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
         print(self.accelerator.is_main_process,"here11")
         id_lists = broadcast_object_list(id_lists, from_process=0)  # one broadcast
         print(self.accelerator.is_main_process,"here12")
+        print(self.accelerator.is_main_process,"a2_ids_list", a2_ids_list)
         a1_ids_list, a2_ids_list = id_lists
 
         # Each local slice for the original prompts
@@ -451,8 +454,11 @@ class VerificationGRPOTrainer(GRPOTrainer):
         device = self.accelerator.device
         a1_ids = [torch.tensor(ids, device=device) for ids in local_a1_ids_list]
         a1_ids = pad(a1_ids, padding_value=self.processing_class.pad_token_id)
+        print(self.accelerator.is_main_process,"a2_ids 0",a2_ids)
         a2_ids = [torch.tensor(ids, device=device) for ids in local_a2_ids_list]
+        print(self.accelerator.is_main_process,"a2_ids 1",a2_ids)
         a2_ids = pad(a2_ids, padding_value=self.processing_class.pad_token_id)
+        print(self.accelerator.is_main_process,"a2_ids 3",a2_ids)
         print(self.accelerator.is_main_process,"here16")
         print(self.accelerator.is_main_process,a1_ids)
         print(self.accelerator.is_main_process,a2_ids)
