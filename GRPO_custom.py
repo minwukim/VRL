@@ -274,13 +274,13 @@ class VerificationGRPOTrainer(GRPOTrainer):
             prompt_mask = prompt_mask[:, -self.max_prompt_length :]
 
         # 2. First Generation: Generate A1 using a modified sampling parameter (n=1)
-        print("here1")
+        print(self.accelerator.is_main_process,"here1")
         if self.args.use_vllm:
-            print("here2")
+            print(self.accelerator.is_main_process,"here2")
             all_prompts_text = gather_object(prompts_text)
-            print("here3")
+            print(self.accelerator.is_main_process,"here3")
             if self.accelerator.is_main_process:
-                print("here4")
+                print(self.accelerator.is_main_process,"here4: main process")
                 # Set the number of generations to 1
                 single_sampling_params = deepcopy(self.sampling_params)
                 single_sampling_params.n = 1
@@ -293,7 +293,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
                         sampling_params=single_sampling_params,
                         use_tqdm=False
                     )
-                print("here5")
+                print(self.accelerator.is_main_process,"here5")
                 # Flatten out token_ids
                 # We'll map them back to the full prompts (including duplicates) soon
                 unique_a1_ids_list = []
@@ -310,7 +310,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 full_a1_ids_list = []
                 for p_str in all_prompts_text:
                     full_a1_ids_list.append(prompt_to_a1[p_str])
-                print("here5")
+                print(self.accelerator.is_main_process,"here5.2")
                 # --- Build new prompts: (Q, A1) + extra instruction ---
                 added_instruction = (
                     "A conversation between User and Assistant. Given a question and a corresponding response provided below, the Assistant systematically reviews and explains each step of the reasoning process to verify the correctness of the response."
@@ -322,7 +322,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 )
 
                 new_prompts_text_all = []
-                print("here6")
+                print(self.accelerator.is_main_process,"here6")
                 for (input_example, a1_ids) in zip(inputs, full_a1_ids_list):
 
                     # Decode A1 locally on main process
@@ -344,18 +344,18 @@ class VerificationGRPOTrainer(GRPOTrainer):
                         # ],
                         "answer": answer_text,
                     }
-                    print("here61")
+                    print(self.accelerator.is_main_process,"here61main process")
                     # For each original prompt, replicate n times for new sampling
                     # (in case self.sampling_params.n > 1)
                     for _ in range(self.sampling_params.n):
                         new_prompts_text_all.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
 
-                print("here7")
+                print(self.accelerator.is_main_process,"here7main process")
                 # --- Now generate A2 using the new prompts ---
                 # Deduplicate again so we do not generate multiple times for duplicates
                 ordered_set_of_new_prompts = list(dict.fromkeys(new_prompts_text_all))
 
-                print("here8")
+                print(self.accelerator.is_main_process,"here8main process")
                 with profiling_context(self, "vLLM.generate (A2)"):
                     all_outputs_a2 = self.llm.generate(
                     ordered_set_of_new_prompts,
@@ -368,7 +368,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
                     for output in outputs.outputs:
                         unique_a2_ids_list.append(output.token_ids)
                 
-                print("here9")
+                print(self.accelerator.is_main_process,"here9:main process")
                 # Create mapping new_prompt -> a2_ids
                 new_prompt_to_a2 = {}
                 for np_str, np_ids in zip(ordered_set_of_new_prompts, unique_a2_ids_list):
@@ -387,7 +387,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 a2_ids_list = full_a2_ids_list
 
             else:
-                print("here10")
+                print(self.accelerator.is_main_process,"here10:not main")
                 # Non-main processes, just set placeholders
                 a1_ids_list = [None] * len(all_prompts_text)
                 a2_ids_list = [None] * (len(all_prompts_text) * self.num_generations)
@@ -414,11 +414,11 @@ class VerificationGRPOTrainer(GRPOTrainer):
         # ------------------
         # We broadcast a1_ids_list and a2_ids_list so that each process gets the same completions.
         # Each process will slice out only what belongs to it.
-        print("here11")
+        print(self.accelerator.is_main_process,"here11")
         a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
-        print("here12")
+        print(self.accelerator.is_main_process,"here12")
         a2_ids_list = broadcast_object_list(a2_ids_list, from_process=0)
-        print("here13")
+        print(self.accelerator.is_main_process,"here13")
 
 
         # Each local slice for the original prompts
@@ -427,7 +427,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
             (self.accelerator.process_index + 1) * len(prompts),
         )
 
-        print("here14")
+        print(self.accelerator.is_main_process,"here14")
         # a1_ids_list is of length = sum of prompts across processes, so slice it for local usage
         local_a1_ids_list = a1_ids_list[process_slice]
 
@@ -438,14 +438,17 @@ class VerificationGRPOTrainer(GRPOTrainer):
         end_idx = (self.accelerator.process_index + 1) * local_len_new
         local_a2_ids_list = a2_ids_list[start_idx:end_idx]
 
-        print("here15")
+        print(self.accelerator.is_main_process,"here15")
         # Convert them to padded tensors
         device = self.accelerator.device
         a1_ids = [torch.tensor(ids, device=device) for ids in local_a1_ids_list]
         a1_ids = pad(a1_ids, padding_value=self.processing_class.pad_token_id)
         a2_ids = [torch.tensor(ids, device=device) for ids in local_a2_ids_list]
         a2_ids = pad(a2_ids, padding_value=self.processing_class.pad_token_id)
-        print("here16")
+        print(self.accelerator.is_main_process,"here16")
+        print(self.accelerator.is_main_process,a1_ids)
+        print(self.accelerator.is_main_process,a2_ids)
+
         # ------------------
         # 4. Now build the "new prompt" locally for further processing
         # ------------------
@@ -478,7 +481,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
             for _ in range(self.sampling_params.n):
                 new_prompts_text.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
 
-        print("here17")
+        print(self.accelerator.is_main_process,"here17")
         # ------------------
         # 5. Construct final "prompt_completion_ids" (new prompt + A2)
         # ------------------
@@ -508,23 +511,34 @@ class VerificationGRPOTrainer(GRPOTrainer):
 
         attention_mask = torch.cat([new_prompt_mask, completion_mask], dim=1)
         logits_to_keep = a2_ids.size(1)
-        print("here18")
+        print(self.accelerator.is_main_process,"here18")
         # ------------------
         # 6. Compute log probabilities if needed
         # ------------------
         with torch.no_grad():
+            print(self.accelerator.is_main_process,"here18.1")
+
             if self.num_iterations > 1:
+                print(self.accelerator.is_main_process,"here18.2")
                 old_per_token_logps = self._get_per_token_logps(self.model, prompt_completion_ids, attention_mask, logits_to_keep)
+                print(self.accelerator.is_main_process,"here18.3")
             else:
+                print(self.accelerator.is_main_process,"here18.4")
                 old_per_token_logps = None
 
             if self.beta == 0.0:
+                print(self.accelerator.is_main_process,"here18.5")
                 ref_per_token_logps = None
             elif self.ref_model is not None:
+                print(self.accelerator.is_main_process,"here18.6")
                 ref_per_token_logps = self._get_per_token_logps(self.ref_model, prompt_completion_ids, attention_mask, logits_to_keep)
+                print(self.accelerator.is_main_process,"here18.7")
             else:
+                print(self.accelerator.is_main_process,"here18.8")
                 with self.accelerator.unwrap_model(self.model).disable_adapter():
+                    print(self.accelerator.is_main_process,"here18.9")
                     ref_per_token_logps = self._get_per_token_logps(self.model, prompt_completion_ids, attention_mask, logits_to_keep)
+                    print(self.accelerator.is_main_process,"here18.10")
         print("here19")
         # ------------------
         # 7. Decode final A2 completions
