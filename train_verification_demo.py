@@ -67,13 +67,13 @@ train, test = get_dataset()
 
 training_args = GRPOConfig(
     use_vllm = True,
-    output_dir = "0312-purerl-qwen0.5b",
+    output_dir = "0321-purerl-qwen0.5b",
     bf16 = True,
     bf16_full_eval=True,
     vllm_gpu_memory_utilization=0.9,
     max_prompt_length = max_prompt_length,
     max_completion_length = max_seq_length,
-    run_name = "0312-purerl-qwen0.5b",
+    run_name = "0321-purerl-qwen0.5b",
     report_to = "wandb", 
     do_eval=True,
     per_device_train_batch_size=4,
