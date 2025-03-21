@@ -383,8 +383,8 @@ class VerificationGRPOTrainer(GRPOTrainer):
 
             else:
                 # Non-main processes, just set placeholders
-                a1_ids_list = None
-                a2_ids_list = None
+                a1_ids_list = [None] * len(all_prompts_text)
+                a2_ids_list = [None] * (len(new_prompts_text_all) * 4)
 
         # For the CPU-based or local generation path (not vLLM), we skip here.
         # Currently the code only supports vllm.
