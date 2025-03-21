@@ -417,8 +417,11 @@ class VerificationGRPOTrainer(GRPOTrainer):
         print(self.accelerator.is_main_process,"here11")
         a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
         print(self.accelerator.is_main_process,"here12")
+        print(self.accelerator.is_main_process,"here12",a1_ids_list)
         a2_ids_list = broadcast_object_list(a2_ids_list, from_process=0)
         print(self.accelerator.is_main_process,"here13")
+        print(self.accelerator.is_main_process,"here13",a2_ids_list)
+
 
 
         # Each local slice for the original prompts
@@ -531,6 +534,8 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 ref_per_token_logps = None
             elif self.ref_model is not None:
                 print(self.accelerator.is_main_process,"here18.6")
+                print(self.accelerator.is_main_process,"prompt_completion_ids", prompt_completion_ids)
+                print(self.accelerator.is_main_process,"attention_mask", attention_mask)
                 ref_per_token_logps = self._get_per_token_logps(self.ref_model, prompt_completion_ids, attention_mask, logits_to_keep)
                 print(self.accelerator.is_main_process,"here18.7")
             else:
