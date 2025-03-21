@@ -414,15 +414,20 @@ class VerificationGRPOTrainer(GRPOTrainer):
         # ------------------
         # We broadcast a1_ids_list and a2_ids_list so that each process gets the same completions.
         # Each process will slice out only what belongs to it.
+        # print(self.accelerator.is_main_process,"here11")
+        # a1_ids_list = broadcast_object_list(a1_ids_list[0], from_process=0)
+        # print(self.accelerator.is_main_process,"here12")
+        # print(self.accelerator.is_main_process,"here12",a1_ids_list)
+        # a2_ids_list = broadcast_object_list(a2_ids_list[0], from_process=0)
+        # print(self.accelerator.is_main_process,"here13")
+        # print(self.accelerator.is_main_process,"here13",a2_ids_list)
+
+        # Put both lists in a single container
+        id_lists = [a1_ids_list, a2_ids_list]
         print(self.accelerator.is_main_process,"here11")
-        a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
+        id_lists = broadcast_object_list(id_lists, from_process=0)  # one broadcast
         print(self.accelerator.is_main_process,"here12")
-        print(self.accelerator.is_main_process,"here12",a1_ids_list)
-        a2_ids_list = broadcast_object_list(a2_ids_list, from_process=0)
-        print(self.accelerator.is_main_process,"here13")
-        print(self.accelerator.is_main_process,"here13",a2_ids_list)
-
-
+        a1_ids_list, a2_ids_list = id_lists
 
         # Each local slice for the original prompts
         process_slice = slice(
@@ -536,6 +541,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 print(self.accelerator.is_main_process,"here18.6")
                 print(self.accelerator.is_main_process,"prompt_completion_ids", prompt_completion_ids)
                 print(self.accelerator.is_main_process,"attention_mask", attention_mask)
+                print(self._generate_and_score_completions, "logits_to_keep", logits_to_keep)
                 ref_per_token_logps = self._get_per_token_logps(self.ref_model, prompt_completion_ids, attention_mask, logits_to_keep)
                 print(self.accelerator.is_main_process,"here18.7")
             else:
