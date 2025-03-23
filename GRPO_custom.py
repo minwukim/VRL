@@ -274,13 +274,9 @@ class VerificationGRPOTrainer(GRPOTrainer):
             prompt_mask = prompt_mask[:, -self.max_prompt_length :]
 
         # 2. First Generation: Generate A1 using a modified sampling parameter (n=1)
-        print(self.accelerator.is_main_process,"here1")
         if self.args.use_vllm:
-            print(self.accelerator.is_main_process,"here2")
             all_prompts_text = gather_object(prompts_text)
-            print(self.accelerator.is_main_process,"here3")
             if self.accelerator.is_main_process:
-                print(self.accelerator.is_main_process,"here4: main process")
                 # Set the number of generations to 1
                 single_sampling_params = deepcopy(self.sampling_params)
                 single_sampling_params.n = 1
@@ -293,7 +289,6 @@ class VerificationGRPOTrainer(GRPOTrainer):
                         sampling_params=single_sampling_params,
                         use_tqdm=False
                     )
-                print(self.accelerator.is_main_process,"here5")
                 # Flatten out token_ids
                 # We'll map them back to the full prompts (including duplicates) soon
                 unique_a1_ids_list = []
@@ -310,7 +305,6 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 full_a1_ids_list = []
                 for p_str in all_prompts_text:
                     full_a1_ids_list.append(prompt_to_a1[p_str])
-                print(self.accelerator.is_main_process,"here5.2")
                 # --- Build new prompts: (Q, A1) + extra instruction ---
                 added_instruction = (
                     "A conversation between User and Assistant. Given a question and a corresponding response provided below, the Assistant systematically reviews and explains each step of the reasoning process to verify the correctness of the response."
@@ -322,7 +316,6 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 )
 
                 new_prompts_text_all = []
-                print(self.accelerator.is_main_process,"here6")
                 for (input_example, a1_ids) in zip(inputs, full_a1_ids_list):
 
                     # Decode A1 locally on main process
@@ -344,25 +337,20 @@ class VerificationGRPOTrainer(GRPOTrainer):
                         # ],
                         "answer": answer_text,
                     }
-                    print(self.accelerator.is_main_process,"here61main process")
                     # For each original prompt, replicate n times for new sampling
                     # (in case self.num_generations > 1)
                     for _ in range(self.num_generations):
                         new_prompts_text_all.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
 
-                print("newpromptstextall[0]",new_prompts_text_all[0])
-                print(self.accelerator.is_main_process,"here7main process")
+                # print("newpromptstextall[0]",new_prompts_text_all[0])
+                # print(self.accelerator.is_main_process,"here7main process")
                 # --- Now generate A2 using the new prompts ---
                 # Deduplicate again so we do not generate multiple times for duplicates
                 ordered_set_of_new_prompts = list(dict.fromkeys(new_prompts_text_all))
 
-                print(self.accelerator.is_main_process,"here8main process")
+                # print(self.accelerator.is_main_process,"here8main process")
                 with profiling_context(self, "vLLM.generate (A2)"):
-                    all_outputs_a2 = self.llm.generate(
-                    ordered_set_of_new_prompts,
-                    sampling_params=self.sampling_params,
-                    use_tqdm=False
-                )
+                    all_outputs_a2 = self.llm.generate(ordered_set_of_new_prompts,sampling_params=self.sampling_params,use_tqdm=False)
 
                 unique_a2_ids_list = []
                 for outputs in all_outputs_a2:
@@ -370,25 +358,24 @@ class VerificationGRPOTrainer(GRPOTrainer):
                         unique_a2_ids_list.append(output.token_ids)
             
                 print(self.accelerator.is_main_process,"here9:main process")
-                print(self.accelerator.is_main_process, "unique_a2_ids_list[0]", unique_a2_ids_list[0])
+                # print(self.accelerator.is_main_process, "unique_a2_ids_list[0]", unique_a2_ids_list[0])
                 # Create mapping new_prompt -> a2_ids
                 new_prompt_to_a2 = {}
                 for np_str, np_ids in zip(ordered_set_of_new_prompts, unique_a2_ids_list):
                     new_prompt_to_a2[np_str] = np_ids
-                print("HERE one", new_prompt_to_a2)
+                # print("HERE one", new_prompt_to_a2)
                 # Reconstruct the final A2 list for each prompt in new_prompts_text_all
                 full_a2_ids_list = []
                 for p_str in new_prompts_text_all:
                     full_a2_ids_list.append(new_prompt_to_a2[p_str])
                         
-                
                 # These are the final lists we will broadcast:
                 #   a1_ids_list: shape = [len(all_prompts_text)], 1 A1 for each original prompt
                 #   a2_ids_list: shape = [len(new_prompts_text_all)], up to n completions for each original prompt
                 a1_ids_list = full_a1_ids_list
                 a2_ids_list = full_a2_ids_list
-                print("HERE two a1_ids_list", a1_ids_list)
-                print("HERE three a2_ids_list", a1_ids_list)
+                print("HERE two a1_ids_list", a1_ids_list[0])
+                print("HERE three a2_ids_list", a2_ids_list[0])
 
             else:
                 print(self.accelerator.is_main_process,"here10:not main")
@@ -396,128 +383,102 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 a1_ids_list = [None] * len(all_prompts_text)
                 a2_ids_list = [None] * (len(all_prompts_text) * self.num_generations)
 
+            # ------------------
+            # 3. Broadcast (single time)
+            # ------------------
+            # We broadcast a1_ids_list and a2_ids_list so that each process gets the same completions.
+            # Each process will slice out only what belongs to it.
+            print(self.accelerator.is_main_process,"here12")
+            a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
+            print(self.accelerator.is_main_process,"a1_ids_list", a1_ids_list[0])
+            a2_ids_list = broadcast_object_list(a2_ids_list, from_process=0)
+            print(self.accelerator.is_main_process,"a2_ids_list", a2_ids_list[0])
+
+
+            # Each local slice for the original prompts
+            process_slice = slice(
+                self.accelerator.process_index * len(prompts),
+                (self.accelerator.process_index + 1) * len(prompts),
+            )
+
+            print(self.accelerator.is_main_process,"here14")
+            # a1_ids_list is of length = sum of prompts across processes, so slice it for local usage
+            local_a1_ids_list = a1_ids_list[process_slice]
+
+            # For A2, each prompt was expanded `self.num_generations` times. So total length is
+            # sum(len(prompts)*n) across all processes. We want exactly len(prompts)*n per process.
+            local_len_new = len(prompts) * self.num_generations
+            start_idx = self.accelerator.process_index * local_len_new
+            end_idx = (self.accelerator.process_index + 1) * local_len_new
+            local_a2_ids_list = a2_ids_list[start_idx:end_idx]
+
+            print(self.accelerator.is_main_process,"here15")
+            # Convert them to padded tensors
+            device = self.accelerator.device
+            a1_ids = [torch.tensor(ids, device=device) for ids in local_a1_ids_list]
+            a1_ids = pad(a1_ids, padding_value=self.processing_class.pad_token_id)
+            a2_ids = [torch.tensor(ids, device=device) for ids in local_a2_ids_list]
+            a2_ids = pad(a2_ids, padding_value=self.processing_class.pad_token_id)
+
+            # ------------------
+            # 4. Now build the "new prompt" locally for further processing
+            # ------------------
+            # Re-do the same logic to reconstruct the new prompt text *locally*, matching slice:
+            added_instruction = (
+                "A conversation between User and Assistant. Given a question and a corresponding response provided below, the Assistant systematically reviews and explains each step of the reasoning process to verify the correctness of the response."
+                "If errors are found, the Assistant identifies and corrects them, then re-solves the problem. If the response is correct, the Assistant confirms it and returns the same final answer."
+                "The assistant first thinks about the reasoning process in mind, including verification, correction, and resolving the problem if necessary. Then provides the user with the answer."
+                "The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> final answer inside \\boxed{{}} tag </answer>." 
+                "The reasoning process, including verification and correction, is enclosed within <think> </think> tags, while the final solution is enclosed within <answer> </answer> tags. The final answer is formatted within \\boxed{{}} to enable direct extraction for grading."
+                "User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag."
+            )
+
+            # We replicate the building of new_prompts_text but only for this local slice
+            new_prompts_text = []
+            for input_example, a1_tensor in zip(inputs, a1_ids):
+                a1_text_dec = self.processing_class.decode(a1_tensor, skip_special_tokens=True)
+                q_text = maybe_apply_chat_template(input_example, self.processing_class)["prompt"]
+                answer_text = input_example.get("answer", "")
+
+                example = {
+                    "prompt": (
+                        added_instruction
+                        + "\n\nQuestion:\n" + extract_math_prompt(q_text)
+                        + "\n\nResponse:\n<think> " + a1_text_dec
+                        + "\nAssistant: <think>"
+                    ),
+                    "answer": answer_text,
+                }
+                for _ in range(self.num_generations):
+                    new_prompts_text.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
+
+            print(self.accelerator.is_main_process,"here17")
+            # ------------------
+            # 5. Construct final "prompt_completion_ids" (new prompt + A2)
+            # ------------------
+            new_prompt_inputs = self.processing_class(
+                new_prompts_text,
+                return_tensors="pt",
+                padding=True,
+                padding_side="left",
+                add_special_tokens=False
+            )
+            new_prompt_inputs = Trainer._prepare_inputs(self, new_prompt_inputs)
+            new_prompt_ids, new_prompt_mask = new_prompt_inputs["input_ids"], new_prompt_inputs["attention_mask"]
+
+            if self.max_prompt_length is not None:
+                new_prompt_ids = new_prompt_ids[:, -self.max_prompt_length :]
+                new_prompt_mask = new_prompt_mask[:, -self.max_prompt_length :]
+
+            prompt_completion_ids = torch.cat([new_prompt_ids, a2_ids], dim=1)
+
+
         # For the CPU-based or local generation path (not vLLM), we skip here.
         # Currently the code only supports vllm.
         else:
             print("Error: PLEASE USE VLLM.")
             # You could implement local generation logic if needed.
-
-            # with unwrap_model_for_generation(self.model_wrapped, self.accelerator) as unwrapped_model:
-            #     prompt_completion_ids = unwrapped_model.generate(
-            #         prompt_ids, attention_mask=prompt_mask, generation_config=self.generation_config
-            # )
-
-            # # Compute prompt length and extract completion ids
-            # prompt_length = prompt_ids.size(1)
-            # prompt_ids = prompt_completion_ids[:, :prompt_length]
-            # completion_ids = prompt_completion_ids[:, prompt_length:]
-
         
-        # ------------------
-        # 3. Broadcast (single time)
-        # ------------------
-        # We broadcast a1_ids_list and a2_ids_list so that each process gets the same completions.
-        # Each process will slice out only what belongs to it.
-        # print(self.accelerator.is_main_process,"here11")
-        # a1_ids_list = broadcast_object_list(a1_ids_list[0], from_process=0)
-        # print(self.accelerator.is_main_process,"here12")
-        # print(self.accelerator.is_main_process,"here12",a1_ids_list)
-        # a2_ids_list = broadcast_object_list(a2_ids_list[0], from_process=0)
-        # print(self.accelerator.is_main_process,"here13")
-        # print(self.accelerator.is_main_process,"here13",a2_ids_list)
-
-        # Put both lists in a single container
-        id_lists = [a1_ids_list, a2_ids_list]
-        print(self.accelerator.is_main_process,"here11")
-        id_lists = broadcast_object_list(id_lists, from_process=0)  # one broadcast
-        print(self.accelerator.is_main_process,"here12")
-        print(self.accelerator.is_main_process,"a1_ids_list", a1_ids_list)
-        print(self.accelerator.is_main_process,"a2_ids_list", a2_ids_list)
-        a1_ids_list, a2_ids_list = id_lists
-
-        # Each local slice for the original prompts
-        process_slice = slice(
-            self.accelerator.process_index * len(prompts),
-            (self.accelerator.process_index + 1) * len(prompts),
-        )
-
-        print(self.accelerator.is_main_process,"here14")
-        # a1_ids_list is of length = sum of prompts across processes, so slice it for local usage
-        local_a1_ids_list = a1_ids_list[process_slice]
-
-        # For A2, each prompt was expanded `self.num_generations` times. So total length is
-        # sum(len(prompts)*n) across all processes. We want exactly len(prompts)*n per process.
-        local_len_new = len(prompts) * self.num_generations
-        start_idx = self.accelerator.process_index * local_len_new
-        end_idx = (self.accelerator.process_index + 1) * local_len_new
-        local_a2_ids_list = a2_ids_list[start_idx:end_idx]
-
-        print(self.accelerator.is_main_process,"here15")
-        # Convert them to padded tensors
-        device = self.accelerator.device
-        a1_ids = [torch.tensor(ids, device=device) for ids in local_a1_ids_list]
-        a1_ids = pad(a1_ids, padding_value=self.processing_class.pad_token_id)
-        print(self.accelerator.is_main_process,"a1_ids 0",a1_ids)
-        a2_ids = [torch.tensor(ids, device=device) for ids in local_a2_ids_list]
-        print(self.accelerator.is_main_process,"a2_ids 1",a2_ids)
-        a2_ids = pad(a2_ids, padding_value=self.processing_class.pad_token_id)
-        print(self.accelerator.is_main_process,"a2_ids 3",a2_ids)
-        print(self.accelerator.is_main_process,"here16")
-        print(self.accelerator.is_main_process,a1_ids)
-        print(self.accelerator.is_main_process,a2_ids)
-
-        # ------------------
-        # 4. Now build the "new prompt" locally for further processing
-        # ------------------
-        # Re-do the same logic to reconstruct the new prompt text *locally*, matching slice:
-        added_instruction = (
-            "A conversation between User and Assistant. Given a question and a corresponding response provided below, the Assistant systematically reviews and explains each step of the reasoning process to verify the correctness of the response."
-            "If errors are found, the Assistant identifies and corrects them, then re-solves the problem. If the response is correct, the Assistant confirms it and returns the same final answer."
-            "The assistant first thinks about the reasoning process in mind, including verification, correction, and resolving the problem if necessary. Then provides the user with the answer."
-            "The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> final answer inside \\boxed{{}} tag </answer>." 
-            "The reasoning process, including verification and correction, is enclosed within <think> </think> tags, while the final solution is enclosed within <answer> </answer> tags. The final answer is formatted within \\boxed{{}} to enable direct extraction for grading."
-            "User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag."
-        )
-
-        # We replicate the building of new_prompts_text but only for this local slice
-        new_prompts_text = []
-        for input_example, a1_tensor in zip(inputs, a1_ids):
-            a1_text_dec = self.processing_class.decode(a1_tensor, skip_special_tokens=True)
-            q_text = maybe_apply_chat_template(input_example, self.processing_class)["prompt"]
-            answer_text = input_example.get("answer", "")
-
-            example = {
-                "prompt": (
-                    added_instruction
-                    + "\n\nQuestion:\n" + extract_math_prompt(q_text)
-                    + "\n\nResponse:\n<think> " + a1_text_dec
-                    + "\nAssistant: <think>"
-                ),
-                "answer": answer_text,
-            }
-            for _ in range(self.num_generations):
-                new_prompts_text.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
-
-        print(self.accelerator.is_main_process,"here17")
-        # ------------------
-        # 5. Construct final "prompt_completion_ids" (new prompt + A2)
-        # ------------------
-        new_prompt_inputs = self.processing_class(
-            new_prompts_text,
-            return_tensors="pt",
-            padding=True,
-            padding_side="left",
-            add_special_tokens=False
-        )
-        new_prompt_inputs = Trainer._prepare_inputs(self, new_prompt_inputs)
-        new_prompt_ids, new_prompt_mask = new_prompt_inputs["input_ids"], new_prompt_inputs["attention_mask"]
-
-        if self.max_prompt_length is not None:
-            new_prompt_ids = new_prompt_ids[:, -self.max_prompt_length :]
-            new_prompt_mask = new_prompt_mask[:, -self.max_prompt_length :]
-
-        prompt_completion_ids = torch.cat([new_prompt_ids, a2_ids], dim=1)
-
         # Create completion_mask for A2
         is_eos = a2_ids == self.processing_class.eos_token_id
         eos_idx = torch.full((is_eos.size(0),), is_eos.size(1), dtype=torch.long, device=device)
