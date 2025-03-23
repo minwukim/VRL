@@ -283,18 +283,21 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 
                 # Remove duplicates for faster generation of A1
                 ordered_set_of_prompts = list(dict.fromkeys(all_prompts_text))
+                print("ordered_set_of_prompts_number", len(ordered_set_of_new_prompts))
                 with profiling_context(self, "vLLM.generate (A1)"):
                     all_outputs_a1 = self.llm.generate(
                         ordered_set_of_prompts,
                         sampling_params=single_sampling_params,
                         use_tqdm=False
                     )
+                print("all_outputs_a1_len", len(all_outputs_a1))
                 # Flatten out token_ids
                 # We'll map them back to the full prompts (including duplicates) soon
                 unique_a1_ids_list = []
                 for outputs in all_outputs_a1:
                     for output in outputs.outputs:
                         unique_a1_ids_list.append(output.token_ids)
+                print("unique_a1_ids_list", len(unique_a1_ids_list))
 
                 # Create a mapping from ordered_set_of_prompts -> unique_a1_ids_list
                 prompt_to_a1 = {}
@@ -305,6 +308,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 full_a1_ids_list = []
                 for p_str in all_prompts_text:
                     full_a1_ids_list.append(prompt_to_a1[p_str])
+                print("full_a1_ids_list",len(full_a1_ids_list))
                 # --- Build new prompts: (Q, A1) + extra instruction ---
                 added_instruction = (
                     "A conversation between User and Assistant. Given a question and a corresponding response provided below, the Assistant systematically reviews and explains each step of the reasoning process to verify the correctness of the response."
@@ -341,19 +345,23 @@ class VerificationGRPOTrainer(GRPOTrainer):
                     # (in case self.num_generations > 1)
                     for _ in range(self.num_generations):
                         new_prompts_text_all.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
+                print("new_prompts_text_all", len(new_prompts_text_all))
 
                 # --- Now generate A2 using the new prompts ---
                 # Deduplicate again so we do not generate multiple times for duplicates
                 ordered_set_of_new_prompts = list(dict.fromkeys(new_prompts_text_all))
+                print("ordered_set_of_new_prompts", len(ordered_set_of_new_prompts))
 
                 # print(self.accelerator.is_main_process,"here8main process")
                 with profiling_context(self, "vLLM.generate (A2)"):
                     all_outputs_a2 = self.llm.generate(ordered_set_of_new_prompts,sampling_params=self.sampling_params,use_tqdm=False)
+                print("self.sampling_params.n",self.sampling_params.n)
 
                 unique_a2_ids_list = []
                 for outputs in all_outputs_a2:
                     for output in outputs.outputs:
                         unique_a2_ids_list.append(output.token_ids)
+                print("unique_a2_ids_list", len(unique_a2_ids_list))
             
                 # Create mapping new_prompt -> a2_ids
                 new_prompt_to_a2 = {}
@@ -364,6 +372,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 full_a2_ids_list = []
                 for p_str in new_prompts_text_all:
                     full_a2_ids_list.append(new_prompt_to_a2[p_str])
+                print("full_a2_ids_list", len(full_a2_ids_list))
                         
                 # These are the final lists we will broadcast:
                 #   a1_ids_list: shape = [len(all_prompts_text)], 1 A1 for each original prompt
