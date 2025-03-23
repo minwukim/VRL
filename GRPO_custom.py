@@ -385,17 +385,16 @@ class VerificationGRPOTrainer(GRPOTrainer):
             # We broadcast a1_ids_list and a2_ids_list so that each process gets the same completions.
             # Each process will slice out only what belongs to it.
             print(self.accelerator.is_main_process,"here12")
-            
-            a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
-            if not self.accelerator.is_main_process:
-                print("============a1_ids_list==========================")
-                print(self.accelerator.is_main_process,"a1_ids_list", a1_ids_list)
-                print("============a1_ids_list==========================")
+
+            # print("============a1_ids_list==========================")
+            # a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
+            # print(self.accelerator.is_main_process,"a1_ids_list", a1_ids_list[0])
+            # print("============a1_ids_list==========================")
+
+            print("============a2_ids_list==========================")
             a2_ids_list = broadcast_object_list(a2_ids_list, from_process=0)
-            if not self.accelerator.is_main_process:
-                print("============a2_ids_list==========================")
-                print(self.accelerator.is_main_process,"a2_ids_list", a2_ids_list)
-                print("============a2_ids_list==========================")
+            print(self.accelerator.is_main_process,"a2_ids_list", a2_ids_list[0])
+            print("============a2_ids_list==========================")
 
 
             # Each local slice for the original prompts
