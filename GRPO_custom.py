@@ -370,6 +370,9 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 #   a2_ids_list: shape = [len(new_prompts_text_all)], up to n completions for each original prompt
                 a1_ids_list = full_a1_ids_list
                 a2_ids_list = full_a2_ids_list
+                print(self.accelerator.is_main_process,"a1 length", len(a1_ids_list))
+                print(self.accelerator.is_main_process,"a2 length", len(a2_ids_list))
+
                 # print("HERE two a1_ids_list", a1_ids_list[0])
                 # print("HERE three a2_ids_list", a2_ids_list[0])
 
@@ -377,7 +380,10 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 print(self.accelerator.is_main_process,"here10:not main")
                 # Non-main processes, just set placeholders
                 a1_ids_list = [None] * len(all_prompts_text)
+                print(self.accelerator.is_main_process,"NONE a1 length", len(a1_ids_list))
                 a2_ids_list = [None] * (len(all_prompts_text) * self.num_generations)
+                print(self.accelerator.is_main_process,"NONE a2 length", len(a2_ids_list))
+
 
             # ------------------
             # 3. Broadcast (single time)
