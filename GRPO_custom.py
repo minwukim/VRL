@@ -342,8 +342,6 @@ class VerificationGRPOTrainer(GRPOTrainer):
                     for _ in range(self.num_generations):
                         new_prompts_text_all.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
 
-                # print("newpromptstextall[0]",new_prompts_text_all[0])
-                # print(self.accelerator.is_main_process,"here7main process")
                 # --- Now generate A2 using the new prompts ---
                 # Deduplicate again so we do not generate multiple times for duplicates
                 ordered_set_of_new_prompts = list(dict.fromkeys(new_prompts_text_all))
@@ -357,8 +355,6 @@ class VerificationGRPOTrainer(GRPOTrainer):
                     for output in outputs.outputs:
                         unique_a2_ids_list.append(output.token_ids)
             
-                print(self.accelerator.is_main_process,"here9:main process")
-                # print(self.accelerator.is_main_process, "unique_a2_ids_list[0]", unique_a2_ids_list[0])
                 # Create mapping new_prompt -> a2_ids
                 new_prompt_to_a2 = {}
                 for np_str, np_ids in zip(ordered_set_of_new_prompts, unique_a2_ids_list):
@@ -374,8 +370,8 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 #   a2_ids_list: shape = [len(new_prompts_text_all)], up to n completions for each original prompt
                 a1_ids_list = full_a1_ids_list
                 a2_ids_list = full_a2_ids_list
-                print("HERE two a1_ids_list", a1_ids_list[0])
-                print("HERE three a2_ids_list", a2_ids_list[0])
+                # print("HERE two a1_ids_list", a1_ids_list[0])
+                # print("HERE three a2_ids_list", a2_ids_list[0])
 
             else:
                 print(self.accelerator.is_main_process,"here10:not main")
@@ -389,10 +385,17 @@ class VerificationGRPOTrainer(GRPOTrainer):
             # We broadcast a1_ids_list and a2_ids_list so that each process gets the same completions.
             # Each process will slice out only what belongs to it.
             print(self.accelerator.is_main_process,"here12")
+            
             a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
-            print(self.accelerator.is_main_process,"a1_ids_list", a1_ids_list[0])
+            if not self.accelerator.is_main_process:
+                print("============a1_ids_list==========================")
+                print(self.accelerator.is_main_process,"a1_ids_list", a1_ids_list[0])
+                print("============a1_ids_list==========================")
             a2_ids_list = broadcast_object_list(a2_ids_list, from_process=0)
-            print(self.accelerator.is_main_process,"a2_ids_list", a2_ids_list[0])
+            if not self.accelerator.is_main_process:
+                print("============a2_ids_list==========================")
+                print(self.accelerator.is_main_process,"a2_ids_list", a2_ids_list[0])
+                print("============a2_ids_list==========================")
 
 
             # Each local slice for the original prompts
