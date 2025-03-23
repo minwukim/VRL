@@ -389,12 +389,12 @@ class VerificationGRPOTrainer(GRPOTrainer):
             a1_ids_list = broadcast_object_list(a1_ids_list, from_process=0)
             if not self.accelerator.is_main_process:
                 print("============a1_ids_list==========================")
-                print(self.accelerator.is_main_process,"a1_ids_list", a1_ids_list[0])
+                print(self.accelerator.is_main_process,"a1_ids_list", a1_ids_list)
                 print("============a1_ids_list==========================")
             a2_ids_list = broadcast_object_list(a2_ids_list, from_process=0)
             if not self.accelerator.is_main_process:
                 print("============a2_ids_list==========================")
-                print(self.accelerator.is_main_process,"a2_ids_list", a2_ids_list[0])
+                print(self.accelerator.is_main_process,"a2_ids_list", a2_ids_list)
                 print("============a2_ids_list==========================")
 
 
