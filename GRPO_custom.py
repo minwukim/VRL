@@ -283,7 +283,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 
                 # Remove duplicates for faster generation of A1
                 ordered_set_of_prompts = list(dict.fromkeys(all_prompts_text))
-                print("ordered_set_of_prompts_number", len(ordered_set_of_new_prompts))
+                print("ordered_set_of_prompts_number", len(ordered_set_of_prompts))
                 with profiling_context(self, "vLLM.generate (A1)"):
                     all_outputs_a1 = self.llm.generate(
                         ordered_set_of_prompts,
