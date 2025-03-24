@@ -523,7 +523,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
         self._metrics[mode]["reward_std"].append(std_grouped_rewards.mean().item())
 
         if self.log_completions and self.state.global_step % self.args.logging_steps == 0:
-            prompts_to_log = gather_object(final_second_turn_prompts)
+            prompts_to_log = gather_object(local_second_turn_prompts)
             print("prompts_to_log", len(prompts_to_log))
             completions_to_log = gather_object(completions_text)
             print("completions_to_log", len(prompts_to_log))
