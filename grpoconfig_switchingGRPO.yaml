@@ -1,6 +1,6 @@
 model_name: "Qwen/Qwen2.5-3B"
-output_dir: "outputs/qwen2.5-3b-grpo-switch"
-run_name: "qwen3b-large-switch"
+output_dir: "qwen2.5-3b-grpo-switch"
+run_name: "qwen3b-switch"
 resume_from_checkpoint: False
 # checkpoint_path: "outputs/qwen2.5-3b-grpo-large/checkpoint-125"
 learning_rate: 1e-6
@@ -13,10 +13,10 @@ lr_scheduler_type: constant_with_warmup
 logging_steps: 1
 bf16: True
 bf16_full_eval: True
-per_device_train_batch_size: 1
-gradient_accumulation_steps: 4
+per_device_train_batch_size: 4
+gradient_accumulation_steps: 5
 gradient_checkpointing: True
-num_generations: 2
+num_generations: 8
 max_prompt_length: 4608
 max_completion_length: 4096
 num_train_epochs: 1
@@ -24,7 +24,7 @@ save_steps: 25
 max_grad_norm: 0.1
 report_to: wandb
 use_vllm: True
-vllm_max_model_len: 11000
+vllm_max_model_len: 12000
 max_steps: 500  
 log_completions: True
 evaluation_strategy: steps
