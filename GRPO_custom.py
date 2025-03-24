@@ -348,7 +348,9 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 completion_ids_list = [out.outputs[0].token_ids for out in second_turn_outputs]
 
                 print(self.accelerator.is_main_process,"final_second_turn_prompts_len", len(final_second_turn_prompts))
-                print(self.accelerator.is_main_process,"final_second_turn_prompts", final_second_turn_prompts[0])
+                print("+++++++++++++++++++++++")
+                print(self.accelerator.is_main_process,"final_second_turn_prompts IS NOT EMPTY!", final_second_turn_prompts[0])
+                print("+++++++++++++++++++++++")
                 print(self.accelerator.is_main_process,"completion_ids_list", len(completion_ids_list))
 
             
