@@ -99,7 +99,7 @@ def main():
     sampling_params = SamplingParams(
         temperature=0,
         top_p=1.0,
-        max_tokens=4000
+        max_tokens=8000
     )
     outputs = llm.generate(prompts, sampling_params)
     
@@ -113,9 +113,10 @@ def main():
     for idx, output in enumerate(outputs):
         generated_text = output.outputs[0].text
         gt = ground_truths[idx]
-        
+        #print(idx, gt)
         score_corr = 1 if reward_correct([generated_text], [gt])[0] == 2 else 0
-        math_verify_score = verify(parse(generated_text), parse(gt))
+        math_verify_score = verify(parse(generated_text), parse(str(gt)))
+        print(parse(generated_text), parse(str(gt)), math_verify_score)
         #score_correct_and_format = reward_correct_and_format([generated_text], [gt])[0]
         token_length = len(llm.get_tokenizer().encode(generated_text))
         
