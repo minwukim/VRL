@@ -82,12 +82,15 @@ def get_math_test_prompts():
 
 def get_ob_test_prompts():
     source_name = "Hothan/OlympiadBench"
-    data = load_dataset(source_name, "TP_TO_maths_en_COMP", trust_remote_code=True)['train']
+    #data = load_dataset(source_name, "TP_TO_maths_en_COMP", trust_remote_code=True)['train']
+    
+    data = load_dataset(source_name, "OE_TO_maths_en_COMP", trust_remote_code=True)['train']
     prompts = []
     ground_truths = []
     for example in data:
         prompt = build_prompt(example['question'])
-        gt = example['solution'][0]
+        gt = example['final_answer'][0]
+        #gt = example['solution'][0]
         prompts.append(prompt)
         ground_truths.append(gt)
     return prompts, ground_truths
