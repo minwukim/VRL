@@ -324,6 +324,8 @@ class VerificationGRPOTrainer(GRPOTrainer):
                         ),
                     }
                     second_turn_prompts.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
+
+                print("second_turn_prompts", len(second_turn_prompts), second_turn_prompts[0])
                 
                 # 2.4) Re-duplicate the second-turn prompts so each distinct prompt is repeated G times,
                 #      exactly matching the shape of the original repeated batch. 
@@ -345,12 +347,14 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 # Extract final completions (A2).
                 completion_ids_list = [out.outputs[0].token_ids for out in second_turn_outputs]
 
-                print(self.accelerator.is_main_process,"final_second_turn_prompts", len(final_second_turn_prompts))
+                print(self.accelerator.is_main_process,"final_second_turn_prompts_len", len(final_second_turn_prompts))
+                print(self.accelerator.is_main_process,"final_second_turn_prompts", final_second_turn_prompts[0])
                 print(self.accelerator.is_main_process,"completion_ids_list", len(completion_ids_list))
 
             
             else:
                 # Non-main processes get placeholders.
+                print(self.accelerator.is_main_process,"prompts_text_length", len(prompts_text))
                 final_second_turn_prompts = [None] * len(prompts_text)
                 completion_ids_list = [None] * len(prompts_text)
             
@@ -384,7 +388,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 padding_side="left",
                 add_special_tokens=False,
             )
-            second_prompt_inputs = Trainer._prepare_inputs(second_prompt_inputs)
+            second_prompt_inputs = Trainer._prepare_inputs(self,second_prompt_inputs)
             second_prompt_ids = second_prompt_inputs["input_ids"].to(device)
             second_prompt_mask = second_prompt_inputs["attention_mask"].to(device)
 
