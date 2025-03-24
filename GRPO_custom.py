@@ -361,20 +361,20 @@ class VerificationGRPOTrainer(GRPOTrainer):
             completion_ids_list = broadcast_object_list(completion_ids_list, from_process=0)
 
             # Now we take the local slice to keep shape consistent with the local batch.
-            print("HERE1")
+            print(self.accelerator.is_main_process,"HERE1")
             process_slice = slice(
                 self.accelerator.process_index * len(prompts),
                 (self.accelerator.process_index + 1) * len(prompts),
             )
             completion_ids_list = completion_ids_list[process_slice]
-            print("HERE2")
+            print(self.accelerator.is_main_process,"HERE2")
             # 2.7) Convert to a padded tensor for logprob calculations:
             completion_ids = [torch.tensor(ids, device=device) for ids in completion_ids_list]
             completion_ids = pad(completion_ids, padding_value=self.processing_class.pad_token_id)
 
             # The "prompt" we need to consider for scoring is now the second-turn prompt, 
             # so we tokenize that. We already have it in final_second_turn_prompts => we slice the relevant piece for this process.
-            print("HERE3")
+            print(self.accelerator.is_main_process,"HERE3")
             local_second_turn_prompts = final_second_turn_prompts[process_slice]
             print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
             print(self.accelerator.is_main_process, "local_second_turn_prompts",local_second_turn_prompts)
@@ -390,7 +390,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
             second_prompt_ids = second_prompt_inputs["input_ids"].to(device)
             second_prompt_mask = second_prompt_inputs["attention_mask"].to(device)
             
-            print("HERE4")
+            print(self.accelerator.is_main_process,"HERE4")
             # Potentially truncate
             if self.max_prompt_length is not None:
                 second_prompt_ids = second_prompt_ids[:, -self.max_prompt_length:]
@@ -399,7 +399,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
             # The final “prompt + completion” is this second-turn prompt + A2.
             prompt_completion_ids = torch.cat([second_prompt_ids, completion_ids], dim=1)
 
-            print("HERE5")
+            print(self.accelerator.is_main_process,"HERE5")
         
         else:
             print("USE VLLM!")
@@ -411,24 +411,24 @@ class VerificationGRPOTrainer(GRPOTrainer):
         eos_idx = torch.full((is_eos.size(0),), is_eos.size(1), dtype=torch.long, device=device)
         has_eos = is_eos.any(dim=1)
         eos_idx[has_eos] = is_eos.int().argmax(dim=1)[has_eos]
-        print("HERE7")
+        print(self.accelerator.is_main_process,"HERE7")
 
         sequence_indices = torch.arange(is_eos.size(1), device=device).expand(is_eos.size(0), -1)
         completion_mask = (sequence_indices <= eos_idx.unsqueeze(1)).int()
 
-        print("HERE8")
+        print(self.accelerator.is_main_process,"HERE8")
         # Concatenate prompt_mask with completion_mask to get the attention_mask for the entire sequence.
         attention_mask = torch.cat([second_prompt_mask, completion_mask], dim=1)
         logits_to_keep = completion_ids.size(1)
 
-        print("HERE9")
+        print(self.accelerator.is_main_process,"HERE9")
 
         # 3) If we do multiple updates (num_iterations>1), we also need old_per_token_logps. 
         #    Otherwise, we can skip that (same as your original code).
         with torch.no_grad():
             if self.num_iterations > 1:
                 old_per_token_logps = self._get_per_token_logps(
-                    self.model, prompt_completion_ids, attention_mask, logits_to_keep + 1
+                    self.model, prompt_completion_ids, attention_mask, logits_to_keep
                 )
             else:
                 old_per_token_logps = None
@@ -438,15 +438,15 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 ref_per_token_logps = None
             elif self.ref_model is not None:
                 ref_per_token_logps = self._get_per_token_logps(
-                    self.ref_model, prompt_completion_ids, attention_mask, logits_to_keep + 1
+                    self.ref_model, prompt_completion_ids, attention_mask, logits_to_keep
                 )
             else:
                 with self.accelerator.unwrap_model(self.model).disable_adapter():
                     ref_per_token_logps = self._get_per_token_logps(
-                        self.model, prompt_completion_ids, attention_mask, logits_to_keep + 1
+                        self.model, prompt_completion_ids, attention_mask, logits_to_keep
                     )
 
-        print("HERE10")
+        print(self.accelerator.is_main_process,"HERE10")
         # 5) Decode the final completions for reward function usage
         completions_text = self.processing_class.batch_decode(completion_ids, skip_special_tokens=True)
     
@@ -454,12 +454,12 @@ class VerificationGRPOTrainer(GRPOTrainer):
         completions = completions_text
 
         # ================================
-        print("HERE11")
+        print(self.accelerator.is_main_process,"HERE11")
         # 6) Compute rewards from your configured reward functions (unchanged):
         #    We accumulate rewards_per_func, sum them up with self.reward_weights, gather, etc.
         #    The code below is basically the same as the original single-turn approach.
         rewards_per_func = torch.zeros(len(prompts), len(self.reward_funcs), device=device)
-        print("HERE12")
+        print(self.accelerator.is_main_process,"HERE12")
         for i, (reward_func, reward_processing_class) in enumerate(
             zip(self.reward_funcs, self.reward_processing_classes)
         ):
@@ -499,10 +499,10 @@ class VerificationGRPOTrainer(GRPOTrainer):
                         dtype=torch.float32,
                         device=device
                     )
-        print("here21")
+        print(self.accelerator.is_main_process,"here21")
         # Collect global rewards
         rewards_per_func = gather(rewards_per_func)
-        print("here22")
+        print(self.accelerator.is_main_process,"here22")
         # Weighted sum over reward functions
         rewards = (rewards_per_func * self.reward_weights.to(device).unsqueeze(0)).sum(dim=1)
         mean_grouped_rewards = rewards.view(-1, self.num_generations).mean(dim=1)
