@@ -256,8 +256,321 @@ class VerificationGRPOTrainer(GRPOTrainer):
     This ensures that all duplicates of a prompt Q share the same initial answer A,
     which is required for correct grouping and advantage computation in GRPO.
     """
-    
     def _generate_and_score_completions(
+        self, inputs: dict[str, Union[torch.Tensor, Any]]
+    ) -> dict[str, Union[torch.Tensor, Any]]:
+        
+        device = self.accelerator.device
+    
+        # 1. Preprocess the original prompt (Q)
+        prompts = [x["prompt"] for x in inputs]
+        prompts_text = [maybe_apply_chat_template(example, self.processing_class)["prompt"] for example in inputs]
+        prompt_inputs = self.processing_class(
+            prompts_text, return_tensors="pt", padding=True, padding_side="left", add_special_tokens=False
+        )
+        prompt_inputs = Trainer._prepare_inputs(self,prompt_inputs)
+        prompt_ids, prompt_mask = prompt_inputs["input_ids"], prompt_inputs["attention_mask"]
+
+        if self.max_prompt_length is not None:
+            prompt_ids = prompt_ids[:, -self.max_prompt_length :]
+            prompt_mask = prompt_mask[:, -self.max_prompt_length :]
+
+        # Generate completions using either vLLM or regular generation
+        if self.args.use_vllm:
+            
+            # Gather prompts from all processes -> one big list on rank 0
+            all_prompts_text = gather_object(prompts_text)
+
+            if self.accelerator.is_main_process:            
+                # 2.1) De-duplicate the original prompts: 
+                # for a batch of size B = (#distinct Q * self.num_generations), we want the distinct Q.
+                ordered_unique_prompts = all_prompts_text[:: self.num_generations]
+
+                sampling_params_1n = deepcopy(self.sampling_params)
+                sampling_params_1n.n = 1
+
+                with profiling_context(self, "vLLM.generate (first turn)"):
+                    first_turn_outputs = self.llm.generate(
+                        ordered_unique_prompts, 
+                        sampling_params=sampling_params_1n,
+                        use_tqdm=False,
+                    )
+
+                # Each item in first_turn_outputs has exactly 1 completion
+                first_turn_completions_ids = [o.outputs[0].token_ids for o in first_turn_outputs]
+                # Decode the first_turn outputs to string.
+                first_turn_completions_text = [self.processing_class.decode(ids, skip_special_tokens=True) for ids in first_turn_completions_ids]
+
+                # 2.3) Build the new prompt
+                added_instruction = (
+                    "A conversation between User and Assistant. Given a question and a corresponding response provided below, the Assistant systematically reviews and explains each step of the reasoning process to verify the correctness of the response."
+                    "If errors are found, the Assistant identifies and corrects them, then re-solves the problem. If the response is correct, the Assistant confirms it and returns the same final answer."
+                    "The assistant first thinks about the reasoning process in mind, including verification, correction, and resolving the problem if necessary. Then provides the user with the answer."
+                    "The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> final answer inside \\boxed{{}} tag </answer>." 
+                    "The reasoning process, including verification and correction, is enclosed within <think> </think> tags, while the final solution is enclosed within <answer> </answer> tags. The final answer is formatted within \\boxed{{}} to enable direct extraction for grading."
+                    "User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag."
+                )
+
+                second_turn_prompts = []
+                for q_text, a1_text in zip(ordered_unique_prompts, first_turn_completions_text):
+
+                    # Build the second-turn prompt
+                    example = {
+                        "prompt": (
+                            added_instruction
+                            + "\n\nQuestion:\n" + extract_math_prompt(q_text)
+                            + "\n\nResponse:\n<think> " + a1_text
+                            + "\nAssistant: <think>"  # continuing the chain-of-thought
+                        ),
+                    }
+                    second_turn_prompts.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
+                
+                # 2.4) Re-duplicate the second-turn prompts so each distinct prompt is repeated G times,
+                #      exactly matching the shape of the original repeated batch. 
+                #      If we have N distinct Q, each will produce N distinct second-turn prompts, each repeated G times => total = N*G
+                final_second_turn_prompts = []
+                for new_p in second_turn_prompts:
+                    final_second_turn_prompts.extend([new_p] * self.num_generations)
+
+                # 2.5) Now generate the second turn (A2). 
+                #      We have len(ordered_unique_prompts)*self.num_generations prompts in final_second_turn_prompts.
+                #      Each second-turn prompt will produce exactly 1 completion because we want G = self.num_generations distinct completions overall.
+
+                with profiling_context(self, "vLLM.generate (second turn)"):
+                    second_turn_outputs = self.llm.generate(
+                        final_second_turn_prompts,
+                        sampling_params=sampling_params_1n,
+                        use_tqdm=False,
+                    )
+                # Extract final completions (A2).
+                completion_ids_list = [out.outputs[0].token_ids for out in second_turn_outputs]
+
+                print(self.accelerator.is_main_process,"final_second_turn_prompts", len(final_second_turn_prompts))
+                print(self.accelerator.is_main_process,"completion_ids_list", len(completion_ids_list))
+
+            
+            else:
+                # Non-main processes get placeholders.
+                final_second_turn_prompts = [None] * len(prompts_text)
+                completion_ids_list = [None] * len(prompts_text)
+            
+            # 2.6) Broadcast the final completion_ids to every process. Then slice out only the portion that belongs to this process.
+            print(self.accelerator.is_main_process, "broadcast second turn prompts")
+            final_second_turn_prompts = broadcast_object_list(final_second_turn_prompts, from_process=0)
+            print(self.accelerator.is_main_process, "broadcast second turn prompts DONE", print(final_second_turn_prompts[0]))
+            print("-------------------------------------------------")
+            print(self.accelerator.is_main_process, "broadcast completions")
+            completion_ids_list = broadcast_object_list(completion_ids_list, from_process=0)
+            print(self.accelerator.is_main_process, "broadcast completions DONE", completion_ids_list[0])
+
+            # Now we take the local slice to keep shape consistent with the local batch.
+            process_slice = slice(
+                self.accelerator.process_index * len(prompts),
+                (self.accelerator.process_index + 1) * len(prompts),
+            )
+            completion_ids_list = completion_ids_list[process_slice]
+
+            # 2.7) Convert to a padded tensor for logprob calculations:
+            completion_ids = [torch.tensor(ids, device=device) for ids in completion_ids_list]
+            completion_ids = pad(completion_ids, padding_value=self.processing_class.pad_token_id)
+
+            # The "prompt" we need to consider for scoring is now the second-turn prompt, 
+            # so we tokenize that. We already have it in final_second_turn_prompts => we slice the relevant piece for this process.
+            local_second_turn_prompts = final_second_turn_prompts[process_slice]
+            second_prompt_inputs = self.processing_class(
+                text=local_second_turn_prompts,
+                return_tensors="pt",
+                padding=True,
+                padding_side="left",
+                add_special_tokens=False,
+            )
+            second_prompt_inputs = Trainer._prepare_inputs(second_prompt_inputs)
+            second_prompt_ids = second_prompt_inputs["input_ids"].to(device)
+            second_prompt_mask = second_prompt_inputs["attention_mask"].to(device)
+
+            # Potentially truncate
+            if self.max_prompt_length is not None:
+                second_prompt_ids = second_prompt_ids[:, -self.max_prompt_length:]
+                second_prompt_mask = second_prompt_mask[:, -self.max_prompt_length:]
+
+            # The final “prompt + completion” is this second-turn prompt + A2.
+            prompt_completion_ids = torch.cat([second_prompt_ids, completion_ids], dim=1)
+        
+        else:
+            print("USE VLLM!")
+
+
+        # Mask everything after the first EOS token
+        is_eos = completion_ids.eq(self.processing_class.eos_token_id)
+        eos_idx = torch.full((is_eos.size(0),), is_eos.size(1), dtype=torch.long, device=device)
+        has_eos = is_eos.any(dim=1)
+        eos_idx[has_eos] = is_eos.int().argmax(dim=1)[has_eos]
+
+        sequence_indices = torch.arange(is_eos.size(1), device=device).expand(is_eos.size(0), -1)
+        completion_mask = (sequence_indices <= eos_idx.unsqueeze(1)).int()
+
+        # Concatenate prompt_mask with completion_mask to get the attention_mask for the entire sequence.
+        attention_mask = torch.cat([second_prompt_mask, completion_mask], dim=1)
+        logits_to_keep = completion_ids.size(1)
+
+        # 3) If we do multiple updates (num_iterations>1), we also need old_per_token_logps. 
+        #    Otherwise, we can skip that (same as your original code).
+        with torch.no_grad():
+            if self.num_iterations > 1:
+                old_per_token_logps = self._get_per_token_logps(
+                    self.model, prompt_completion_ids, attention_mask, logits_to_keep + 1
+                )
+            else:
+                old_per_token_logps = None
+
+            # 4) Reference model logprobs
+            if self.beta == 0.0:
+                ref_per_token_logps = None
+            elif self.ref_model is not None:
+                ref_per_token_logps = self._get_per_token_logps(
+                    self.ref_model, prompt_completion_ids, attention_mask, logits_to_keep + 1
+                )
+            else:
+                with self.accelerator.unwrap_model(self.model).disable_adapter():
+                    ref_per_token_logps = self._get_per_token_logps(
+                        self.model, prompt_completion_ids, attention_mask, logits_to_keep + 1
+                    )
+
+        # 5) Decode the final completions for reward function usage
+        completions_text = self.processing_class.batch_decode(completion_ids, skip_special_tokens=True)
+    
+        # If your data is conversational, adapt accordingly. We keep the “standard text” scenario:
+        completions = completions_text
+
+
+        # ================================
+
+        # 6) Compute rewards from your configured reward functions (unchanged):
+        #    We accumulate rewards_per_func, sum them up with self.reward_weights, gather, etc.
+        #    The code below is basically the same as your original single-turn approach.
+        rewards_per_func = torch.zeros(len(prompts), len(self.reward_funcs), device=device)
+        for i, (reward_func, reward_processing_class) in enumerate(
+            zip(self.reward_funcs, self.reward_processing_classes)
+        ):
+            if isinstance(reward_func, nn.Module):
+                reward_func_name = f"reward {reward_func.config._name_or_path.split('/')[-1]}"
+            else:
+                reward_func_name = reward_func.__name__
+
+            with profiling_context(self, reward_func_name):
+                if isinstance(reward_func, nn.Module):
+                    if is_conversational(inputs[0]):
+                        messages = [{"messages": p + c} for p, c in zip(final_second_turn_prompts, completions)]
+                        texts = [apply_chat_template(x, reward_processing_class)["text"] for x in messages]
+                    else:
+                        texts = [p + c for p, c in zip(final_second_turn_prompts, completions)]
+
+                    reward_inputs = reward_processing_class(
+                        texts,
+                        return_tensors="pt",
+                        padding=True,
+                        padding_side="right",
+                        add_special_tokens=False
+                    )
+                    reward_inputs = Trainer._prepare_inputs(self, reward_inputs)
+                    with torch.inference_mode():
+                        rewards_per_func[:, i] = reward_func(**reward_inputs).logits[:, 0]
+                else:
+                    keys = [key for key in inputs[0] if key not in ["prompt", "completion"]]
+                    reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
+                    output_reward_func = reward_func(
+                        prompts=final_second_turn_prompts,
+                        completions=completions,
+                        **reward_kwargs
+                    )
+                    rewards_per_func[:, i] = torch.tensor(
+                        output_reward_func,
+                        dtype=torch.float32,
+                        device=device
+                    )
+        print("here21")
+        # Collect global rewards
+        rewards_per_func = gather(rewards_per_func)
+        print("here22")
+        # Weighted sum over reward functions
+        rewards = (rewards_per_func * self.reward_weights.to(device).unsqueeze(0)).sum(dim=1)
+        mean_grouped_rewards = rewards.view(-1, self.num_generations).mean(dim=1)
+        std_grouped_rewards = rewards.view(-1, self.num_generations).std(dim=1)
+
+        mean_grouped_rewards = mean_grouped_rewards.repeat_interleave(self.num_generations, dim=0)
+        std_grouped_rewards = std_grouped_rewards.repeat_interleave(self.num_generations, dim=0)
+        advantages = (rewards - mean_grouped_rewards) / (std_grouped_rewards + 1e-4)
+
+        # Slice to keep only local portion
+        process_slice = slice(
+            self.accelerator.process_index * len(prompts),
+            (self.accelerator.process_index + 1) * len(prompts),
+        )
+        advantages = advantages[process_slice]
+
+
+        # ------------------
+        # 9. Logging
+        # ------------------
+        mode = "eval" if self.control.should_evaluate else "train"
+        completion_length = self.accelerator.gather_for_metrics(completion_mask.sum(1)).float().mean().item()
+        self._metrics[mode]["completion_length"].append(completion_length)
+
+        reward_per_func = rewards_per_func.mean(0)
+        for i, reward_func in enumerate(self.reward_funcs):
+            if isinstance(reward_func, nn.Module):
+                reward_func_name = reward_func.config._name_or_path.split("/")[-1]
+            else:
+                reward_func_name = reward_func.__name__
+            self._metrics[mode][f"rewards/{reward_func_name}"].append(reward_per_func[i].item())
+
+        self._metrics[mode]["reward"].append(rewards.mean().item())
+        self._metrics[mode]["reward_std"].append(std_grouped_rewards.mean().item())
+
+        if self.log_completions and self.state.global_step % self.args.logging_steps == 0:
+            prompts_to_log = gather_object(final_second_turn_prompts)
+            completions_to_log = gather_object(completions_text)
+            rewards_to_log = rewards.tolist()
+
+            if self.accelerator.is_main_process:
+                # You could optionally do a pretty print here
+                # if is_rich_available():
+                print_prompt_completions_sample(
+                    prompts_to_log,
+                    completions_to_log,
+                    rewards_to_log,
+                    self.state.global_step,
+                )
+                if self.args.report_to and "wandb" in self.args.report_to and wandb.run is not None:
+                    table = {
+                        "step": [str(self.state.global_step)] * len(rewards),
+                        "prompt": prompts_to_log,
+                        "completion": completions_to_log,
+                        "reward": rewards_to_log,
+                    }
+                    df = pd.DataFrame(table)
+                    wandb.log({"completions": wandb.Table(dataframe=df)})
+
+        # ------------------
+        # 10. Return final dictionary
+        # ------------------
+        return {
+            "prompt_ids": second_prompt_ids,
+            "prompt_mask": second_prompt_mask,
+            "completion_ids": completion_ids,
+            "completion_mask": completion_mask,
+            "old_per_token_logps": old_per_token_logps,
+            "ref_per_token_logps": ref_per_token_logps,
+            "advantages": advantages,
+        }
+
+
+
+
+
+
+    
+    def _generate_and_score_completions2(
         self, inputs: dict[str, Union[torch.Tensor, Any]]
     ) -> dict[str, Union[torch.Tensor, Any]]:
         # 1. Preprocess the original prompt (Q)
@@ -276,6 +589,9 @@ class VerificationGRPOTrainer(GRPOTrainer):
         # 2. First Generation: Generate A1 using a modified sampling parameter (n=1)
         if self.args.use_vllm:
             all_prompts_text = gather_object(prompts_text)
+            print("all_prompts_text", len(all_prompts_text))
+            for i in range(len(all_prompts_text)):
+                print(i, all_prompts_text[i])
             if self.accelerator.is_main_process:
                 # Set the number of generations to 1
                 single_sampling_params = deepcopy(self.sampling_params)
@@ -290,6 +606,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
                         sampling_params=single_sampling_params,
                         use_tqdm=False
                     )
+                # SHOULD BE 2
                 print("all_outputs_a1_len", len(all_outputs_a1))
                 # Flatten out token_ids
                 # We'll map them back to the full prompts (including duplicates) soon
@@ -297,6 +614,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 for outputs in all_outputs_a1:
                     for output in outputs.outputs:
                         unique_a1_ids_list.append(output.token_ids)
+                # SHOULD BE 2
                 print("unique_a1_ids_list", len(unique_a1_ids_list))
 
                 # Create a mapping from ordered_set_of_prompts -> unique_a1_ids_list
@@ -308,6 +626,8 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 full_a1_ids_list = []
                 for p_str in all_prompts_text:
                     full_a1_ids_list.append(prompt_to_a1[p_str])
+
+                # SHOULD BE 8
                 print("full_a1_ids_list",len(full_a1_ids_list))
                 # --- Build new prompts: (Q, A1) + extra instruction ---
                 added_instruction = (
@@ -324,6 +644,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
 
                     # Decode A1 locally on main process
                     a1_text_temp = self.processing_class.decode(a1_ids, skip_special_tokens=True)
+                    print("a1_text_temp", a1_text_temp)
                     q_text = maybe_apply_chat_template(input_example, self.processing_class)["prompt"]
                     answer_text = input_example.get("answer", "")
 
@@ -343,6 +664,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
                     }
                     # For each original prompt, replicate n times for new sampling
                     # (in case self.num_generations > 1)
+                    print("self.num_generations", self.num_generations)
                     for _ in range(self.num_generations):
                         new_prompts_text_all.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
                 print("new_prompts_text_all", len(new_prompts_text_all))
