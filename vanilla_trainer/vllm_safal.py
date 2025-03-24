@@ -79,6 +79,19 @@ def get_math_test_prompts():
         ground_truths.append(gt)
     return prompts, ground_truths
 
+
+def get_ob_test_prompts():
+    source_name = "Hothan/OlympiadBench"
+    data = load_dataset(source_name, "TP_TO_maths_en_COMP", trust_remote_code=True)['train']
+    prompts = []
+    ground_truths = []
+    for example in data:
+        prompt = build_prompt(example['question'])
+        gt = example['solution'][0]
+        prompts.append(prompt)
+        ground_truths.append(gt)
+    return prompts, ground_truths
+
 def get_aime_prompts():
     source_name = "Maxwell-Jia/AIME_2024"
     data = load_dataset(source_name, trust_remote_code=True)['train']
@@ -94,7 +107,8 @@ def get_aime_prompts():
 
 
 def main():
-    prompts, ground_truths = get_aime_prompts()
+    prompts, ground_truths = get_ob_test_prompts()
+    #prompts, ground_truths = get_aime_prompts()
     #prompts, ground_truths = get_math_test_prompts()
     sampling_params = SamplingParams(
         temperature=0,
@@ -116,7 +130,7 @@ def main():
         #print(idx, gt)
         score_corr = 1 if reward_correct([generated_text], [gt])[0] == 2 else 0
         math_verify_score = verify(parse(generated_text), parse(str(gt)))
-        print(parse(generated_text), parse(str(gt)), math_verify_score)
+        #print(parse(generated_text), parse(str(gt)), math_verify_score)
         #score_correct_and_format = reward_correct_and_format([generated_text], [gt])[0]
         token_length = len(llm.get_tokenizer().encode(generated_text))
         
