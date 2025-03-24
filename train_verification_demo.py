@@ -78,7 +78,7 @@ training_args = GRPOConfig(
     do_eval=True,
     per_device_train_batch_size=4,
     num_generations = 4,
-    gradient_accumulation_steps = 4,
+    gradient_accumulation_steps = 1,
     num_train_epochs = 8,
     logging_steps=1,
     gradient_checkpointing=True,
@@ -90,21 +90,21 @@ training_args = GRPOConfig(
 )
 
 
-trainer = VerificationGRPOTrainer(
-    model=model_name,
-    reward_funcs=[reward_correct, reward_correct_and_format],
-    args = training_args,
-    train_dataset=train,
-    eval_dataset=test,
-)
-
-# trainer = SwitchingGRPOTrainer(
+# trainer = VerificationGRPOTrainer(
 #     model=model_name,
 #     reward_funcs=[reward_correct, reward_correct_and_format],
 #     args = training_args,
 #     train_dataset=train,
 #     eval_dataset=test,
 # )
+
+trainer = SwitchingGRPOTrainer(
+    model=model_name,
+    reward_funcs=[reward_correct, reward_correct_and_format],
+    args = training_args,
+    train_dataset=train,
+    eval_dataset=test,
+)
 
 # trainer = ReplicatedGRPOTrainer(
 #     model=model_name,
