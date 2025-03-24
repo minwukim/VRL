@@ -264,7 +264,6 @@ class VerificationGRPOTrainer(GRPOTrainer):
     
         # 1. Preprocess the original prompt (Q)
         prompts = [x["prompt"] for x in inputs]
-        print("prompts length", len(prompts))
         prompts_text = [maybe_apply_chat_template(example, self.processing_class)["prompt"] for example in inputs]
         prompt_inputs = self.processing_class(
             prompts_text, return_tensors="pt", padding=True, padding_side="left", add_special_tokens=False
@@ -325,8 +324,6 @@ class VerificationGRPOTrainer(GRPOTrainer):
                         ),
                     }
                     second_turn_prompts.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
-
-                print("second_turn_prompts", len(second_turn_prompts), second_turn_prompts[0])
                 
                 # 2.4) Re-duplicate the second-turn prompts so each distinct prompt is repeated G times,
                 #      exactly matching the shape of the original repeated batch. 
@@ -348,27 +345,19 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 # Extract final completions (A2).
                 completion_ids_list = [out.outputs[0].token_ids for out in second_turn_outputs]
 
-                print(self.accelerator.is_main_process,"final_second_turn_prompts_len", len(final_second_turn_prompts))
-                print("+++++++++++++++++++++++")
-                print(self.accelerator.is_main_process,"final_second_turn_prompts IS NOT EMPTY!", final_second_turn_prompts[0])
-                print("+++++++++++++++++++++++")
-                print(self.accelerator.is_main_process,"completion_ids_list", len(completion_ids_list))
-
             
             else:
                 # Non-main processes get placeholders.
-                print(self.accelerator.is_main_process,"prompts_text_length", len(all_prompts_text))
-                final_second_turn_prompts = [None] * len(all_prompts_text)
+                final_second_turn_prompts = [None]
                 completion_ids_list = [None] * len(all_prompts_text)
             
             # 2.6) Broadcast the final completion_ids to every process. Then slice out only the portion that belongs to this process.
+            print("-------------------------------------------------")
             print(self.accelerator.is_main_process, "broadcast second turn prompts")
             final_second_turn_prompts = broadcast_object_list(final_second_turn_prompts, from_process=0)
             print(self.accelerator.is_main_process, "broadcast second turn prompts DONE", print(final_second_turn_prompts[0]))
             print("-------------------------------------------------")
-            print(self.accelerator.is_main_process, "broadcast completions")
             completion_ids_list = broadcast_object_list(completion_ids_list, from_process=0)
-            print(self.accelerator.is_main_process, "broadcast completions DONE", completion_ids_list[0])
 
             # Now we take the local slice to keep shape consistent with the local batch.
             process_slice = slice(
@@ -449,12 +438,11 @@ class VerificationGRPOTrainer(GRPOTrainer):
         # If your data is conversational, adapt accordingly. We keep the “standard text” scenario:
         completions = completions_text
 
-
         # ================================
 
         # 6) Compute rewards from your configured reward functions (unchanged):
         #    We accumulate rewards_per_func, sum them up with self.reward_weights, gather, etc.
-        #    The code below is basically the same as your original single-turn approach.
+        #    The code below is basically the same as the original single-turn approach.
         rewards_per_func = torch.zeros(len(prompts), len(self.reward_funcs), device=device)
         for i, (reward_func, reward_processing_class) in enumerate(
             zip(self.reward_funcs, self.reward_processing_classes)
@@ -536,8 +524,11 @@ class VerificationGRPOTrainer(GRPOTrainer):
 
         if self.log_completions and self.state.global_step % self.args.logging_steps == 0:
             prompts_to_log = gather_object(final_second_turn_prompts)
+            print("prompts_to_log", len(prompts_to_log))
             completions_to_log = gather_object(completions_text)
+            print("completions_to_log", len(prompts_to_log))
             rewards_to_log = rewards.tolist()
+            print("rewards_to_log", len(rewards_to_log))
 
             if self.accelerator.is_main_process:
                 # You could optionally do a pretty print here
