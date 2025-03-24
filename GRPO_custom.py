@@ -264,6 +264,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
     
         # 1. Preprocess the original prompt (Q)
         prompts = [x["prompt"] for x in inputs]
+        print("prompts length", len(prompts))
         prompts_text = [maybe_apply_chat_template(example, self.processing_class)["prompt"] for example in inputs]
         prompt_inputs = self.processing_class(
             prompts_text, return_tensors="pt", padding=True, padding_side="left", add_special_tokens=False
@@ -356,9 +357,9 @@ class VerificationGRPOTrainer(GRPOTrainer):
             
             else:
                 # Non-main processes get placeholders.
-                print(self.accelerator.is_main_process,"prompts_text_length", len(prompts_text))
-                final_second_turn_prompts = [None] * len(prompts_text)
-                completion_ids_list = [None] * len(prompts_text)
+                print(self.accelerator.is_main_process,"prompts_text_length", len(all_prompts_text))
+                final_second_turn_prompts = [None] * len(all_prompts_text)
+                completion_ids_list = [None] * len(all_prompts_text)
             
             # 2.6) Broadcast the final completion_ids to every process. Then slice out only the portion that belongs to this process.
             print(self.accelerator.is_main_process, "broadcast second turn prompts")
