@@ -376,6 +376,9 @@ class VerificationGRPOTrainer(GRPOTrainer):
             # so we tokenize that. We already have it in final_second_turn_prompts => we slice the relevant piece for this process.
             print("HERE3")
             local_second_turn_prompts = final_second_turn_prompts[process_slice]
+            print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
+            print(self.accelerator.is_main_process, "local_second_turn_prompts",local_second_turn_prompts)
+            print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=")
             second_prompt_inputs = self.processing_class(
                 text=local_second_turn_prompts,
                 return_tensors="pt",
