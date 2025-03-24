@@ -349,7 +349,7 @@ class VerificationGRPOTrainer(GRPOTrainer):
             
             else:
                 # Non-main processes get placeholders.
-                final_second_turn_prompts = [None]
+                final_second_turn_prompts = [None] * len(all_prompts_text)
                 completion_ids_list = [None] * len(all_prompts_text)
             
             # 2.6) Broadcast the final completion_ids to every process. Then slice out only the portion that belongs to this process.
