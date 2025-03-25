@@ -1606,7 +1606,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Jack is a knave
     </answer>","(1) Jack is a knight
 (2) Penelope is a knight
-(3) Alexander is a knight",-1.0,357
+(3) Alexander is a knight",-0.5,357
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -1638,7 +1638,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Henry is a knave
     </answer>","(1) Aurora is a knight
 (2) Logan is a knave
-(3) Henry is a knave",-1.0,399
+(3) Henry is a knave",-0.5,399
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -2443,7 +2443,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Sofia is a knight
     </answer>","(1) Logan is a knight
 (2) Ella is a knight
-(3) Sofia is a knight",-1.0,325
+(3) Sofia is a knight",-0.5,325
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4238,7 +4238,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Abigail is a knave
     </answer>","(1) Jack is a knave
 (2) Abigail is a knave
-(3) Ethan is a knight",-1.0,272
+(3) Ethan is a knight",2.0,272
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4263,7 +4263,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Lucas is a knight
     </answer>","(1) Lucas is a knight
 (2) Victoria is a knave
-(3) Ella is a knight",-1.0,232
+(3) Ella is a knight",-0.5,232
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4361,7 +4361,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Charlotte is a knave
     </answer>","(1) Charlotte is a knave
 (2) Ella is a knave
-(3) Scarlett is a knight",-1.0,388
+(3) Scarlett is a knight",2.0,388
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4384,7 +4384,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Lily is a knave
     </answer>","(1) Noah is a knight
 (2) Alexander is a knight
-(3) Lily is a knave",-1.0,187
+(3) Lily is a knave",-0.5,187
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4508,7 +4508,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Zoey is a knave
     </answer>","(1) Luke is a knight
 (2) Michael is a knight
-(3) Zoey is a knave",-1.0,322
+(3) Zoey is a knave",2.0,322
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4527,7 +4527,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Lucas is a knave
     </answer>","(1) Lucas is a knave
 (2) Jackson is a knight
-(3) Victoria is a knight",-1.0,223
+(3) Victoria is a knight",2.0,223
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4840,7 +4840,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Abigail is a knight
     </answer>","(1) Matthew is a knight
 (2) Jacob is a knight
-(3) Abigail is a knight",-1.0,390
+(3) Abigail is a knight",2.0,390
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -5084,7 +5084,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Logan is a knight
     </answer>","(1) Owen is a knight
 (2) Logan is a knight
-(3) Chloe is a knave",-1.0,271
+(3) Chloe is a knave",-0.5,271
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -5158,7 +5158,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Liam is a knave
     </answer>","(1) Matthew is a knight
 (2) Sebastian is a knave
-(3) Liam is a knight",-1.0,557
+(3) Liam is a knight",-0.5,557
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -6307,7 +6307,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Mason is a knave
     </answer>","(1) Zoey is a knave
 (2) Liam is a knight
-(3) Mason is a knight",-1.0,313
+(3) Mason is a knight",-0.5,313
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -6927,7 +6927,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Matthew is a knave
     </answer>","(1) Henry is a knave
 (2) Jack is a knave
-(3) Matthew is a knight",-1.0,443
+(3) Matthew is a knight",-0.5,443
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -8157,7 +8157,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Emma is a knight
     </answer>","(1) Scarlett is a knight
 (2) Avery is a knight
-(3) Emma is a knight",-1.0,261
+(3) Emma is a knight",-0.5,261
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -10047,7 +10047,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Sophia is a knave
     </answer>","(1) Owen is a knight
 (2) Samuel is a knight
-(3) Sophia is a knave",-1.0,555
+(3) Sophia is a knave",-0.5,555
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -10079,7 +10079,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Penelope is a knave
     </answer>","(1) Penelope is a knight
 (2) Emily is a knave
-(3) David is a knight",-1.0,494
+(3) David is a knight",-0.5,494
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -10383,7 +10383,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Ethan is a knave
     </answer>","(1) Riley is a knave
 (2) Amelia is a knight
-(3) Ethan is a knave",-1.0,456
+(3) Ethan is a knave",2.0,456
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -11236,7 +11236,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Scarlett is a knave
     </answer>","(1) Lucas is a knave
 (2) David is a knave
-(3) Scarlett is a knight",-1.0,297
+(3) Scarlett is a knight",-0.5,297
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -11756,7 +11756,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Joseph is a knight
     </answer>","(1) Lucas is a knave
 (2) Samuel is a knight
-(3) Joseph is a knight",-1.0,148
+(3) Joseph is a knight",-0.5,148
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -12294,7 +12294,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Harper is a knave
     </answer>","(1) Avery is a knight
 (2) Noah is a knight
-(3) Harper is a knave",-1.0,307
+(3) Harper is a knave",-0.5,307
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -13897,7 +13897,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Avery is a knave
     </answer>","(1) Harper is a knight
 (2) Chloe is a knight
-(3) Avery is a knave",-1.0,516
+(3) Avery is a knave",2.0,516
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -13932,7 +13932,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Elizabeth is a knave
     </answer>","(1) Henry is a knight
 (2) Chloe is a knave
-(3) Elizabeth is a knave",-1.0,479
+(3) Elizabeth is a knave",-0.5,479
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -14300,7 +14300,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Lily is a knight
     </answer>","(1) Emily is a knight
 (2) Lily is a knight
-(3) Mason is a knight",-1.0,314
+(3) Mason is a knight",2.0,314
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -14331,7 +14331,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Victoria is a knave
     </answer>","(1) Matthew is a knave
 (2) Lily is a knave
-(3) Victoria is a knight",-1.0,330
+(3) Victoria is a knight",-0.5,330
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -14381,7 +14381,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) David is a knave
     </answer>","(1) Ava is a knight
 (2) David is a knave
-(3) Zoey is a knight",-1.0,362
+(3) Zoey is a knight",2.0,362
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -14684,7 +14684,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Emma is a knave
     </answer>","(1) Jackson is a knave
 (2) Sebastian is a knight
-(3) Emma is a knave",-1.0,161
+(3) Emma is a knave",2.0,161
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.

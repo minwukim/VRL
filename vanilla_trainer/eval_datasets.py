@@ -12,7 +12,7 @@ def reward_kk(output, ground_truth):
         solution = {}
         
         for line in lines:
-            sp = line.split(" ")
+            sp = line.strip().split(" ")
             if not line: continue
             if len(sp) < 2: continue
 
