@@ -175,7 +175,7 @@ grpo_config_args = GRPOConfig(
     save_steps=training_args.save_steps,
     max_grad_norm=training_args.max_grad_norm,
     report_to=training_args.report_to,
-    use_vllm=training_args.use_vllm,
+    use_vllm=True,
     vllm_max_model_len=training_args.vllm_max_model_len,
     log_completions=training_args.log_completions,
     max_steps=training_args.max_steps,
@@ -193,4 +193,3 @@ trainer = SwitchingGRPOTrainer(
 )
 # trainer.train(resume_from_checkpoint=training_args.checkpoint_path if training_args.resume_from_checkpoint else False)
 trainer.train()
-
