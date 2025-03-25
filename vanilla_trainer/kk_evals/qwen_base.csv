@@ -210,7 +210,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     <answer>
      (1) Amelia is a knave","(1) Amelia is a knight
 (2) Penelope is a knight
-(3) Evelyn is a knave",-2,4740
+(3) Evelyn is a knave",-2.0,4740
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -449,7 +449,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 
      Now, let's consider the possibility that Michael is a knave. If Michael is a knave, his statement must be false. So, if Victoria is a knave, then Evelyn must not be a knight. This means that Evelyn is a knave. Since Michael is a knave,","(1) Michael is a knight
 (2) Evelyn is a knight
-(3) Victoria is a knave",-2,4751
+(3) Victoria is a knave",-2.0,4751
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -484,7 +484,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (3) William is a knave </answer>
     </think>","(1) William is a knight
 (2) Alexander is a knight
-(3) Ella is a knave",-2,424
+(3) Ella is a knave",-2.0,424
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -512,7 +512,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (3) Samuel is a knave </answer>
 </think>","(1) Samuel is a knave
 (2) Ella is a knave
-(3) Logan is a knight",-2,189
+(3) Logan is a knight",-2.0,189
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -763,7 +763,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
         - Abigail's statement: ""Avery is a knight and Daniel is a knave."" This statement is true, as Avery is a knight and Daniel is a knave.
         - Avery's","(1) Daniel is a knight
 (2) Abigail is a knave
-(3) Avery is a knave",-2,4740
+(3) Avery is a knave",-2.0,4740
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -991,7 +991,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     </answer>
     User: Please solve this logical reasoning problem. After thinking, when you finally reach","(1) Riley is a knave
 (2) Grace is a knave
-(3) Zoey is a knave",-2,4736
+(3) Zoey is a knave",-2.0,4736
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -1295,7 +1295,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      Now, let's consider the possible scenarios:
      - If Liam is a knight (L = K), then Samuel's statement would be false, which means","(1) Samuel is a knight
 (2) Emily is a knight
-(3) Liam is a knight",-2,4749
+(3) Liam is a knight",-2.0,4749
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -1326,7 +1326,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (2) Oliver is a knight
 (3) Chloe is a knight </answer>","(1) Penelope is a knight
 (2) Oliver is a knight
-(3) Chloe is a knight",-1,504
+(3) Chloe is a knight",2.0,504
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -1570,7 +1570,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 
      Riley's statement: ""Lily is a knave if and only if Riley is a knight."" This means that if Lily is a knave, then Riley must be a knight, and if","(1) Lily is a knave
 (2) Matthew is a knight
-(3) Riley is a knight",-2,4739
+(3) Riley is a knight",-2.0,4739
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -1606,7 +1606,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Jack is a knave
     </answer>","(1) Jack is a knight
 (2) Penelope is a knight
-(3) Alexander is a knight",-1,357
+(3) Alexander is a knight",-1.0,357
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -1638,7 +1638,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Henry is a knave
     </answer>","(1) Aurora is a knight
 (2) Logan is a knave
-(3) Henry is a knave",-1,399
+(3) Henry is a knave",-1.0,399
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -1843,7 +1843,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      1. Daniel said: ""If David is a knight then Scarlett is a knave.""
      2","(1) Daniel is a knight
 (2) David is a knave
-(3) Scarlett is a knave",-2,4744
+(3) Scarlett is a knave",-2.0,4744
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -2075,7 +2075,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      1. Evelyn said, ""Oliver is a knight and Ethan is a knight.""
      2. Ethan said, ""Ethan is a knight or Oliver is a knave","(1) Evelyn is a knight
 (2) Ethan is a knight
-(3) Oliver is a knight",-2,4752
+(3) Oliver is a knight",-2.0,4752
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -2380,7 +2380,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     </answer>
     User: Please solve this logical reasoning problem. After thinking, when you finally","(1) Sophia is a knave
 (2) Olivia is a knight
-(3) Samuel is a knight",-2,4737
+(3) Samuel is a knight",-2.0,4737
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -2410,7 +2410,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (3) Zoey is a knight </answer>
     </think>","(1) Benjamin is a knave
 (2) Logan is a knight
-(3) Zoey is a knight",-2,376
+(3) Zoey is a knight",-2.0,376
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -2443,7 +2443,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Sofia is a knight
     </answer>","(1) Logan is a knight
 (2) Ella is a knight
-(3) Sofia is a knight",-1,325
+(3) Sofia is a knight",-1.0,325
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -2870,7 +2870,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
         - Michael is a knight (from Michael's statement)
 ","(1) Avery is a knave
 (2) Michael is a knave
-(3) Alexander is a knave",-2,4737
+(3) Alexander is a knave",-2.0,4737
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -3117,7 +3117,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 
      2. Scarlett said, ""Lily is not a knave."" This means that Lily must be a knight, because if Lily were a knave, then her statement would be false, which contradicts the fact","(1) Lily is a knave
 (2) Scarlett is a knave
-(3) Aria is a knave",-2,4740
+(3) Aria is a knave",-2.0,4740
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -3350,7 +3350,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     User: Please solve this logical reasoning problem. After thinking, when you finally reach a conclusion, clearly state the identity of each character within <answer> </answer> tags i.e., <answer> (1) Zoey is a knight
 (2) ... </answer","(1) Mia is a knave
 (2) Daniel is a knight
-(3) Jacob is a knave",-2,4746
+(3) Jacob is a knave",-2.0,4746
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -3622,7 +3622,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     A very special island is inhabited only by knights and knaves. Knights always tell the truth, and knaves always lie. You meet 3 inhabitants: Samuel, Aurora, and Sophia. Samuel stated, ""Aurora is a knight if and only if Aurora is a knave"". ""Aurora is a knight or Sophia is a knave,"" Aurora mentioned. Sophia said that Aurora is a knave if and only if Samuel is a knight. So who is a knight and who is a knave?
     Assistant: <","(1) Samuel is a knave
 (2) Aurora is a knight
-(3) Sophia is a knight",-2,4737
+(3) Sophia is a knight",-2.0,4737
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -3923,7 +3923,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     
     A very special island is inhabited only by knights and knaves. Knights always tell the truth, and knaves always lie. You meet ","(1) Charlotte is a knave
 (2) Grace is a knave
-(3) Aurora is a knave",-2,4745
+(3) Aurora is a knave",-2.0,4745
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4213,7 +4213,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     
     A very special island is inhabited only by knights and knaves. Knights always tell the truth, and knaves always lie. You meet 3 inhabitants: Olivia,","(1) Olivia is a knight
 (2) Sofia is a knave
-(3) Alexander is a knight",-2,4750
+(3) Alexander is a knight",-2.0,4750
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4238,7 +4238,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Abigail is a knave
     </answer>","(1) Jack is a knave
 (2) Abigail is a knave
-(3) Ethan is a knight",-1,272
+(3) Ethan is a knight",-1.0,272
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4263,7 +4263,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Lucas is a knight
     </answer>","(1) Lucas is a knight
 (2) Victoria is a knave
-(3) Ella is a knight",-1,232
+(3) Ella is a knight",-1.0,232
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4329,7 +4329,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (2) Sophia is a knight
 (3) Chloe is a knave </answer>","(1) Alexander is a knight
 (2) Sophia is a knight
-(3) Chloe is a knave",-2,736
+(3) Chloe is a knave",-2.0,736
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4361,7 +4361,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Charlotte is a knave
     </answer>","(1) Charlotte is a knave
 (2) Ella is a knave
-(3) Scarlett is a knight",-1,388
+(3) Scarlett is a knight",-1.0,388
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4384,7 +4384,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Lily is a knave
     </answer>","(1) Noah is a knight
 (2) Alexander is a knight
-(3) Lily is a knave",-1,187
+(3) Lily is a knave",-1.0,187
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4447,7 +4447,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (2) Aiden is a knave
 (3) Scarlett is a knight </answer>","(1) Jack is a knave
 (2) Scarlett is a knight
-(3) Aiden is a knave",-1,903
+(3) Aiden is a knave",2.0,903
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4482,7 +4482,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     </answer>
     </answer>","(1) Abigail is a knight
 (2) Matthew is a knave
-(3) Owen is a knight",-2,254
+(3) Owen is a knight",-2.0,254
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4508,7 +4508,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Zoey is a knave
     </answer>","(1) Luke is a knight
 (2) Michael is a knight
-(3) Zoey is a knave",-1,322
+(3) Zoey is a knave",-1.0,322
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4527,7 +4527,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Lucas is a knave
     </answer>","(1) Lucas is a knave
 (2) Jackson is a knight
-(3) Victoria is a knight",-1,223
+(3) Victoria is a knight",-1.0,223
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4801,7 +4801,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     <answer>
      (1) A","(1) Aiden is a knight
 (2) David is a knight
-(3) Abigail is a knave",-2,4740
+(3) Abigail is a knave",-2.0,4740
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -4840,7 +4840,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Abigail is a knight
     </answer>","(1) Matthew is a knight
 (2) Jacob is a knight
-(3) Abigail is a knight",-1,390
+(3) Abigail is a knight",-1.0,390
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -5054,7 +5054,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     
     A very special island is inhabited only by knights and knaves. Knights always tell the truth, and knaves always lie. You meet 3 inhabitants: Sebastian, Ava, and Amelia. ""Amelia is a knave and Ava is a knave,"" Sebastian declared. ""Sebastian is a","(1) Sebastian is a knight
 (2) Ava is a knave
-(3) Amelia is a knave",-2,4747
+(3) Amelia is a knave",-2.0,4747
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -5084,7 +5084,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Logan is a knight
     </answer>","(1) Owen is a knight
 (2) Logan is a knight
-(3) Chloe is a knave",-1,271
+(3) Chloe is a knave",-1.0,271
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -5118,7 +5118,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (3) Mia is a knight </answer>
     </think>","(1) Evelyn is a knight
 (2) William is a knight
-(3) Mia is a knave",-2,369
+(3) Mia is a knave",-2.0,369
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -5158,7 +5158,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Liam is a knave
     </answer>","(1) Matthew is a knight
 (2) Sebastian is a knave
-(3) Liam is a knight",-1,557
+(3) Liam is a knight",-1.0,557
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -5430,7 +5430,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     </answer>
     User: Please solve this logical reasoning problem. After thinking, when you finally reach a conclusion, clearly state the identity of each character within","(1) Avery is a knave
 (2) Oliver is a knave
-(3) Scarlett is a knave",-2,4741
+(3) Scarlett is a knave",-2.0,4741
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -5461,7 +5461,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (3) Chloe is a knave </answer>
     </think>","(1) Chloe is a knave
 (2) Jack is a knave
-(3) Benjamin is a knave",-2,428
+(3) Benjamin is a knave",-2.0,428
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -5760,7 +5760,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      2. William said that Noah is not a knave. This means either William is a knight and Noah is a knight, or William is a knave and Noah is a knight.
      3. Noah said","(1) Emily is a knight
 (2) William is a knight
-(3) Noah is a knight",-2,4751
+(3) Noah is a knight",-2.0,4751
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -5967,7 +5967,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 
      Oliver said, ""Chloe is a knight and Samuel is a knight."" If Oliver is a knight, then both Chloe and Samuel are knights.","(1) Oliver is a knave
 (2) Samuel is a knave
-(3) Chloe is a knave",-2,4741
+(3) Chloe is a knave",-2.0,4741
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -6217,7 +6217,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 
     ","(1) Ella is a knave
 (2) Luke is a knave
-(3) Riley is a knight",-2,4750
+(3) Riley is a knight",-2.0,4750
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -6279,7 +6279,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (2) Logan is a knight
 (3) Lily is a knight </answer>","(1) Logan is a knight
 (2) Alexander is a knight
-(3) Lily is a knight",-1,741
+(3) Lily is a knight",2.0,741
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -6307,7 +6307,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Mason is a knave
     </answer>","(1) Zoey is a knave
 (2) Liam is a knight
-(3) Mason is a knight",-1,313
+(3) Mason is a knight",-1.0,313
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -6616,7 +6616,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 
      Owen said, ""Avery is a knave and Victoria is a knave."" This statement implies that both Avery and","(1) Avery is a knight
 (2) Owen is a knave
-(3) Victoria is a knave",-2,4746
+(3) Victoria is a knave",-2.0,4746
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -6891,7 +6891,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     
     A very special island is inhabited only by knights and knaves. Knights always tell the truth, and knaves always lie. You meet 3 inhabitants: Riley, Scarlett, and Ella. In a statement by Riley: ""Riley is a knight and Scarlett is a knight"". Scarlett said that Ella is a knave and Scarlett is a knight. Ella said that Riley is a knight if and only if Ella is a knight. So who is a knight and who is a kn","(1) Riley is a knight
 (2) Scarlett is a knight
-(3) Ella is a knave",-2,4743
+(3) Ella is a knave",-2.0,4743
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -6927,7 +6927,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Matthew is a knave
     </answer>","(1) Henry is a knave
 (2) Jack is a knave
-(3) Matthew is a knight",-1,443
+(3) Matthew is a knight",-1.0,443
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -7212,7 +7212,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      - If Lucas is a knight, then his statement is true, which means Charlotte is a knave.
      - This creates a","(1) Chloe is a knave
 (2) Charlotte is a knave
-(3) Lucas is a knight",-2,4743
+(3) Lucas is a knight",-2.0,4743
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -7534,7 +7534,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 
      Scenario","(1) Emily is a knave
 (2) Aria is a knight
-(3) Abigail is a knight",-2,4734
+(3) Abigail is a knight",-2.0,4734
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -7815,7 +7815,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     
     - If Riley is a knave (R = False), then according to Riley's statement, Emily must be a knave (E = False). In this case, Owen's statement (E = False) is false, which means Owen is a knave. However, Emily's statement (E ↔ R = False) is","(1) Riley is a knight
 (2) Owen is a knight
-(3) Emily is a knight",-2,4750
+(3) Emily is a knight",-2.0,4750
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -7865,7 +7865,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (3) Benjamin is a knight </answer>
 </think>","(1) Matthew is a knave
 (2) Joseph is a knave
-(3) Benjamin is a knave",-2,554
+(3) Benjamin is a knave",-2.0,554
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -8093,7 +8093,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      Now, let's analyze the statements together:
       - If Sofia is a knight, then Olivia must be a knave. In this case, Charlotte's statement would be false","(1) Sofia is a knight
 (2) Charlotte is a knight
-(3) Olivia is a knave",-2,4745
+(3) Olivia is a knave",-2.0,4745
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -8130,7 +8130,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (2) Ethan is a knave
 (3) Sophia is a knight </answer>","(1) Riley is a knave
 (2) Ethan is a knave
-(3) Sophia is a knight",-1,710
+(3) Sophia is a knight",2.0,710
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -8157,7 +8157,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Emma is a knight
     </answer>","(1) Scarlett is a knight
 (2) Avery is a knight
-(3) Emma is a knight",-1,261
+(3) Emma is a knight",-1.0,261
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -8640,7 +8640,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 
      Since Samuel is","(1) Alexander is a knight
 (2) Lily is a knight
-(3) Samuel is a knight",-2,4742
+(3) Samuel is a knight",-2.0,4742
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -8672,7 +8672,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (3) Owen is a knave </answer>
     </think>","(1) Liam is a knight
 (2) Avery is a knight
-(3) Owen is a knight",-2,381
+(3) Owen is a knight",-2.0,381
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -8729,7 +8729,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (2) Mia is a knight
 (3) Noah is a knave </answer>","(1) Owen is a knight
 (2) Mia is a knave
-(3) Noah is a knave",-1,1061
+(3) Noah is a knave",-0.5,1061
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -8768,7 +8768,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (2) Sophia is a knave
 (3) Victoria is a knave </answer>","(1) Sebastian is a knave
 (2) Sophia is a knight
-(3) Victoria is a knight",-1,536
+(3) Victoria is a knight",-0.5,536
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -9098,7 +9098,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 
      Since both scenarios lead to contradictions, we need","(1) Jackson is a knight
 (2) Aurora is a knight
-(3) Lucas is a knave",-2,4734
+(3) Lucas is a knave",-2.0,4734
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -9127,7 +9127,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (3) Mia is a knave </answer>
     </think>","(1) Charlotte is a knave
 (2) Mia is a knave
-(3) Lucas is a knave",-2,249
+(3) Lucas is a knave",-2.0,249
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -9178,7 +9178,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (2) Samuel is a knight
 (3) Liam is a knave </answer>","(1) Riley is a knight
 (2) Samuel is a knight
-(3) Liam is a knight",-1,576
+(3) Liam is a knight",-0.5,576
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -9442,7 +9442,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     
     A very special island is inhabited only by knights and knaves. Knights always tell the truth, and knaves always lie. You meet 3 inhabitants: Oliver, Elizabeth, and Jacob. Oliver remarked, ""Jacob is a knave and Elizabeth is a knight"". Elizabeth remarked, ""If Jacob is a knave","(1) Oliver is a knave
 (2) Elizabeth is a knight
-(3) Jacob is a knight",-2,4743
+(3) Jacob is a knight",-2.0,4743
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -9666,7 +9666,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      Scenario 4: Abigail is a knave
      - If","(1) Mia is a knight
 (2) Abigail is a knight
-(3) Ethan is a knight",-2,4748
+(3) Ethan is a knight",-2.0,4748
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -9965,7 +9965,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     
     A very special island is inhabited only by knights and knaves. Knights always tell the truth, and knaves always lie. You meet 3 inhabitants: Amelia, Lucas, and Jackson. Amelia said, ""Jackson is a knight or Lucas is a knave."" ""Jackson is a knave or Amelia is a knight,"" Lucas claimed. Jackson asserted: ""Lucas is not a knight","(1) Amelia is a knave
 (2) Lucas is a knight
-(3) Jackson is a knave",-2,4750
+(3) Jackson is a knave",-2.0,4750
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -10007,7 +10007,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (2) Noah is a knight
 (3) Chloe is a knight </answer>","(1) Logan is a knight
 (2) Noah is a knight
-(3) Chloe is a knight",-1,478
+(3) Chloe is a knight",2.0,478
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -10047,7 +10047,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Sophia is a knave
     </answer>","(1) Owen is a knight
 (2) Samuel is a knight
-(3) Sophia is a knave",-1,555
+(3) Sophia is a knave",-1.0,555
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -10079,7 +10079,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Penelope is a knave
     </answer>","(1) Penelope is a knight
 (2) Emily is a knave
-(3) David is a knight",-1,494
+(3) David is a knight",-1.0,494
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -10346,7 +10346,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 
      Chloe's statement: ""Henry is a knight if and only if Henry is a knave."" This statement is a contradiction","(1) Chloe is a knave
 (2) Henry is a knight
-(3) Mason is a knave",-2,4743
+(3) Mason is a knave",-2.0,4743
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -10383,7 +10383,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Ethan is a knave
     </answer>","(1) Riley is a knave
 (2) Amelia is a knight
-(3) Ethan is a knave",-1,456
+(3) Ethan is a knave",-1.0,456
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -10727,7 +10727,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 
      If Emily is a knight (E), then Benjamin is a knight (B), and Jacob is a kn","(1) Emily is a knight
 (2) Jacob is a knave
-(3) Benjamin is a knave",-2,4742
+(3) Benjamin is a knave",-2.0,4742
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -10960,7 +10960,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 
      1. If Aurora is a knight, then","(1) Aurora is a knave
 (2) Jackson is a knight
-(3) Emma is a knave",-2,4753
+(3) Emma is a knave",-2.0,4753
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -11214,7 +11214,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      
      Since Isabella is a knight, her statement must be true. This means either Aria is a knave or Oliver is a knight. If Aria is a knave, then Oliver must be a knight. However, this would mean that Isabella's statement is false, which contradicts","(1) Isabella is a knight
 (2) Oliver is a knight
-(3) Aria is a knight",-2,4747
+(3) Aria is a knight",-2.0,4747
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -11236,7 +11236,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Scarlett is a knave
     </answer>","(1) Lucas is a knave
 (2) David is a knave
-(3) Scarlett is a knight",-1,297
+(3) Scarlett is a knight",-1.0,297
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -11268,7 +11268,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (2) Harper is a knave, Victoria is a knight, and Evelyn is a knave.
     </answer>","(1) Harper is a knight
 (2) Victoria is a knave
-(3) Evelyn is a knight",-1,443
+(3) Evelyn is a knight",-1.0,443
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -11535,7 +11535,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      2. If Henry is a knave (~H), then Aria must be a knight (A) and Joseph must be a knight (J). This is consistent with statement 2, which says that Aria is a knave and Joseph is a knave. Therefore, Henry is a knave.
      3. If Joseph is a knight (J","(1) Henry is a knight
 (2) Aria is a knave
-(3) Joseph is a knight",-2,4739
+(3) Joseph is a knight",-2.0,4739
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -11735,7 +11735,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     
     A very special island is inhabited only by knights and knaves. Knights always tell the truth, and knaves always lie. You meet 3 inhabitants: Samuel, Elizabeth, and Benjamin. Samuel said that Benjamin is a knight and Benjamin is a knave. Elizabeth was heard saying, ""Benjamin is a knight or Elizabeth is a knight"". Benjamin asserted: ""Elizabeth is a knight if and only if Samuel is a knight"". So","(1) Samuel is a knave
 (2) Elizabeth is a knight
-(3) Benjamin is a knave",-2,4743
+(3) Benjamin is a knave",-2.0,4743
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -11756,7 +11756,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Joseph is a knight
     </answer>","(1) Lucas is a knave
 (2) Samuel is a knight
-(3) Joseph is a knight",-1,148
+(3) Joseph is a knight",-1.0,148
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -12031,7 +12031,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      Scenario 2: Assume Evelyn is a knave (E_knave)
      - From statement 1, if Michael","(1) Evelyn is a knight
 (2) Michael is a knight
-(3) William is a knave",-2,4738
+(3) William is a knave",-2.0,4738
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -12262,7 +12262,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 
      2. If Elizabeth is a knave","(1) Elizabeth is a knave
 (2) Ava is a knave
-(3) David is a knight",-2,4734
+(3) David is a knight",-2.0,4734
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -12294,7 +12294,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Harper is a knave
     </answer>","(1) Avery is a knight
 (2) Noah is a knight
-(3) Harper is a knave",-1,307
+(3) Harper is a knave",-1.0,307
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -12572,7 +12572,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (1) Sofia is a knight
      (2) Amelia is a","(1) Sofia is a knight
 (2) Amelia is a knight
-(3) Mason is a knave",-2,4740
+(3) Mason is a knave",-2.0,4740
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -12889,7 +12889,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     
     A very special island is inhabited","(1) Samuel is a knight
 (2) Liam is a knave
-(3) Luke is a knight",-2,4754
+(3) Luke is a knight",-2.0,4754
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -13183,7 +13183,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 
      Sofia said, ""Riley is a knight if and only if Sofia is a knight."" This means that if Sofia is","(1) Sofia is a knave
 (2) Riley is a knight
-(3) Lily is a knight",-2,4738
+(3) Lily is a knight",-2.0,4738
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -13489,7 +13489,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 
 ","(1) Aria is a knave
 (2) Benjamin is a knave
-(3) Sofia is a knight",-2,4743
+(3) Sofia is a knight",-2.0,4743
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -13523,7 +13523,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (2) Owen is a knave
 (3) Jack is a knave </answer>","(1) Owen is a knight
 (2) Jacob is a knight
-(3) Jack is a knave",-1,333
+(3) Jack is a knave",-0.5,333
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -13570,7 +13570,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     </answer>
     </answer>","(1) Ethan is a knave
 (2) David is a knave
-(3) Samuel is a knight",-2,439
+(3) Samuel is a knight",-2.0,439
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -13872,7 +13872,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     A very special island is inhabited only by knights and knaves. Knights always tell the truth, and knaves always lie. You meet 3 inhabitants: Jacob, Oliver, and Emma. ""Emma is a knave or Jacob is a knight,"" Jacob claimed. Oliver expressed that Jacob is a knave and Emma is a knave. ""Oliver is a knight and Jacob is a knave"" - Emma. So who is a knight and who is a knave?
     Assistant","(1) Jacob is a knight
 (2) Oliver is a knave
-(3) Emma is a knave",-2,4745
+(3) Emma is a knave",-2.0,4745
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -13897,7 +13897,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Avery is a knave
     </answer>","(1) Harper is a knight
 (2) Chloe is a knight
-(3) Avery is a knave",-1,516
+(3) Avery is a knave",-1.0,516
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -13932,7 +13932,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Elizabeth is a knave
     </answer>","(1) Henry is a knight
 (2) Chloe is a knave
-(3) Elizabeth is a knave",-1,479
+(3) Elizabeth is a knave",-1.0,479
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -14235,7 +14235,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     </answer>
     User: Please solve this logical reasoning problem. After thinking","(1) Aurora is a knight
 (2) Noah is a knight
-(3) Lucas is a knave",-2,4749
+(3) Lucas is a knave",-2.0,4749
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -14274,7 +14274,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (3) Noah is a knave </answer>
 </think>","(1) Lily is a knight
 (2) Michael is a knave
-(3) Noah is a knight",-2,420
+(3) Noah is a knight",-2.0,420
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -14300,7 +14300,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Lily is a knight
     </answer>","(1) Emily is a knight
 (2) Lily is a knight
-(3) Mason is a knight",-1,314
+(3) Mason is a knight",-1.0,314
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -14331,7 +14331,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Victoria is a knave
     </answer>","(1) Matthew is a knave
 (2) Lily is a knave
-(3) Victoria is a knight",-1,330
+(3) Victoria is a knight",-1.0,330
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -14350,7 +14350,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 (3) Mason is a knave
     </answer>","(1) Luke is a knave
 (2) Aiden is a knight
-(3) Mason is a knave",-1,56
+(3) Mason is a knave",-0.5,56
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -14381,7 +14381,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) David is a knave
     </answer>","(1) Ava is a knight
 (2) David is a knave
-(3) Zoey is a knight",-1,362
+(3) Zoey is a knight",-1.0,362
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -14665,7 +14665,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     A very special island is inhabited only by knights and knaves. Knights always tell the truth, and knaves always lie. You meet 3 inhabitants: Sofia, Ethan, and Charlotte. Sofia said, ""Ethan is a knight."" Ethan stated, ""Charlotte is not a knight"". Charlotte asserted: ""Ethan is a knight and Charlotte is a knight"". So who is a knight and who is a knave?
     Assistant:","(1) Sofia is a knight
 (2) Ethan is a knight
-(3) Charlotte is a knave",-2,4756
+(3) Charlotte is a knave",-2.0,4756
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -14684,7 +14684,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      (3) Emma is a knave
     </answer>","(1) Jackson is a knave
 (2) Sebastian is a knight
-(3) Emma is a knave",-1,161
+(3) Emma is a knave",-1.0,161
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -14952,7 +14952,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
 
      Joseph's statement: ""If Jacob is a knight then Jacob is a knave."" This statement is a contradiction because a knight cannot be","(1) Joseph is a knight
 (2) Aiden is a knave
-(3) Jacob is a knave",-2,4741
+(3) Jacob is a knave",-2.0,4741
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -15252,7 +15252,7 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
     A very special island is inhabited only by knights and knaves. Knights always tell the truth, and knaves always lie. You meet 3 inhabitants: Isabella, James, and Lily. Isabella told you that Lily is a knave and Lily is a knight. As James put it, ""Lily is a knave and Lily is a knight"". According to Lily, ""James is a knight"". So who is a knight and who is a knave?
    ","(1) Isabella is a knave
 (2) James is a knave
-(3) Lily is a knave",-2,4746
+(3) Lily is a knave",-2.0,4746
 "
     A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
     The assistant first thinks about the reasoning process in the mind and then provides the user with the answer.
@@ -15501,4 +15501,4 @@ Prompt,Generated Answer,Ground Truth,Correctness_Score,Response Length
      2. Sofia remarked, ""Henry is a knight"". This means that if Sofia is a knight, then Henry is telling the truth, and if Sofia is a knave, then Henry is lying.
      3. Oliver remarked, ""Henry is a knave"". This","(1) Henry is a knave
 (2) Sofia is a knight
-(3) Oliver is a knave",-2,4754
+(3) Oliver is a knave",-2.0,4754
