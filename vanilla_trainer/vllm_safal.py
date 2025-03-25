@@ -5,6 +5,8 @@ from vllm import LLM, SamplingParams
 from math_verify import verify, parse
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
 
+from eval_datasets import get_kk_test_prompts
+
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -110,9 +112,12 @@ def get_aime_prompts():
 
 
 def main():
-    prompts, ground_truths = get_ob_test_prompts()
+    prompts, ground_truths, reward_kk = get_kk_test_prompts()
+    #prompts, ground_truths = get_ob_test_prompts()
     #prompts, ground_truths = get_aime_prompts()
     #prompts, ground_truths = get_math_test_prompts()
+    
+    prompts, ground_truths = prompts[:100], ground_truths[:100]
     sampling_params = SamplingParams(
         temperature=0,
         top_p=1.0,
@@ -131,14 +136,15 @@ def main():
         generated_text = output.outputs[0].text
         gt = ground_truths[idx]
         #print(idx, gt)
-        score_corr = 1 if reward_correct([generated_text], [gt])[0] == 2 else 0
-        math_verify_score = verify(parse(generated_text), parse(str(gt)))
+        score_corr = reward_kk(generated_text, gt)
+        #score_corr = 1 if reward_correct([generated_text], [gt])[0] == 2 else 0
+        #math_verify_score = verify(parse(generated_text), parse(str(gt)))
         #print(parse(generated_text), parse(str(gt)), math_verify_score)
         #score_correct_and_format = reward_correct_and_format([generated_text], [gt])[0]
         token_length = len(llm.get_tokenizer().encode(generated_text))
         
         total_correctness += score_corr
-        total_math_verify_score += math_verify_score
+        #total_math_verify_score += math_verify_score
         total_length += token_length
         
         results.append({
@@ -146,7 +152,7 @@ def main():
             "Generated Answer": generated_text,
             "Ground Truth": gt,
             "Correctness_Score": score_corr,
-            "Math_verify_score": math_verify_score,
+           # "Math_verify_score": math_verify_score,
             #"Correctness_and_Format_Score": score_correct_and_format,
             "Response Length": token_length
         })
@@ -155,12 +161,12 @@ def main():
     df.to_csv(file_path, index=False)
     
     total_correctness = df["Correctness_Score"].sum()
-    total_math_verify_score = df["Math_verify_score"].sum()
+    #total_math_verify_score = df["Math_verify_score"].sum()
     total_length = df["Response Length"].sum()
     
     #print(df["Mat"].value_counts())
     print(f"Average Correctness Score: {total_correctness / num_samples:.2f}")
-    print(f"Average Math Verify Score: {total_math_verify_score / num_samples:.2f}") 
+    #print(f"Average Math Verify Score: {total_math_verify_score / num_samples:.2f}") 
     print(f"Average Response Length: {total_length / num_samples:.2f} tokens")
 
 if __name__ == "__main__":
