@@ -768,6 +768,8 @@ class SwitchingGRPOTrainer(GRPOTrainer):
         for i, (reward_func, reward_processing_class) in enumerate(
             zip(self.reward_funcs, self.reward_processing_classes)
         ):
+            print("reward_func:", reward_func)
+            print("reward_processing_class:", reward_processing_class)
             if isinstance(reward_func, nn.Module):
                 reward_func_name = f"reward {reward_func.config._name_or_path.split('/')[-1]}"
             else:
@@ -775,6 +777,7 @@ class SwitchingGRPOTrainer(GRPOTrainer):
 
             with profiling_context(self, reward_func_name):
                 if isinstance(reward_func, nn.Module):
+                    print("REWARD FUNC IS AN NN.MODULE.")
                     if is_conversational(inputs[0]):
                         messages = [{"messages": p + c} for p, c in zip(final_second_turn_prompts, completions)]
                         texts = [apply_chat_template(x, reward_processing_class)["text"] for x in messages]
@@ -792,18 +795,25 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                     with torch.inference_mode():
                         rewards_per_func[:, i] = reward_func(**reward_inputs).logits[:, 0]
                 else:
+                    print("REWARD FUNC IS NOT AN NN.MODULE.")
+                    print("inputs[0]:", inputs[0])
                     keys = [key for key in inputs[0] if key not in ["prompt", "completion"]]
+                    print("keys[0]", keys)
                     reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
+                    print("reward_kwargs",reward_kwargs)
                     output_reward_func = reward_func(
                         prompts=final_second_turn_prompts,
                         completions=completions,
                         **reward_kwargs
                     )
+                    print("output_reward_func", output_reward_func)
                     rewards_per_func[:, i] = torch.tensor(
                         output_reward_func,
                         dtype=torch.float32,
                         device=device
                     )
+                    print("rewards_per-func", rewards_per_func)
+                    
         # Collect global rewards
         rewards_per_func = gather(rewards_per_func)
         # Weighted sum over reward functions
@@ -852,12 +862,12 @@ class SwitchingGRPOTrainer(GRPOTrainer):
             if self.accelerator.is_main_process:
                 # You could optionally do a pretty print here
                 # if is_rich_available():
-                print_prompt_completions_sample(
-                    prompts_to_log,
-                    completions_to_log,
-                    rewards_to_log,
-                    self.state.global_step,
-                )
+                # print_prompt_completions_sample(
+                #     prompts_to_log,
+                #     completions_to_log,
+                #     rewards_to_log,
+                #     self.state.global_step,
+                # )
                 if self.args.report_to and "wandb" in self.args.report_to and wandb.run is not None:
                     table = {
                         "step": [str(self.state.global_step)] * len(rewards),
