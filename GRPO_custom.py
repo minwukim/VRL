@@ -812,7 +812,6 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                         prompts=prompts,
                         completions=completions,
                         first_completions = first_turn_completions_text_list,
-                        prompts=final_second_turn_prompts,
                         **reward_kwargs
                     )
                     print("output_reward_func", output_reward_func)
