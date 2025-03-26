@@ -328,7 +328,6 @@ class VerificationGRPOTrainer(GRPOTrainer):
                 # 2.4) Re-duplicate the second-turn prompts so each distinct prompt is repeated G times,
                 #      exactly matching the shape of the original repeated batch. 
                 #      If we have N distinct Q, each will produce N distinct second-turn prompts, each repeated G times => total = N*G
-                final_second_turn_prompts = []
                 for new_p in second_turn_prompts:
                     final_second_turn_prompts.extend([new_p] * self.num_generations)
 
@@ -671,15 +670,20 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                 # Extract final completions (A2).
                 completion_ids_list = [out.outputs[0].token_ids for out in second_turn_outputs]
 
+                # Compile first turn completions text list for reward computing
+                first_turn_completions_text_list = ["<think>" + text for text in first_turn_completions_text] * self.num_generations
+
             
             else:
                 # Non-main processes get placeholders.
                 final_second_turn_prompts = [None] * len(all_prompts_text)
                 completion_ids_list = [None] * len(all_prompts_text)
+                first_turn_completions_text_list = [None] * len(all_prompts_text)
             
             # 2.6) Broadcast the final completion_ids to every process. Then slice out only the portion that belongs to this process.
             final_second_turn_prompts = broadcast_object_list(final_second_turn_prompts, from_process=0)
             completion_ids_list = broadcast_object_list(completion_ids_list, from_process=0)
+            first_turn_completions_text_list = broadcast_object_list(first_turn_completions_text_list, from_process=0)
 
             # Now we take the local slice to keep shape consistent with the local batch.
             process_slice = slice(
@@ -800,10 +804,15 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                     keys = [key for key in inputs[0] if key not in ["prompt", "completion"]]
                     print("keys[0]", keys)
                     reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
+                    # HERE YOU MIGHT ADD THE FINAL_SECOND_PROMPT RELATED STUFFS IN REWARD_KWARGS
+
+
                     print("reward_kwargs",reward_kwargs)
                     output_reward_func = reward_func(
-                        prompts=final_second_turn_prompts,
+                        prompts=prompts,
                         completions=completions,
+                        first_completions = first_turn_completions_text_list,
+                        prompts=final_second_turn_prompts,
                         **reward_kwargs
                     )
                     print("output_reward_func", output_reward_func)
@@ -813,7 +822,7 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                         device=device
                     )
                     print("rewards_per-func", rewards_per_func)
-                    
+
         # Collect global rewards
         rewards_per_func = gather(rewards_per_func)
         # Weighted sum over reward functions
