@@ -33,8 +33,8 @@ ADDED_INSTRUCTION = (
 # Second turn prompt template
 SYSTEM_PROMPT_SECOND = (
     "{instruction}"
-    + "\n\nQuestion:\n" + {question}
-    + "\n\nResponse:\n<think> " + {first_answer}
+    + "\n\nQuestion:\n{question}"
+    + "\n\nResponse:\n<think>{first_answer}"
     + "\nAssistant: <think>" 
 )
 
