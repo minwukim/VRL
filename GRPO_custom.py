@@ -781,7 +781,7 @@ class SwitchingGRPOTrainer(GRPOTrainer):
         for i, (reward_func, reward_processing_class) in enumerate(
             zip(self.reward_funcs, self.reward_processing_classes)
         ):
-            print("reward_func:", reward_func)
+            # print("reward_func:", reward_func)
             if isinstance(reward_func, nn.Module):
                 reward_func_name = f"reward {reward_func.config._name_or_path.split('/')[-1]}"
             else:
@@ -806,17 +806,17 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                     with torch.inference_mode():
                         rewards_per_func[:, i] = reward_func(**reward_inputs).logits[:, 0]
                 else:
-                    print("REWARD FUNC IS NOT AN NN.MODULE.")
+                    # print("REWARD FUNC IS NOT AN NN.MODULE.")
                     print("inputs[0]:", inputs[0])
                     keys = [key for key in inputs[0] if key not in ["prompt", "completion"]]
-                    print("keys[0]", keys)
+                    # print("keys[0]", keys)
                     reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
-                    print("reward_kwargs",reward_kwargs)
+                    # print("reward_kwargs",reward_kwargs)
                     a1_texts = [extract_a1_text(text) for text in local_second_turn_prompts]
-                    print("COMPLETIONS,", completions[0])
-                    print("COMPLETIONS length", len(completions))
-                    print("COMPLETIONS_TEXT,", completions_text[0])
-                    print("COMPLETIONS_TEXT length", len(completions_text))
+                    # print("COMPLETIONS,", completions[0])
+                    # print("COMPLETIONS length", len(completions))
+                    # print("COMPLETIONS_TEXT,", completions_text[0])
+                    # print("COMPLETIONS_TEXT length", len(completions_text))
                     output_reward_func = reward_func(
                         prompts=prompts,
                         completions=completions,
@@ -828,7 +828,7 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                     #     completions=completions,
                     #     **reward_kwargs
                     # )
-                    print("output_reward_func", output_reward_func)
+                    # print("output_reward_func", output_reward_func)
                     rewards_per_func[:, i] = torch.tensor(
                         output_reward_func,
                         dtype=torch.float32,

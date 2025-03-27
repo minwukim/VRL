@@ -59,34 +59,41 @@ SYSTEM="""A conversation between User and Assistant. The user asks a question, a
 {prompt}
 Assistant: <think>"""
 
-#def reward_think_answer_format(completions, answer, **kwargs):
-#    # check if the strings ends with </think><answer>...</answer>
-#    def check_format(s):
-#        pattern = r".+</think>\s*<answer>.+</answer>\s*$"
-#        if s.count("</think>") == 1 and s.count("<answer>") == 1 and s.count("</answer>") == 1:
-#            if bool(re.fullmatch(pattern, s, re.DOTALL)): return 0
-#        return -1
-#
-#    return [check_format(completion) for completion in completions]
-#
-#def reward_boxed_format(completions, answer, **kwargs):
-#    # check if the strings ends with </think><answer>[boxed answer]</answer>
-#    def check_format(s):
-#        pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
-#        if s.count("</think>") == 1 and s.count("<answer>") == 1 and s.count("</answer>") == 1:
-#            match = re.search(pattern, s, re.DOTALL)
-#            if not match: return 0
-#            else:
-#                if last_boxed_only_string(match.group(1)): return 0
-#                else: return -0.5
-#        else: return 0
-#
-#    return [check_format(completion) for completion in completions]
+def reward_correct_a1_agnostic(completions, answer, **kwargs):
 
-
-def reward_correct(completions, answer, **kwargs):
     # check if the strings ends with </think><answer>[boxed answer]</answer>
-    def check_format(s, gt):
+    def check_format_and_correctness(s, gt):
+        pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
+        if not (s.count("</think>") == 1 and s.count("<answer>") == 1 and s.count("</answer>") == 1):
+            # incorrect amount of tokens
+            return -2 
+        match = re.search(pattern, s, re.DOTALL)
+        # if answer doesn't match provided format
+        if not match: return -2
+
+        # answer format is correct now
+        # look for boxed tag
+        ext_string = last_boxed_only_string(match.group(1))
+        if ext_string is None: return -1   #No boxed tag found
+        
+        # if correct, then reward 2
+        if verify(parse(ext_string), parse(gt)): return 2
+        else: return -0.5 # extracted but incorrect then reward -0.5
+    
+    return [check_format_and_correctness(c, gt) for c, gt in zip(completions, answer)]
+
+
+def reward_correct_a1_dependent(completions, answer, first_completions=None, **kwargs):
+
+    # Type 1: A2 accuracy > behavior collapse mitigation (i_c > c_c > i_i > c_i)
+    i_c, c_c, i_i, c_i = 8, 0.5, -0.5, -1
+
+    # Type 2: behavior collapse mitigation > A2 accuracy (i_c >= c_i > c_c >= i_i)
+    # Note: for i->i, we might need to consider two cases and give rewards.
+    # i_c, c_i, c_c, i_i, = 3, 0, -0.5, -1
+
+    # check if the strings ends with </think><answer>[boxed answer]</answer>
+    def check_format_and_correctness(s, gt):
         pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
         if not (s.count("</think>") == 1 and s.count("<answer>") == 1 and s.count("</answer>") == 1):
             # incorrect amount of tokens
@@ -104,23 +111,43 @@ def reward_correct(completions, answer, **kwargs):
         if verify(parse(ext_string), parse(gt)): return 2
         else: return -0.5 # extracted but incorrect then reward -0.5
 
-    return [check_format(c, gt) for c, gt in zip(completions, answer)]
+    
+    def give_a1_based_reward(a1, a2, gt, i_c=i_c, c_c=c_c, i_i=i_i, c_i=c_i):
+        
+        # If the format is wrong, return the value right away regardless of a1. 
+        a2_score = check_format_and_correctness(a2,gt)
+        if a2_score == -2:
+            return -4
+        if a2_score == -1:
+            return -3
 
-#def reward_correct_and_format(completions, answer, **kwargs):
-#    # Regular expression to capture content inside \boxed{}
-#    matches = [re.search(r"</think>\n?<answer>([\s\S]*)</answer>", completion) for completion in completions] 
-#    completions = [match.group(1) if match else "" for match in matches]
-#    matches = [re.search(r"\\boxed\{(.*?)\}", completion) for completion in completions]
-#    contents = [match.group(1) if match else "" for match in matches]
-#    # Reward 1 if the content is the same as the ground truth, 0 otherwise
-#    correct_with_format = [1.0 if verify(parse(c), parse(gt))  else 0.0 for c, gt in zip(contents, answer)]
-#
-#    return correct_with_format
+        a1_score = check_format_and_correctness(a1,gt)
+        
+        # Case 1: a1 is correct. 
+        if a1_score == 2:
+            # Case 1.1: correct to correct
+            if a2_score == 2:
+                return c_c
+            # Case 1.2: correct to incorrect
+            else:
+                return c_i
+            
+        # Case 2: a1 is incorrect.
+        else:
+            # Case 2.1 incorrect to correct 
+            if a2_score == 2:
+                return i_c
+            # Case 2.2 incorrect to incorrect
+            else:
+                return i_i
 
-#def reward_correct(completions, answer, **kwargs):
-#
-#    correct = [1.0 if verify(parse(c), parse(gt))  else 0.0 for c, gt in zip(completions, answer)]
-#    return correct
+    # Case 1: For (Q->A1) setting
+    if first_completions is None:
+        return [check_format_and_correctness(c, gt) for c, gt in zip(completions, answer)]
+    return [give_a1_based_reward(a1,a2,gt) for a1,a2,gt in zip (first_completions, completions, answer)]
+
+
+
 
 def extract_boxed_answer(solution):
     return last_boxed_only_string(solution)
@@ -186,7 +213,8 @@ grpo_config_args = GRPOConfig(
 
 trainer = SwitchingGRPOTrainer(
     model=model_name,
-    reward_funcs=[reward_correct],
+    # reward_funcs=[reward_correct_a1_agnostic],
+    reward_funcs = [reward_correct_a1_dependent],
     args=grpo_config_args,
     train_dataset=train,
     eval_dataset=test,
