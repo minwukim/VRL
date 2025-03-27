@@ -13,8 +13,8 @@ from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_stri
 from dataclasses import dataclass
 from typing import Optional
 
-max_seq_length = 1500
-max_prompt_length = 1500 + 500
+max_seq_length = 500
+max_prompt_length = 500 + 500
 
 model_name = "Qwen/Qwen2.5-3B-Instruct"
 
