@@ -57,9 +57,9 @@ def reward_correct_and_format(completions, answer, **kwargs):
     print("======================================")
 
     return correct_with_format
-# def reward_correct(completions, answer, **kwargs):
-#     correct = [1.0 if verify(parse(c), parse(gt))  else 0.0 for c, gt in zip(completions, answer)]
-#     return correct
+def reward_correct(completions, answer, **kwargs):
+    correct = [1.0 if verify(parse(c), parse(gt))  else 0.0 for c, gt in zip(completions, answer)]
+    return correct
 
 def extract_boxed_answer(solution):
     return last_boxed_only_string(solution)
@@ -123,7 +123,7 @@ training_args = GRPOConfig(
 
 trainer = SwitchingGRPOTrainer(
     model=model_name,
-    reward_funcs=[reward_correct_and_format],
+    reward_funcs=[reward_correct,reward_correct_and_format],
     args = training_args,
     train_dataset=train,
     eval_dataset=test,
