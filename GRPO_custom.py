@@ -817,7 +817,7 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                     output_reward_func = reward_func(
                         prompts=prompts,
                         completions=completions,
-                        first_completions=local_second_turn_prompts,
+                        first_completions=[extract_a1_text(text) for text in local_second_turn_prompts],
                         **reward_kwargs
                     )
                     # output_reward_func = reward_func(
