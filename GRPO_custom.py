@@ -814,12 +814,13 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                     reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
                     # first_turn_completions_text_list = [extract_a1_text(text) for text in final_second_turn_prompts]
                     print("reward_kwargs",reward_kwargs)
-                    print("local_second_turn_prompts[0]", local_second_turn_prompts[0])
-                    print("local_secon_turn_prompts length", len(local_second_turn_prompts))
+                    a1_texts = [extract_a1_text(text) for text in local_second_turn_prompts]
+                    print("a1_texts[0]", a1_texts[0])
+                    print("a1_texts length", len(a1_texts))
                     output_reward_func = reward_func(
                         prompts=prompts,
                         completions=completions,
-                        first_completions=[extract_a1_text(text) for text in local_second_turn_prompts],
+                        first_completions=a1_texts,
                         **reward_kwargs
                     )
                     # output_reward_func = reward_func(
