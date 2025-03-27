@@ -782,7 +782,6 @@ class SwitchingGRPOTrainer(GRPOTrainer):
             zip(self.reward_funcs, self.reward_processing_classes)
         ):
             print("reward_func:", reward_func)
-            print("reward_processing_class:", reward_processing_class)
             if isinstance(reward_func, nn.Module):
                 reward_func_name = f"reward {reward_func.config._name_or_path.split('/')[-1]}"
             else:
@@ -812,11 +811,12 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                     keys = [key for key in inputs[0] if key not in ["prompt", "completion"]]
                     print("keys[0]", keys)
                     reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
-                    # first_turn_completions_text_list = [extract_a1_text(text) for text in final_second_turn_prompts]
                     print("reward_kwargs",reward_kwargs)
                     a1_texts = [extract_a1_text(text) for text in local_second_turn_prompts]
-                    print("a1_texts[0]", a1_texts[0])
-                    print("a1_texts length", len(a1_texts))
+                    print("COMPLETIONS,", completions[0])
+                    print("COMPLETIONS length", len(completions))
+                    print("COMPLETIONS_TEXT,", completions_text[0])
+                    print("COMPLETIONS_TEXT length", len(completions_text))
                     output_reward_func = reward_func(
                         prompts=prompts,
                         completions=completions,
@@ -875,21 +875,18 @@ class SwitchingGRPOTrainer(GRPOTrainer):
 
         if self.log_completions and self.state.global_step % self.args.logging_steps == 0:
             prompts_to_log = gather_object(local_second_turn_prompts)
-            print("prompts_to_log", len(prompts_to_log))
             completions_to_log = gather_object(completions_text)
-            print("completions_to_log", len(prompts_to_log))
             rewards_to_log = rewards.tolist()
-            print("rewards_to_log", len(rewards_to_log))
 
             if self.accelerator.is_main_process:
                 # You could optionally do a pretty print here
                 # if is_rich_available():
-                # print_prompt_completions_sample(
-                #     prompts_to_log,
-                #     completions_to_log,
-                #     rewards_to_log,
-                #     self.state.global_step,
-                # )
+                print_prompt_completions_sample(
+                    prompts_to_log,
+                    completions_to_log,
+                    rewards_to_log,
+                    self.state.global_step,
+                )
                 if self.args.report_to and "wandb" in self.args.report_to and wandb.run is not None:
                     table = {
                         "step": [str(self.state.global_step)] * len(rewards),
