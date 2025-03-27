@@ -790,7 +790,6 @@ class SwitchingGRPOTrainer(GRPOTrainer):
 
             with profiling_context(self, reward_func_name):
                 if isinstance(reward_func, nn.Module):
-                    print("REWARD FUNC IS AN NN.MODULE.")
                     if is_conversational(inputs[0]):
                         messages = [{"messages": p + c} for p, c in zip(final_second_turn_prompts, completions)]
                         texts = [apply_chat_template(x, reward_processing_class)["text"] for x in messages]
@@ -813,12 +812,17 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                     keys = [key for key in inputs[0] if key not in ["prompt", "completion"]]
                     print("keys[0]", keys)
                     reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
-                    first_turn_completions_text_list = [extract_a1_text(text) for text in final_second_turn_prompts]
+                    # first_turn_completions_text_list = [extract_a1_text(text) for text in final_second_turn_prompts]
                     print("reward_kwargs",reward_kwargs)
+                    # output_reward_func = reward_func(
+                    #     prompts=prompts,
+                    #     completions=completions,
+                    #     # first_completions = first_turn_completions_text_list,
+                    #     **reward_kwargs
+                    # )
                     output_reward_func = reward_func(
-                        prompts=prompts,
+                        prompts=final_second_turn_prompts,
                         completions=completions,
-                        first_completions = first_turn_completions_text_list,
                         **reward_kwargs
                     )
                     print("output_reward_func", output_reward_func)
