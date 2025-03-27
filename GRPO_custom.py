@@ -254,8 +254,8 @@ def extract_a1_text(prompt_string):
     Returns:
         str or None: The extracted a1_text, or None if not found.
     """
-    pattern = r'Response:\\n<think>\s*(.*?)\\nAssistant: <think>'
-    match = re.search(pattern, prompt_string)
+    pattern = r"Response:\s*<think>\s*(.*?)\s*Assistant:\s*<think>"
+    match = re.search(pattern, prompt_string, flags=re.DOTALL)
     if match:
         return match.group(1).strip()
     return None
@@ -814,7 +814,8 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                     reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
                     # first_turn_completions_text_list = [extract_a1_text(text) for text in final_second_turn_prompts]
                     print("reward_kwargs",reward_kwargs)
-                    print(local_second_turn_prompts)
+                    print("local_second_turn_prompts[0]", local_second_turn_prompts[0])
+                    print("local_secon_turn_prompts length", len(local_second_turn_prompts))
                     output_reward_func = reward_func(
                         prompts=prompts,
                         completions=completions,
