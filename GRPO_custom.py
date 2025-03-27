@@ -884,12 +884,12 @@ class SwitchingGRPOTrainer(GRPOTrainer):
             if self.accelerator.is_main_process:
                 # You could optionally do a pretty print here
                 # if is_rich_available():
-                print_prompt_completions_sample(
-                    prompts_to_log,
-                    completions_to_log,
-                    rewards_to_log,
-                    self.state.global_step,
-                )
+                # print_prompt_completions_sample(
+                #     prompts_to_log,
+                #     completions_to_log,
+                #     rewards_to_log,
+                #     self.state.global_step,
+                # )
                 if self.args.report_to and "wandb" in self.args.report_to and wandb.run is not None:
                     table = {
                         "step": [str(self.state.global_step)] * len(rewards),
