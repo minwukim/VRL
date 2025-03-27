@@ -244,6 +244,21 @@ def profiling_context(trainer: Trainer, name: str) -> Generator[None, None, None
     if "wandb" in trainer.args.report_to and wandb.run is not None and trainer.accelerator.is_main_process:
         wandb.log({f"profiling/Time taken: {trainer.__class__.__name__}.{name}": duration})
 
+def extract_a1_text(prompt_string):
+    """
+    Extracts a1_text from a formatted prompt string.
+
+    Args:
+        prompt_string (str): The full prompt string.
+
+    Returns:
+        str or None: The extracted a1_text, or None if not found.
+    """
+    pattern = r'Response:\\n<think>\s*(.*?)\\nAssistant: <think>'
+    match = re.search(pattern, prompt_string)
+    if match:
+        return match.group(1).strip()
+    return None
 
 
 class VerificationGRPOTrainer(GRPOTrainer):
@@ -669,21 +684,15 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                     )
                 # Extract final completions (A2).
                 completion_ids_list = [out.outputs[0].token_ids for out in second_turn_outputs]
-
-                # Compile first turn completions text list for reward computing
-                first_turn_completions_text_list = ["<think>" + text for text in first_turn_completions_text] * self.num_generations
-
             
             else:
                 # Non-main processes get placeholders.
                 final_second_turn_prompts = [None] * len(all_prompts_text)
                 completion_ids_list = [None] * len(all_prompts_text)
-                first_turn_completions_text_list = [None] * len(all_prompts_text)
             
             # 2.6) Broadcast the final completion_ids to every process. Then slice out only the portion that belongs to this process.
             final_second_turn_prompts = broadcast_object_list(final_second_turn_prompts, from_process=0)
             completion_ids_list = broadcast_object_list(completion_ids_list, from_process=0)
-            first_turn_completions_text_list = broadcast_object_list(first_turn_completions_text_list, from_process=0)
 
             # Now we take the local slice to keep shape consistent with the local batch.
             process_slice = slice(
@@ -804,9 +813,7 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                     keys = [key for key in inputs[0] if key not in ["prompt", "completion"]]
                     print("keys[0]", keys)
                     reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
-                    # HERE YOU MIGHT ADD THE FINAL_SECOND_PROMPT RELATED STUFFS IN REWARD_KWARGS
-
-
+                    first_turn_completions_text_list = [extract_a1_text(text) for text in final_second_turn_prompts]
                     print("reward_kwargs",reward_kwargs)
                     output_reward_func = reward_func(
                         prompts=prompts,
