@@ -814,17 +814,17 @@ class SwitchingGRPOTrainer(GRPOTrainer):
                     reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
                     # first_turn_completions_text_list = [extract_a1_text(text) for text in final_second_turn_prompts]
                     print("reward_kwargs",reward_kwargs)
-                    # output_reward_func = reward_func(
-                    #     prompts=prompts,
-                    #     completions=completions,
-                    #     # first_completions = first_turn_completions_text_list,
-                    #     **reward_kwargs
-                    # )
                     output_reward_func = reward_func(
-                        prompts=final_second_turn_prompts,
+                        prompts=prompts,
                         completions=completions,
+                        first_completions=local_second_turn_prompts,
                         **reward_kwargs
                     )
+                    # output_reward_func = reward_func(
+                    #     prompts=final_second_turn_prompts,
+                    #     completions=completions,
+                    #     **reward_kwargs
+                    # )
                     print("output_reward_func", output_reward_func)
                     rewards_per_func[:, i] = torch.tensor(
                         output_reward_func,

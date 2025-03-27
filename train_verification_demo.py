@@ -23,26 +23,7 @@ SYSTEM="""A conversation between User and Assistant. The user asks a question, a
 Assistant: <think>"""
 
 
-# def reward_correct_and_format(completions, answer, first_completions= None, **kwargs):
-#     # Regular expression to capture content inside \boxed{}
-#     matches = [re.search(r"</think>\n?<answer>([\s\S]*)</answer>", completion) for completion in completions] 
-#     completions = [match.group(1) if match else "" for match in matches]
-#     matches = [re.search(r"\\boxed\{(.*?)\}", completion) for completion in completions]
-#     contents = [match.group(1) if match else "" for match in matches]
-#     # Reward 1 if the content is the same as the ground truth, 0 otherwise
-#     correct_with_format = [1.0 if verify(parse(c), parse(gt))  else 0.0 for c, gt in zip(contents, answer)]
-
-#     print("======================================")
-#     print("reward-completions:", completions[0])
-#     print("reward-answer:", answer[0])
-#     if first_completions is not None:
-#         print("reward-first-turner:", first_completions[0])
-#     print("======================================")
-
-#     return correct_with_format
-
-
-def reward_correct_and_format(completions, answer, **kwargs):
+def reward_correct_and_format(completions, answer, first_completions= None, **kwargs):
     # Regular expression to capture content inside \boxed{}
     matches = [re.search(r"</think>\n?<answer>([\s\S]*)</answer>", completion) for completion in completions] 
     completions = [match.group(1) if match else "" for match in matches]
@@ -54,9 +35,28 @@ def reward_correct_and_format(completions, answer, **kwargs):
     print("======================================")
     print("reward-completions:", completions[0])
     print("reward-answer:", answer[0])
+    if first_completions is not None:
+        print("reward-first-turn-completion:", first_completions[0])
     print("======================================")
 
     return correct_with_format
+
+
+# def reward_correct_and_format(completions, answer, **kwargs):
+#     # Regular expression to capture content inside \boxed{}
+#     matches = [re.search(r"</think>\n?<answer>([\s\S]*)</answer>", completion) for completion in completions] 
+#     completions = [match.group(1) if match else "" for match in matches]
+#     matches = [re.search(r"\\boxed\{(.*?)\}", completion) for completion in completions]
+#     contents = [match.group(1) if match else "" for match in matches]
+#     # Reward 1 if the content is the same as the ground truth, 0 otherwise
+#     correct_with_format = [1.0 if verify(parse(c), parse(gt))  else 0.0 for c, gt in zip(contents, answer)]
+
+#     print("======================================")
+#     print("reward-completions:", completions[0])
+#     print("reward-answer:", answer[0])
+#     print("======================================")
+
+#     return correct_with_format
 def reward_correct(completions, answer, **kwargs):
     correct = [1.0 if verify(parse(c), parse(gt))  else 0.0 for c, gt in zip(completions, answer)]
     return correct
@@ -123,7 +123,7 @@ training_args = GRPOConfig(
 
 trainer = SwitchingGRPOTrainer(
     model=model_name,
-    reward_funcs=[reward_correct,reward_correct_and_format],
+    reward_funcs=[reward_correct_and_format],
     args = training_args,
     train_dataset=train,
     eval_dataset=test,
