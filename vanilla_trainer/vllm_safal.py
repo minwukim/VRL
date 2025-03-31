@@ -117,7 +117,7 @@ def main():
     #prompts, ground_truths = get_aime_prompts()
     #prompts, ground_truths = get_math_test_prompts()
     
-    prompts, ground_truths = prompts[:100], ground_truths[:100]
+    prompts, ground_truths = prompts, ground_truths
     sampling_params = SamplingParams(
         temperature=0,
         top_p=1.0,

@@ -184,7 +184,7 @@ grpo_config_args = GRPOConfig(
     #eval_on_start=training_args.eval_on_start,
 )
 
-trainer = SwitchingGRPOTrainer(
+trainer = GRPOTrainer(
     model=model_name,
     reward_funcs=[reward_correct],
     args=grpo_config_args,

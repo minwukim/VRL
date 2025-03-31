@@ -2,7 +2,7 @@ import re
 import torch
 from datasets import load_dataset, Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from trl import GRPOConfig, GRPOTrainer
+from trl.trl import GRPOConfig, GRPOTrainer
 
 from datasets import load_dataset
 from math_verify import verify, parse
@@ -11,10 +11,12 @@ from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_stri
 from dataclasses import dataclass
 from typing import Optional
 
-from dataset_loader import load_math, load_countdown
+from dataset_loader import load_math, load_countdown, load_kk
+
+#from custom_grpo_trainer import NewGRPOTrainer
 
 @dataclass
-class MyArguments: 
+class MyArguments:
     model_name: str
     output_dir: str
     run_name: str
@@ -49,7 +51,7 @@ class MyArguments:
     evaluation_strategy: str = None
 
 
-from trl import TrlParser
+from trl.trl import TrlParser
 
 parser = TrlParser(dataclass_types=[MyArguments])
 
@@ -85,31 +87,32 @@ Assistant: <think>"""
 #    return [check_format(completion) for completion in completions]
 
 
-def reward_correct(completions, answer, **kwargs):
-    # check if the strings ends with </think><answer>[boxed answer]</answer>
-    def check_format(s, gt):
-        pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
-        if not (s.count("</think>") == 1 and s.count("<answer>") == 1 and s.count("</answer>") == 1):
-            # incorrect amount of tokens
-            return -2 
-        match = re.search(pattern, s, re.DOTALL)
-        # if answer doesn't match provided format
-        if not match: return -2
-
-        # answer format is correct now
-        # look for boxed tag
-        ext_string = last_boxed_only_string(match.group(1))
-        if ext_string is None: return -1   #No boxed tag found
-        
-        # if correct, then reward 2
-        if verify(parse(ext_string), parse(gt)): return 2
-        else: return -0.5 # extracted but incorrect then reward -0.5
-
-    return [check_format(c, gt) for c, gt in zip(completions, answer)]
+#def reward_correct(completions, answer, **kwargs):
+#    # check if the strings ends with </think><answer>[boxed answer]</answer>
+#    def check_format(s, gt):
+#        pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
+#        if not (s.count("</think>") == 1 and s.count("<answer>") == 1 and s.count("</answer>") == 1):
+#            # incorrect amount of tokens
+#            return -2 
+#        match = re.search(pattern, s, re.DOTALL)
+#        # if answer doesn't match provided format
+#        if not match: return -2
+#
+#        # answer format is correct now
+#        # look for boxed tag
+#        ext_string = last_boxed_only_string(match.group(1))
+#        if ext_string is None: return -1   #No boxed tag found
+#        
+#        # if correct, then reward 2
+#        if verify(parse(ext_string), parse(gt)): return 2
+#        else: return -0.5 # extracted but incorrect then reward -0.5
+#
+#    return [check_format(c, gt) for c, gt in zip(completions, answer)]
 
 
 #train, test = get_dataset()
-train, test = load_math(SYSTEM)
+#train, test = load_math(SYSTEM)
+train, test, reward_correct = load_kk()
 
 model_path = training_args.model_name if not training_args.resume_from_checkpoint else training_args.checkpoint_path
 model_name = AutoModelForCausalLM.from_pretrained(model_path)

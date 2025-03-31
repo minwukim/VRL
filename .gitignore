@@ -1,5 +1,6 @@
 __pycache__
 env/
+test_env/
 newenv/
 wandb/
 outputs/
