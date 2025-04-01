@@ -112,10 +112,10 @@ def get_aime_prompts():
 
 
 def main():
-    prompts, ground_truths, reward_kk = get_kk_test_prompts()
+    #prompts, ground_truths, reward_kk = get_kk_test_prompts()
     #prompts, ground_truths = get_ob_test_prompts()
     #prompts, ground_truths = get_aime_prompts()
-    #prompts, ground_truths = get_math_test_prompts()
+    prompts, ground_truths = get_math_test_prompts()
     
     prompts, ground_truths = prompts, ground_truths
     sampling_params = SamplingParams(
@@ -136,8 +136,11 @@ def main():
         generated_text = output.outputs[0].text
         gt = ground_truths[idx]
         #print(idx, gt)
-        score_corr = reward_kk(generated_text, gt)
-        #score_corr = 1 if reward_correct([generated_text], [gt])[0] == 2 else 0
+        
+        #score_corr = reward_kk(generated_text, gt)
+        
+        score_corr = 1 if reward_correct([generated_text], [gt])[0] == 2 else 0
+        
         #math_verify_score = verify(parse(generated_text), parse(str(gt)))
         #print(parse(generated_text), parse(str(gt)), math_verify_score)
         #score_correct_and_format = reward_correct_and_format([generated_text], [gt])[0]
@@ -161,6 +164,7 @@ def main():
     df.to_csv(file_path, index=False)
     
     total_correctness = df["Correctness_Score"].sum()
+    print(df["Correctness_Score"].value_counts())
     #total_math_verify_score = df["Math_verify_score"].sum()
     total_length = df["Response Length"].sum()
     
