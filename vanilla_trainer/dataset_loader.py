@@ -23,7 +23,7 @@ def load_math(SYSTEM):
         "answer": x["answer"],
         "level": x["level"]
         })
-    
+    train = train.filter(lambda x: (x['level'] == 'Level 4') or (x['level'] == 'Level 5'))
     train = train.remove_columns(["problem", "solution", "type"])
     test = test.remove_columns(["problem", "solution", "subject", "unique_id"])
     return train, test

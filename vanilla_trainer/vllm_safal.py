@@ -141,7 +141,7 @@ def main():
         
         score_corr = 1 if reward_correct([generated_text], [gt])[0] == 2 else 0
         
-        #math_verify_score = verify(parse(generated_text), parse(str(gt)))
+        math_verify_score = verify(parse(generated_text), parse(str(gt)))
         #print(parse(generated_text), parse(str(gt)), math_verify_score)
         #score_correct_and_format = reward_correct_and_format([generated_text], [gt])[0]
         token_length = len(llm.get_tokenizer().encode(generated_text))
@@ -155,7 +155,7 @@ def main():
             "Generated Answer": generated_text,
             "Ground Truth": gt,
             "Correctness_Score": score_corr,
-           # "Math_verify_score": math_verify_score,
+            "Math_verify_score": math_verify_score,
             #"Correctness_and_Format_Score": score_correct_and_format,
             "Response Length": token_length
         })
@@ -165,12 +165,12 @@ def main():
     
     total_correctness = df["Correctness_Score"].sum()
     print(df["Correctness_Score"].value_counts())
-    #total_math_verify_score = df["Math_verify_score"].sum()
+    total_math_verify_score = df["Math_verify_score"].sum()
     total_length = df["Response Length"].sum()
     
     #print(df["Mat"].value_counts())
     print(f"Average Correctness Score: {total_correctness / num_samples:.2f}")
-    #print(f"Average Math Verify Score: {total_math_verify_score / num_samples:.2f}") 
+    print(f"Average Math Verify Score: {total_math_verify_score / num_samples:.2f}") 
     print(f"Average Response Length: {total_length / num_samples:.2f} tokens")
 
 if __name__ == "__main__":

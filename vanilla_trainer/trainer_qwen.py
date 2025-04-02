@@ -87,32 +87,32 @@ Assistant: <think>"""
 #    return [check_format(completion) for completion in completions]
 
 
-#def reward_correct(completions, answer, **kwargs):
-#    # check if the strings ends with </think><answer>[boxed answer]</answer>
-#    def check_format(s, gt):
-#        pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
-#        if not (s.count("</think>") == 1 and s.count("<answer>") == 1 and s.count("</answer>") == 1):
-#            # incorrect amount of tokens
-#            return -2 
-#        match = re.search(pattern, s, re.DOTALL)
-#        # if answer doesn't match provided format
-#        if not match: return -2
-#
-#        # answer format is correct now
-#        # look for boxed tag
-#        ext_string = last_boxed_only_string(match.group(1))
-#        if ext_string is None: return -1   #No boxed tag found
-#        
-#        # if correct, then reward 2
-#        if verify(parse(ext_string), parse(gt)): return 2
-#        else: return -0.5 # extracted but incorrect then reward -0.5
-#
-#    return [check_format(c, gt) for c, gt in zip(completions, answer)]
+def reward_correct(completions, answer, **kwargs):
+    # check if the strings ends with </think><answer>[boxed answer]</answer>
+    def check_format(s, gt):
+        pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
+        if not (s.count("</think>") == 1 and s.count("<answer>") == 1 and s.count("</answer>") == 1):
+            # incorrect amount of tokens
+            return -2 
+        match = re.search(pattern, s, re.DOTALL)
+        # if answer doesn't match provided format
+        if not match: return -2
+
+        # answer format is correct now
+        # look for boxed tag
+        ext_string = last_boxed_only_string(match.group(1))
+        if ext_string is None: return -1   #No boxed tag found
+        
+        # if correct, then reward 2
+        if verify(parse(ext_string), parse(gt)): return 2
+        else: return -0.5 # extracted but incorrect then reward -0.5
+
+    return [check_format(c, gt) for c, gt in zip(completions, answer)]
 
 
 #train, test = get_dataset()
-#train, test = load_math(SYSTEM)
-train, test, reward_correct = load_kk()
+train, test = load_math(SYSTEM)
+#train, test, reward_correct = load_kk()
 
 model_path = training_args.model_name if not training_args.resume_from_checkpoint else training_args.checkpoint_path
 model_name = AutoModelForCausalLM.from_pretrained(model_path)
