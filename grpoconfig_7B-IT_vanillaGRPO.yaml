@@ -33,8 +33,9 @@
 
 
 model_name: "Qwen/Qwen2.5-7B-Instruct"
-output_dir: "qwen2.5-7bIT-vanilla-GRPO"
+output_dir: "qwen2.5-7b-it-vanilla-GRPO"
 run_name: "qwen2.5-7B-it-vanillaGRPO"
+scale_rewards: False
 resume_from_checkpoint: False
 # checkpoint_path: "outputs/qwen2.5-3b-grpo-large/checkpoint-125"
 learning_rate: 1e-6
