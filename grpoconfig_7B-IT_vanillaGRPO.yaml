@@ -48,10 +48,10 @@ lr_scheduler_type: constant_with_warmup
 logging_steps: 1
 bf16: True
 bf16_full_eval: True
-per_device_train_batch_size: 4
+per_device_train_batch_size: 3
 gradient_accumulation_steps: 5
 gradient_checkpointing: True
-num_generations: 8
+num_generations: 9
 max_prompt_length: 2560
 max_completion_length: 2048
 num_train_epochs: 1
