@@ -68,7 +68,7 @@ SYSTEM = (
 )
 
 
-def reward_func(completions, answers, **kwargs):
+def reward_func(completions, answer, **kwargs):
     """
     Evaluate each completion by checking if it follows the specified format and 
     whether it matches the ground-truth answers. Returns a numeric reward for each completion.
@@ -141,7 +141,7 @@ def reward_func(completions, answers, **kwargs):
             return -0.5  # Format is fine but the answer is incorrect.
 
     # Apply the check to each (completion, answer) pair.
-    return [check_format_and_correctness(c, gt) for c, gt in zip(completions, answers)]
+    return [check_format_and_correctness(c, gt) for c, gt in zip(completions, answer)]
 
 
 
