@@ -57,15 +57,19 @@ print(training_args)
 
 
 SYSTEM = (
-    "A conversation between User and Assistant. The user asks a question, and the Assistant solves it. "
-    "The assistant first thinks about the reasoning process in mind and then provides the user with the answer, followed by the confidence score to the answer, from 0 to 10."
-    "The reasoning process, answer, and confidence score, are enclosed within <think> </think>, <answer> </answer>, and <confidence> </confidence> tags, respectively, "
-    "i.e., <think> reasoning process here </think> <answer> final answer inside \\boxed{{}} tag </answer> <confidence> confidence score here \\boxed{{}}</confidence>."
-    "Assistant should make sure the confidence value to be integers between 0 and 10, inclusive."
-    "Moreover, the final answer and the confidence score will be extracted automatically from the \\boxed{{}} tag.\n"
+    "A conversation between User and Assistant. The User asks a question, and the Assistant solves it. "
+    "The Assistant first thinks through the reasoning process, then provides the User with the answer. "
+    "The Assistant's response includes three parts: the reasoning process, the final answer, and a confidence score (from 0 to 10). "
+    "Each part is enclosed in specific tags as follows:\n\n"
+    "<think> reasoning process here </think>\n"
+    "<answer>\\boxed{{final answer here}}</answer>\n"
+    "<confidence>\\boxed{{confidence score here}}</confidence>\n\n"
+    "The confidence score must be an integer between 0 and 10, inclusive.\n"
+    "The final answer and confidence score will be extracted automatically from the \\boxed{{}} tags.\n"
     "User: Help me solve the math question: {prompt}\n"
     "Assistant: <think>"
 )
+
 
 
 def reward_func(completions, answer, **kwargs):
@@ -105,12 +109,12 @@ def reward_func(completions, answer, **kwargs):
             and completion.count("<confidence>") == 1
             and completion.count("</confidence>") == 1
         ):
-            return -1  # Missing or extra format tokens.
+            return -2  # Missing or extra format tokens.
 
         # Check if the completion matches the regex structure.
         match = re.search(pattern, completion, re.DOTALL)
         if not match:
-            return -1  # Does not fit the required pattern.
+            return -2  # Does not fit the required pattern.
 
         # Extract text within <answer> and <confidence>.
         extracted_response = last_boxed_only_string(match.group(1))
