@@ -32,9 +32,9 @@
 # eval_on_start: False 
 
 
-model_name: "Qwen/Qwen2.5-7B-Instruct"
-output_dir: "qwen2.5-7b-it-vanilla-GRPO"
-run_name: "qwen2.5-7B-it-vanillaGRPO"
+model_name: "Qwen/Qwen2.5-Math-1.5B"
+output_dir: "qwen2.5-1.5B-MATH-vanilla-GRPO"
+run_name: "qwen2.5-1.5B-MATH-vanillaGRPO"
 scale_rewards: False
 resume_from_checkpoint: False
 # checkpoint_path: "outputs/qwen2.5-3b-grpo-large/checkpoint-125"
@@ -48,18 +48,18 @@ lr_scheduler_type: constant_with_warmup
 logging_steps: 1
 bf16: True
 bf16_full_eval: True
-per_device_train_batch_size: 2
+per_device_train_batch_size: 8
 gradient_accumulation_steps: 10
 gradient_checkpointing: True
-num_generations: 12
-max_prompt_length: 2100
+num_generations: 8
+max_prompt_length: 2300
 max_completion_length: 1500
 num_train_epochs: 1
 save_steps: 50
 max_grad_norm: 0.1
 report_to: wandb
 use_vllm: True
-vllm_max_model_len: 3800
+vllm_max_model_len: 4200
 max_steps: 500  
 log_completions: True
 evaluation_strategy: steps
