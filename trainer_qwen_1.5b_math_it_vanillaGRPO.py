@@ -116,6 +116,11 @@ def reward_func(completions,answer, **kwargs):
         if verify(parse(response), parse(ground_truth)):   
             return -0.5
         return 1
+    print("==========================")
+    print(completions)
+    print(completions[0])
+    print("==========================")
+
     return [check_format_and_correctess(c, gt) for c, gt in zip(completions, answer)]
 
 
