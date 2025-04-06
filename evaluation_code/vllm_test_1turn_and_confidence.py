@@ -8,12 +8,12 @@ from math_verify import verify, parse
 ##############################################
 # Settings and Model Initialization
 ##############################################
-model_dir_path = ""
-checkpoint_num = "300"  # or update to your desired checkpoint number
-model_path = model_dir_path+"/checkpoint-"+checkpoint_num
-csv_file_path = "./evaluation_results"+model_dir_path+"checkpoint-"+checkpoint_num+".csv"
+# model_dir_path = ""
+# checkpoint_num = "300"  # or update to your desired checkpoint number
+# model_path = model_dir_path+"/checkpoint-"+checkpoint_num
+# csv_file_path = "./evaluation_results"+model_dir_path+"checkpoint-"+checkpoint_num+".csv"
 
-
+model_path = "Qwen/Qwen2.5-Math-1.5B-Instruct"
 
 def last_boxed_only_string(string):
     idx = string.rfind("\\boxed")
