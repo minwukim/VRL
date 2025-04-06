@@ -116,13 +116,8 @@ def reward_func(completions,answer, **kwargs):
         if verify(parse(response), parse(ground_truth)):   
             return -0.5
         return 1
-    print("==========================")
-    print(completions)
-    print(completions[0])
-    print("==========================")
-
+    completions = [completion[0]['content'] for completion in completions]
     return [check_format_and_correctess(c, gt) for c, gt in zip(completions, answer)]
-
 
 
 model_path = training_args.model_name if not training_args.resume_from_checkpoint else training_args.checkpoint_path

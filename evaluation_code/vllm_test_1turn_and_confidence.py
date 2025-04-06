@@ -77,6 +77,17 @@ sampling_params = SamplingParams(
     max_tokens=1500
 )
 
+prompts = []
+ground_truths = []
+for example in test_dataset:
+    prompts.append(example["prompt"])
+    ground_truths.append(example["answer"])
+
+outputs = llm.generate(prompts, sampling_params)
+print("======================================")
+print(outputs[0])
+print(outputs[0].outputs[0].text)
+print("======================================")
 
 
 
