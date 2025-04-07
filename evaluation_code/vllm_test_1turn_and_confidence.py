@@ -9,8 +9,8 @@ from math_verify import verify, parse
 # model_path = "Qwen/Qwen2.5-Math-1.5B-Instruct"
 # csv_path = "qwen_1.5b_math_it_base.csv"
 
-model_path = "../qwen2.5-1.5B-MATH-it-vanilla-GRPO-scaleTrue/checkpoint-250"
-csv_path = "qwen_1.5b_math_it_vanilla_scaleTrue_cp250.csv"
+model_path = "../qwen2.5-1.5B-MATH-it-vanilla-GRPO-scaleTrue/checkpoint-300"
+csv_path = "qwen_1.5b_math_it_vanilla_scaleTrue_cp300.csv"
 
 
 
@@ -89,7 +89,7 @@ llm = LLM(model=model_path)
 sampling_params = SamplingParams(
     temperature=0.0,
     top_p=1.0,
-    max_tokens=1500
+    max_tokens=1800
 )
 
 ##############################################
