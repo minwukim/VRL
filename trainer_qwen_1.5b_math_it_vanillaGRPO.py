@@ -42,9 +42,10 @@ class MyArguments:
     evaluation_strategy: str
     eval_steps: int
     eval_on_start: bool
+    scale_rewards: bool
     checkpoint_path: str = None
     resume_from_checkpoint: bool = False
-    scale_rewards: bool
+
 
 
 from trl import TrlParser
