@@ -9,8 +9,8 @@ from math_verify import verify, parse
 # model_path = "Qwen/Qwen2.5-Math-1.5B-Instruct"
 # csv_path = "qwen_1.5b_math_it_base.csv"
 
-model_path = "../qwen2.5-1.5B-MATH-it-vanilla-GRPO/checkpoint-500"
-csv_path = "qwen_1.5b_math_it_cp500.csv"
+model_path = "../qwen2.5-1.5B-MATH-it-vanilla-GRPO-scaleTrue/checkpoint-100"
+csv_path = "qwen_1.5b_math_it_vanilla_scaleTrue_cp100.csv"
 
 
 
