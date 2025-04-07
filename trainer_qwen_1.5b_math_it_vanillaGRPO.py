@@ -44,6 +44,7 @@ class MyArguments:
     eval_on_start: bool
     checkpoint_path: str = None
     resume_from_checkpoint: bool = False
+    scale_rewards: bool
 
 
 from trl import TrlParser
@@ -87,6 +88,8 @@ def last_boxed_only_string(string):
 SYSTEM_PROMPT = "Please reason step by step, and put your final answer within \\boxed{}."
 
 train_dataset = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="train")
+train_dataset = train_dataset.filter(lambda x: x['level'] not in ['Level 1', 'Level 2'])
+
 test_dataset = load_dataset("HuggingFaceH4/MATH-500", split="test")
 
 train_dataset = train_dataset.map(lambda x: {
@@ -127,6 +130,7 @@ grpo_config_args = GRPOConfig(
     output_dir=training_args.output_dir,
     run_name=training_args.run_name,
     learning_rate=training_args.learning_rate,
+    scale_rewards=training_args.scale_rewards,
     # resume_from_checkpoint=training_args.resume_from_checkpoint,
     beta=training_args.beta,
     adam_beta1=training_args.adam_beta1,
@@ -143,7 +147,7 @@ grpo_config_args = GRPOConfig(
     num_generations=training_args.num_generations,
     max_prompt_length=training_args.max_prompt_length,
     max_completion_length=training_args.max_completion_length,
-    #num_train_epochs=training_args.num_train_epochs,
+    # num_train_epochs=training_args.num_train_epochs,
     save_steps=training_args.save_steps,
     max_grad_norm=training_args.max_grad_norm,
     report_to=training_args.report_to,
@@ -151,9 +155,9 @@ grpo_config_args = GRPOConfig(
     vllm_max_model_len=training_args.vllm_max_model_len,
     log_completions=training_args.log_completions,
     max_steps=training_args.max_steps,
-    #evaluation_strategy=training_args.evaluation_strategy,
-    #eval_steps = training_args.eval_steps,
-    #eval_on_start=training_args.eval_on_start,
+    # evaluation_strategy=training_args.evaluation_strategy,
+    # eval_steps = training_args.eval_steps,
+    # eval_on_start=training_args.eval_on_start,
 )
 
 trainer = GRPOTrainer(
