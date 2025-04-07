@@ -35,7 +35,7 @@
 model_name: "Qwen/Qwen2.5-Math-1.5B-Instruct"
 output_dir: "qwen2.5-1.5B-MATH-it-vanilla-GRPO"
 run_name: "qwen2.5-1.5B-MATH-it-vanillaGRPO"
-scale_rewards: True
+scale_rewards: False
 resume_from_checkpoint: False
 # checkpoint_path: "outputs/qwen2.5-3b-grpo-large/checkpoint-125"
 learning_rate: 1e-6
@@ -51,7 +51,7 @@ bf16_full_eval: True
 per_device_train_batch_size: 8
 gradient_accumulation_steps: 5
 gradient_checkpointing: True
-num_generations: 16
+num_generations: 8
 max_prompt_length: 2000
 max_completion_length: 1800
 num_train_epochs: 1
