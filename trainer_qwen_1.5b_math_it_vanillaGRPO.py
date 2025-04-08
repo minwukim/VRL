@@ -111,15 +111,23 @@ test_dataset = test_dataset.map(lambda x: {
     "level": x["level"]
 })
 
+# def reward_func(completions,answer, **kwargs):
+#     def check_format_and_correctess(completion, ground_truth):
+#         response = last_boxed_only_string(completion)
+#         if response is None:
+#             return -1
+#         if verify(parse(response), parse(ground_truth)):   
+#             return 1
+#         return -0.5
+#     completions = [completion[0]['content'] for completion in completions]
+#     return [check_format_and_correctess(c, gt) for c, gt in zip(completions, answer)]
+
 
 def reward_func(completions,answer, **kwargs):
     def check_format_and_correctess(completion, ground_truth):
-        response = last_boxed_only_string(completion)
-        if response is None:
-            return -1
-        if verify(parse(response), parse(ground_truth)):   
+        if verify(parse(completion), parse(ground_truth)):   
             return 1
-        return -0.5
+        return 0
     completions = [completion[0]['content'] for completion in completions]
     return [check_format_and_correctess(c, gt) for c, gt in zip(completions, answer)]
 
