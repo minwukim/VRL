@@ -33,7 +33,7 @@
 
 
 model_name: "Qwen/Qwen2.5-Math-1.5B-Instruct"
-output_dir: "qwen2.5-1.5B-MATH-it-vanilla-GRPO-scaleTrue"
+output_dir: "qwen2.5-1.5B-MATH-it-vanilla-GRPO"
 run_name: "qwen2.5-1.5B-MATH-it-vanillaGRPO"
 scale_rewards: False
 resume_from_checkpoint: False
