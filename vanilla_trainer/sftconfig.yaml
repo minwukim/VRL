@@ -19,13 +19,13 @@ gradient_checkpointing: True
 num_generations: 8
 max_prompt_length: 256
 max_completion_length: 32768
-num_train_epochs: 2
+num_train_epochs: 3
 save_steps: 50
 max_grad_norm: 0.1
 report_to: wandb
 use_vllm: True
 vllm_max_model_len: 5000
-max_steps: 100 
+max_steps: -1
 log_completions: True
 evaluation_strategy: steps
 eval_steps: 50
