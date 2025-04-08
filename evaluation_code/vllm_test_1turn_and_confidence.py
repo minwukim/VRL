@@ -10,7 +10,7 @@ from math_verify import verify, parse
 # csv_path = "qwen_1.5b_math_it_base.csv"
 
 model_path = "../qwen2.5-1.5B-MATH-it-vanilla-GRPO/checkpoint-200"
-csv_path = "qwen2.5-1.5B-MATH-it-vanilla-GRPO.csv"
+csv_path = "qwen2.5-1.5B-MATH-it-vanilla-GRPO-cp200.csv"
 
 
 ##############################################
