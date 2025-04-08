@@ -112,10 +112,10 @@ def get_aime_prompts():
 
 
 def main():
-    #prompts, ground_truths, reward_kk = get_kk_test_prompts()
+    prompts, ground_truths, reward_kk = get_kk_test_prompts()
     #prompts, ground_truths = get_ob_test_prompts()
     #prompts, ground_truths = get_aime_prompts()
-    prompts, ground_truths = get_math_test_prompts()
+    #prompts, ground_truths = get_math_test_prompts()
     
     prompts, ground_truths = prompts, ground_truths
     sampling_params = SamplingParams(
