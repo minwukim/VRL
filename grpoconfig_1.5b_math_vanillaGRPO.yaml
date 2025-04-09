@@ -32,9 +32,9 @@
 # eval_on_start: False 
 
 
-model_name: "Qwen/Qwen2.5-Math-1.5B-Instruct"
-output_dir: "qwen2.5-1.5B-MATH-it-vanilla-GRPO"
-run_name: "qwen2.5-1.5B-MATH-it-vanillaGRPO"
+model_name: "Qwen/Qwen2.5-1.5B-Instruct"
+output_dir: "qwen2.5-1.5B-it-vanilla-GRPO"
+run_name: "qwen2.5-1.5B-it-vanillaGRPO"
 scale_rewards: False
 resume_from_checkpoint: False
 # checkpoint_path: "outputs/qwen2.5-3b-grpo-large/checkpoint-125"
