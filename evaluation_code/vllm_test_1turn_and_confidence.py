@@ -6,11 +6,11 @@ from vllm import LLM, SamplingParams
 from math_verify import verify, parse
 
 
-# model_path = "Qwen/Qwen2.5-1.5B-Instruct"
-# csv_path = "qwen_1.5b_it_base.csv"
+model_path = "Qwen/Qwen2.5-1.5B-Instruct"
+csv_path = "qwen_1.5b_it_base.csv"
 
-model_path = "../qwen2.5-1.5B-it-vanilla-GRPO/checkpoint-150"
-csv_path = "qwen2.5-1.5B-it-vanilla-GRPO-cp150.csv"
+# model_path = "../qwen2.5-1.5B-it-vanilla-GRPO/checkpoint-150"
+# csv_path = "qwen2.5-1.5B-it-vanilla-GRPO-cp150.csv"
 
 
 ##############################################
@@ -58,15 +58,16 @@ def extract_confidence(text):
 # Settings and Model Initialization
 ##############################################
 
-SYSTEM_PROMPT = "Please reason step by step, and put your final answer within \\boxed{}."
+# SYSTEM_PROMPT = "Please reason step by step, and put your final answer within \\boxed{}."
 
 # Load and process the test dataset
 test_dataset = load_dataset("HuggingFaceH4/MATH-500", split="test")
 test_dataset = test_dataset.map(lambda x: {
-    "prompt": [
-        {'role': 'system', 'content': SYSTEM_PROMPT},
-        {'role': 'user', 'content': x["problem"]}
-    ],
+    "prompt": x["problem"],
+    # "prompt": [
+    #     {'role': 'system', 'content': SYSTEM_PROMPT},
+    #     {'role': 'user', 'content': x["problem"]}
+    # ],
     "answer": x["answer"],
     "level": x["level"],
     "problem": x["problem"]  # store original problem for later reference
