@@ -101,7 +101,9 @@ for example in test_dataset:
     ground_truths.append(example["answer"])
 
 # Generate first responses
-outputs = llm.chat(prompts, sampling_params)
+# outputs = llm.chat(prompts, sampling_params)
+outputs = llm.generate(prompts, sampling_params)
+
 for out in outputs:
     responses.append(out.outputs[0].text)
 
@@ -148,7 +150,9 @@ confidence_sampling_params = SamplingParams(
 )
 
 # Generate confidence responses
-confidence_outputs = llm.chat(confidence_prompts, confidence_sampling_params)
+# confidence_outputs = llm.chat(confidence_prompts, confidence_sampling_params)
+confidence_outputs = llm.generate(confidence_prompts, confidence_sampling_params)
+
 confidence_responses = []
 confidence_scores = []
 for out in confidence_outputs:
