@@ -9,8 +9,8 @@ from math_verify import verify, parse
 model_path = "Qwen/Qwen2.5-3B-Instruct"
 csv_path = "qwen_3b_it_base.csv"
 
-model_path = "./qwen2.5-1.5B-it-vanilla-GRPO/checkpoint-150"
-csv_path = "qwen2.5-1.5B-it-vanilla-GRPO-cp150.csv"
+model_path = "./qwen2.5-3B-it-vanilla-GRPO/checkpoint-50"
+csv_path = "qwen2.5-3B-it-vanilla-GRPO-cp50.csv"
 
 
 ##############################################
@@ -227,5 +227,5 @@ for i, example in enumerate(test_dataset):
 
 results_df = pd.DataFrame(results)
 # Save the results DataFrame to a CSV file.
-results_df.to_csv(csv_path, index=False)
-print(f"\nResults saved to {csv_path}")
+# results_df.to_csv(csv_path, index=False)
+# print(f"\nResults saved to {csv_path}")
