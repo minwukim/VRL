@@ -7,3 +7,5 @@ outputs/
 *.swp
 *.out
 *.log
+qwq_samples_more.csv
+processed_qwq_samples.csv
