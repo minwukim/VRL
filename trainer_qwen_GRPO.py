@@ -43,6 +43,7 @@ class MyArguments:
     log_completions: bool
     evaluation_strategy: str
     eval_steps: int
+    scale_reward: bool
     eval_on_start: bool
     checkpoint_path: str = None
     resume_from_checkpoint: bool = False
@@ -55,7 +56,7 @@ parser = TrlParser(dataclass_types=[MyArguments])
 training_args = parser.parse_args_and_config()[0]
 print(training_args)
 
-SYSTEM="""A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> final answer inside \\boxed{{}} tag </answer>. User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag.
+SYSTEM="""A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer>  \\boxed{final answer inside} tag </answer>. User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag.
 {prompt}
 Assistant: <think>"""
 
@@ -211,10 +212,10 @@ grpo_config_args = GRPOConfig(
     #eval_on_start=training_args.eval_on_start,
 )
 
-trainer = SwitchingGRPOTrainer(
+trainer = GRPOTrainer(
     model=model_name,
-    # reward_funcs=[reward_correct_a1_agnostic],
-    reward_funcs = [reward_correct_a1_dependent],
+    reward_funcs=[reward_correct_a1_agnostic],
+    # reward_funcs = [reward_correct_a1_dependent],
     args=grpo_config_args,
     train_dataset=train,
     eval_dataset=test,

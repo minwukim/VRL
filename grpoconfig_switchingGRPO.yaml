@@ -33,8 +33,9 @@
 
 
 model_name: "Qwen/Qwen2.5-3B-instruct"
-output_dir: "qwen2.5-3b-grpo-switch-type1-reward"
-run_name: "qwen3b-switch-type1-reward"
+output_dir: "qwen3b-it-old-prompt"
+run_name: "qwen3b-it-old-prompt"
+scale_rewards: True
 resume_from_checkpoint: False
 # checkpoint_path: "outputs/qwen2.5-3b-grpo-large/checkpoint-125"
 learning_rate: 1e-6
@@ -58,7 +59,7 @@ save_steps: 25
 max_grad_norm: 0.1
 report_to: wandb
 use_vllm: True
-vllm_max_model_len: 6500
+vllm_max_model_len: 5000
 max_steps: 200  
 log_completions: True
 evaluation_strategy: steps
