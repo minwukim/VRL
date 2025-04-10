@@ -165,7 +165,7 @@ grpo_config_args = GRPOConfig(
     log_completions=training_args.log_completions,
     max_steps=training_args.max_steps,
     # evaluation_strategy=training_args.evaluation_strategy,
-    # eval_steps = training_args.eval_steps,
+    eval_steps = training_args.eval_steps,
     # eval_on_start=training_args.eval_on_start,
     temperature=1,
 )
