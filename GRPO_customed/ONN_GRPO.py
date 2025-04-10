@@ -120,7 +120,7 @@ def print_prompt_completions_sample(prompts: list[str], completions: list[str], 
 # Assume necessary imports from transformers are available
 # from transformers import PreTrainedModel, PreTrainedTokenizerBase, GenerationConfig, StoppingCriteriaList
 
-class TwoTurnGRPOTrainer(GRPOTrainer):
+class ONN_GRPOTrainer(GRPOTrainer):
     def __init__(
         self,
         *args,
