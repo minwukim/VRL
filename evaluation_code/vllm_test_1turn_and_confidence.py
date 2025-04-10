@@ -75,6 +75,9 @@ test_dataset = test_dataset.map(lambda x: {
 # Reward function: returns -1 if formatting is missing, -0.5 if correct, and 1 otherwise.
 def reward_func(completions, answer, **kwargs):
     def check_format_and_correctess(completion, ground_truth):
+        completion = last_boxed_only_string(completion)
+        if completion is None:
+            return -1
         if verify(parse(completion), parse(ground_truth)):   
             return 1
         return 0
