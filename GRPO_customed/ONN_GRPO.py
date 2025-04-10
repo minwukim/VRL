@@ -161,7 +161,7 @@ def extract_a1_text_from_final_prompt(prompt_string, a1_prompt_format, instructi
         return None
 
 
-class TwoTurnGRPOTrainer_1nn(GRPOTrainer):
+class ONN_GRPOTrainer(GRPOTrainer):
     """
     GRPOTrainer variant for two-turn generation (Q -> n * A1 -> n * A2).
 
