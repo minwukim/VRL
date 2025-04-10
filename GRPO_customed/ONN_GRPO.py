@@ -1,49 +1,67 @@
-# Core Python
-import re
-import time
-import functools
+from typing import Callable, Optional, Union, Any, List, Dict, Generator
 import contextlib
-from copy import deepcopy
-from typing import Any, Callable, Dict, Generator, List, Optional, Union
 
-# PyTorch
 import torch
 from torch import nn
-
-# Transformers
-from transformers import (
-    Trainer,
-    TrainerCallback,
-    PreTrainedModel,
-    PreTrainedTokenizerBase
-)
-
-# TRL (Transformer Reinforcement Learning)
-from trl import GRPOTrainer, GRPOConfig
-from trl.trainer.utils import (
-    pad,
-    gather_object,
-    broadcast_object_list,
-    unwrap_model_for_generation,
-    is_conversational,
-    maybe_apply_chat_template,
-    apply_chat_template,
-    profiling_context,
-)
-
-# Accelerate
+from transformers import PreTrainedModel, PreTrainedTokenizerBase, TrainerCallback, Trainer
 from accelerate.utils import broadcast_object_list, gather, gather_object
-
-# Datasets
 from datasets import Dataset, IterableDataset
 
-# Visualization
-import wandb
+from trl import GRPOTrainer, GRPOConfig
+from trl.data_utils import apply_chat_template, maybe_apply_chat_template, is_conversational
+from trl.trainer.utils import pad
+from copy import deepcopy
+
 import pandas as pd
+
+from transformers import Trainer
+
+import wandb
+
+import time
+
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
+
+import re
+import functools
+
+from copy import deepcopy
+
+@contextlib.contextmanager
+def profiling_context(trainer: Trainer, name: str) -> Generator[None, None, None]:
+    """
+    A context manager function for profiling a block of code. Results are logged to Weights & Biases if enabled.
+
+    Args:
+        trainer (`~transformers.Trainer`):
+            Trainer object.
+        name (`str`):
+            Name of the block to be profiled. Used as a key in the logged dictionary.
+
+    Example:
+    ```python
+    from transformers import Trainer
+    from trl.extras.profiling import profiling_context
+
+    class MyTrainer(Trainer):
+        def some_method(self):
+            A = np.random.rand(1000, 1000)
+            B = np.random.rand(1000, 1000)
+            with profiling_context(self, "matrix_multiplication"):
+                # Code to profile: simulate a computationally expensive operation
+                result = A @ B  # Matrix multiplication
+    ```
+    """
+    start_time = time.perf_counter()
+    yield
+    end_time = time.perf_counter()
+    duration = end_time - start_time
+
+    if "wandb" in trainer.args.report_to and wandb.run is not None and trainer.accelerator.is_main_process:
+        wandb.log({f"profiling/Time taken: {trainer.__class__.__name__}.{name}": duration})
 
 
 
