@@ -192,9 +192,9 @@ class ONN_GRPOTrainer(GRPOTrainer):
             prompt_mask = prompt_mask[:, -self.max_prompt_length :]
 
         # --- Centralized Generation (A1 and A2 on Main Process) ---
-        completion_ids_a1_list = None
-        completion_ids_a2_list = None
-        completions_text_a1_list = None # Need this later for reward context
+        completion_ids_a1_list = [None] * len(prompts) # List of lists for A1
+        completion_ids_a2_list = [None] * len(prompts) # List of lists for A2
+        completions_text_a1_list = [None] * len(prompts) # Need this later for reward context
 
         # Gather unique prompts for efficient generation
         all_prompts_text = gather_object(prompts_text) # Gather list of strings
