@@ -9,8 +9,8 @@ from math_verify import verify, parse
 model_path = "Qwen/Qwen2.5-3B-Instruct"
 csv_path = "qwen_3b_it_base.csv"
 
-model_path = "./qwen2.5-3B-it-vanilla-GRPO/checkpoint-50"
-csv_path = "qwen2.5-3B-it-vanilla-GRPO-cp50.csv"
+model_path = "./qwen2.5-3B-it-vanilla-GRPO/checkpoint-75"
+csv_path = "qwen2.5-3B-it-vanilla-GRPO-cp75.csv"
 
 
 ##############################################
