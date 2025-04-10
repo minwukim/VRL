@@ -191,14 +191,6 @@ class ONN_GRPOTrainer(GRPOTrainer):
             prompt_ids = prompt_ids[:, -self.max_prompt_length :]
             prompt_mask = prompt_mask[:, -self.max_prompt_length :]
 
-        # --- Centralized Generation (A1 and A2 on Main Process) ---
-        completion_ids_a1_list = [None] * len(prompts) # List of lists for A1
-        completion_ids_a2_list = [None] * len(prompts) # List of lists for A2
-        completions_text_a1_list = [None] * len(prompts) # Need this later for reward context
-
-        # Gather unique prompts for efficient generation
-        all_prompts_text = gather_object(prompts_text) # Gather list of strings
-
         if self.accelerator.is_main_process:
             # Load model weights if using vLLM and step changed
             if self.args.use_vllm and self.state.global_step != self._last_loaded_step:
@@ -207,6 +199,8 @@ class ONN_GRPOTrainer(GRPOTrainer):
 
             # --- Turn 1 Generation (Q -> A1) ---
             if self.args.use_vllm:
+                # Gather unique prompts for efficient generation
+                all_prompts_text = gather_object(prompts_text) # Gather list of strings
                 ordered_set_of_prompts = list(dict.fromkeys(all_prompts_text))
                 with profiling_context(self, "vLLM.generate_A1"):
                     all_outputs_a1 = self.llm.generate(
@@ -233,29 +227,6 @@ class ONN_GRPOTrainer(GRPOTrainer):
 
             else: # Regular HF Generation for A1 (Main Process)
                 print("SHOULDN'T BE HERE")
-                # Requires model to be on the main process device
-                temp_model = self.accelerator.unwrap_model(self.model_wrapped)
-                # This assumes HF generate handles batches correctly on single device
-                # Tokenize prompts ON MAIN PROCESS DEVICE for HF generate
-                hf_prompt_inputs = self.processing_class(
-                    all_prompts_text, return_tensors="pt", padding=True, padding_side="left", add_special_tokens=False
-                ).to(device)
-
-                # Apply max length truncation
-                hf_prompt_ids = hf_prompt_inputs["input_ids"]
-                hf_prompt_mask = hf_prompt_inputs["attention_mask"]
-                if self.max_prompt_length is not None:
-                    hf_prompt_ids = hf_prompt_ids[:, -self.max_prompt_length :]
-                    hf_prompt_mask = hf_prompt_mask[:, -self.max_prompt_length :]
-
-                with torch.no_grad(): # Ensure no gradients during HF generate
-                     prompt_completion_ids_a1 = temp_model.generate(
-                         hf_prompt_ids, attention_mask=hf_prompt_mask, generation_config=self.generation_config
-                     )
-                prompt_length = hf_prompt_ids.size(1)
-                completion_ids_a1_tensor = prompt_completion_ids_a1[:, prompt_length:] # Tensor on main device
-                completion_ids_a1_list = [ids.tolist() for ids in completion_ids_a1_tensor] # Convert to list of lists
-
 
             # --- Decode A1 and Prepare Turn 2 Prompts ---
             # Decode A1 tokens (still on main process)
@@ -286,27 +257,27 @@ class ONN_GRPOTrainer(GRPOTrainer):
                           prompts_text_turn2, sampling_params=sampling_params_turn2, use_tqdm=False
                      )
                 completion_ids_a2_list = [output.outputs[0].token_ids for output in all_outputs_a2]
-            else: # Regular HF Generation for A2 (Main Process)
-                hf_prompt_inputs_turn2 = self.processing_class(
-                    prompts_text_turn2, return_tensors="pt", padding=True, padding_side="left", add_special_tokens=False
-                ).to(device)
-                hf_prompt_ids_turn2 = hf_prompt_inputs_turn2["input_ids"]
-                hf_prompt_mask_turn2 = hf_prompt_inputs_turn2["attention_mask"]
 
-                # Ensure generation config produces only 1 sequence
-                generation_config_turn2 = deepcopy(self.generation_config)
-                generation_config_turn2.num_return_sequences = 1
-                generation_config_turn2.num_beams = 1 # Ensure not using beam search returning multiple
+                print("=====================================")
+                print("all prompts text length: ", len(all_prompts_text))
+                print("completion ids a1 length: ", len(completion_ids_a1_list))
+                print("completion ids a2 length: ", len(completion_ids_a2_list))
+                print("completion text a1 list: ", len(completions_text_a1_list))
+                print("=====================================")
+        
+        else:
+            # --- Centralized Generation (A1 and A2 on Main Process) ---
+            completion_ids_a1_list = [None] * len(prompts) # List of lists for A1
+            completion_ids_a2_list = [None] * len(prompts) # List of lists for A2
+            completions_text_a1_list = [None] * len(prompts) # Need this later for reward context
 
-                temp_model = self.accelerator.unwrap_model(self.model_wrapped) # Already unwrapped
-                with torch.no_grad():
-                     prompt_completion_ids_a2 = temp_model.generate(
-                         hf_prompt_ids_turn2, attention_mask=hf_prompt_mask_turn2, generation_config=generation_config_turn2
-                     )
-                prompt_length_turn2 = hf_prompt_ids_turn2.size(1)
-                completion_ids_a2_tensor = prompt_completion_ids_a2[:, prompt_length_turn2:] # Tensor on main device
-                completion_ids_a2_list = [ids.tolist() for ids in completion_ids_a2_tensor] # list of lists
-
+        if not self.accelerator.is_main_process:
+            print("=================NON MAIN===================")
+            print("completion_ids_a1_list[0]: ", completion_ids_a1_list[0])
+            print("completion_ids_a2_list[0]: ", completion_ids_a2_list[0]) 
+            print("completions_text_a1_list[0]: ", completions_text_a1_list[0])
+            print("=================NON MAIN===================")
+            
         # --- Broadcast Generated Token Lists to All Processes ---
         # completions_text_a1_list is only needed for reward context construction later
         # broadcast it as well if needed by non-main processes for that (though reward calc is often distributed anyway)
