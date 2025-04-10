@@ -1,79 +1,92 @@
 import re
 from datasets import load_dataset, Dataset
-from obsolete.custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
 from trl import GRPOConfig, GRPOTrainer
-from GRPO_customed.GRPO_custom import CustomGRPOTrainer
+from GRPO_customed.OON_GRPO import OON_GRPOTrainer
+from math_verify import verify, parse
+
 max_seq_length = 1500
 max_prompt_length = 1500 + 500
 
 model_name = "Qwen/Qwen2.5-0.5B"
 
-SYSTEM_PROMPT = """
-Answer the question below in the specified format. 
-First, carefully think through the reasoning process. Then, provide a refined solution explaining the steps of the solution. 
-Enclose the reasoning process within <think> </think> tags and the final solution within <answer> </answer> tags, i.e., <think> reasoning process here </think> <answer> \\boxed{final answer here} </answer>. 
-Ensure the final answer in the solution is formatted within \\boxed{} so that it is directly extracted and graded.
-"""
+def last_boxed_only_string(string):
+    idx = string.rfind("\\boxed")
+    if "\\boxed " in string:
+        return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]
+    if idx < 0:
+        idx = string.rfind("\\fbox")
+        if idx < 0:
+            return None
 
-def extract_ground_truth(text: str) -> str | None:
-    return remove_boxed(last_boxed_only_string(text))
+    i = idx
+    right_brace_idx = None
+    num_left_braces_open = 0
+    while i < len(string):
+        if string[i] == "{":
+            num_left_braces_open += 1
+        if string[i] == "}":
+            num_left_braces_open -= 1
+            if num_left_braces_open == 0:
+                right_brace_idx = i
+                break
+        i += 1
 
-
-def get_math_data(split: str) -> Dataset:
-    if split == "train":
-        source_name = "DigitalLearningGmbH/MATH-lighteval"
-        data = load_dataset(source_name, trust_remote_code=True)['train']
-    elif split == "test":
-        source_name = "HuggingFaceH4/MATH-500"
-        data = load_dataset(source_name, trust_remote_code=True)['test']
+    if right_brace_idx is None:
+        retval = None
     else:
-        raise ValueError("Invalid split. Choose either 'train' or 'test'.")
+        retval = string[idx:right_brace_idx + 1]
 
-    data = data.map(lambda x: {
-        'prompt': [
-            {'role': 'system', 'content': SYSTEM_PROMPT},
-            {'role': 'user', 'content': x['problem']}
-        ],
-        'answer': extract_ground_truth(x['solution'])
-    })
+    return retval
 
-    return data
 
-dataset_train = get_math_data("train")
-dataset_test = get_math_data("test")
+SYSTEM_PROMPT = "Please reason step by step, and put your final answer within \\boxed{}."
 
-# check correctness: 1 if correct, 0 otherwise (incorrect or none)
-def correctness_reward_func(prompts, completions, answer, **kwargs) -> list[float]:
-    responses = [completion[0]['content'] for completion in completions]
-    scores = [compute_score(r, a) for r, a in zip(responses, answer)]
+train_dataset = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="train")
+# train_dataset = train_dataset.filter(lambda x: x['level'] not in ['Level 1', 'Level 2'])
 
-    # for i, (q, r, a, score) in enumerate(zip(prompts, responses, answer, scores)):
-    #     print('-'*20, f"Question {i+1}:\n{q[-1]['content']}", 
-    #           f"\nAnswer:\n{a}", 
-    #           f"\nResponse:\n{responses[i]}", 
-    #           f"\nExtracted:\n{r}", 
-    #           f"\nScore:\n{score}")
+test_dataset = load_dataset("HuggingFaceH4/MATH-500", split="test")
 
-    return scores
+train_dataset = train_dataset.map(lambda x: {
+    "prompt": [
+        {'role': 'system', 'content': SYSTEM_PROMPT},
+        {'role': 'user', 'content': x["problem"]}
+    ],
+    "answer": last_boxed_only_string(x["solution"]),
+    "level": x["level"]
+})
 
-# check token format: If matches the regex ^<think>.*?</think><answer>.*?</answer>$, give 0.1, 0 otherwise. | Ref: https://huggingface.co/docs/trl/main/en/grpo_trainer
-def token_format_reward_func(completions, **kwargs):
-    pattern = r"^\s*<think>.*?</think>\s*<answer>.*?</answer>\s*$"
-    responses = [completion[0]["content"] for completion in completions]
-    matches = [re.search(pattern, r, re.DOTALL) for r in responses]
-    return [0.1 if match else 0.0 for match in matches]
+test_dataset = test_dataset.map(lambda x: {
+    "prompt": [
+        {'role': 'system', 'content': SYSTEM_PROMPT},
+        {'role': 'user', 'content': x["problem"]}
+    ],
+    "answer": x["answer"],
+    "level": x["level"]
+})
 
-# check box format: if the answer is encased in \boxed, give 0.1. 0 otherwise. |Ref: https://huggingface.co/docs/trl/main/en/grpo_trainer
-def boxed_format_reward_func(completions, **kwargs):
-    # Regular expression to capture content inside \boxed{}
-    responses = [completion[0]["content"] for completion in completions]
-    matches = [re.search(r"\\boxed\{(.*?)\}", r) for r in responses]
-    return [0.1 if match else 0.0 for match in matches]
+# def reward_func(completions,answer, **kwargs):
+#     def check_format_and_correctess(completion, ground_truth):
+#         response = last_boxed_only_string(completion)
+#         if response is None:
+#             return -1
+#         if verify(parse(response), parse(ground_truth)):   
+#             return 1
+#         return -0.5
+#     completions = [completion[0]['content'] for completion in completions]
+#     return [check_format_and_correctess(c, gt) for c, gt in zip(completions, answer)]
 
+
+def reward_func(completions,answer, **kwargs):
+    def check_format_and_correctess(completion, ground_truth):
+        if verify(parse(completion), parse(ground_truth)):   
+            return 1
+        return 0
+    completions = [completion[0]['content'] for completion in completions]
+    return [check_format_and_correctess(c, gt) for c, gt in zip(completions, answer)]
 
 training_args = GRPOConfig(
     use_vllm = True,
-    output_dir = "0312-purerl-qwen0.5b",
+    output_dir = "0410-purerl-qwen0.5b",
     bf16 = True,
     bf16_full_eval=True,
     vllm_gpu_memory_utilization=0.9,
@@ -82,8 +95,8 @@ training_args = GRPOConfig(
     run_name = "0312-purerl-qwen0.5b-2",
     report_to = "wandb", 
     do_eval=True,
-    per_device_train_batch_size=4,
-    num_generations = 4,
+    per_device_train_batch_size=2,
+    num_generations = 2,
     gradient_accumulation_steps = 4,
     num_train_epochs = 8,
     logging_steps=1,
@@ -96,15 +109,13 @@ training_args = GRPOConfig(
     # eval_on_start=True,
 )
 
-trainer = CustomGRPOTrainer(
+trainer = OON_GRPOTrainer(
     model=model_name,
     reward_funcs = [
-        correctness_reward_func,
-        token_format_reward_func,
-        boxed_format_reward_func
+        reward_func
     ],
     args = training_args,
-    train_dataset=dataset_train,
-    eval_dataset=dataset_test
+    train_dataset=train_dataset,
+    eval_dataset=test_dataset
 )
 trainer.train()

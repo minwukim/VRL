@@ -261,7 +261,7 @@ def extract_a1_text(prompt_string):
     return None
 
 
-class OneToOneToN_GRPOTrainer(GRPOTrainer):
+class OON_GRPOTrainer(GRPOTrainer):
 
     def _generate_and_score_completions(
         self, inputs: dict[str, Union[torch.Tensor, Any]]
@@ -340,7 +340,9 @@ class OneToOneToN_GRPOTrainer(GRPOTrainer):
                     second_turn_prompts.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
                 print("======================================================")
                 print("ordered_unique-prompts[0]:", ordered_unique_prompts[0])
+                print("\n")
                 print("first_turn_completions_text[0]:", first_turn_completions_text[0])
+                print("\n")
                 print("second_turn_prompts[0]:", second_turn_prompts[0])
                 print("======================================================")
                 # 2.4) Re-duplicate the second-turn prompts so each distinct prompt is repeated G times,
