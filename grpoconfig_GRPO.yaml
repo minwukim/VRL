@@ -32,9 +32,13 @@
 # eval_on_start: False 
 
 
-model_name: "Qwen/Qwen2.5-3B-instruct"
-output_dir: "qwen3b-it-old-prompt"
-run_name: "qwen3b-it-old-prompt"
+# model_name: "Qwen/Qwen2.5-3B-instruct"
+# output_dir: "qwen3b-it-old-prompt"
+# run_name: "qwen3b-it-old-prompt"
+
+model_name: "Qwen/Qwen2.5-1.5B-instruct"
+output_dir: "qwen1.5b-it-old-prompt"
+run_name: "qwen1.5b-it-old-prompt"
 scale_rewards: True
 resume_from_checkpoint: False
 # checkpoint_path: "outputs/qwen2.5-3b-grpo-large/checkpoint-125"
@@ -48,7 +52,7 @@ lr_scheduler_type: constant_with_warmup
 logging_steps: 1
 bf16: True
 bf16_full_eval: True
-per_device_train_batch_size: 4
+per_device_train_batch_size: 8
 gradient_accumulation_steps: 10
 gradient_checkpointing: True
 num_generations: 8
