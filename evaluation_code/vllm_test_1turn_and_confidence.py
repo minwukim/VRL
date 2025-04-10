@@ -6,11 +6,11 @@ from vllm import LLM, SamplingParams
 from math_verify import verify, parse
 
 
-# model_path = "Qwen/Qwen2.5-1.5B-Instruct"
-# csv_path = "qwen_1.5b_it_base.csv"
+model_path = "Qwen/Qwen2.5-3B-Instruct"
+csv_path = "qwen_3b_it_base.csv"
 
-model_path = "../qwen2.5-1.5B-it-vanilla-GRPO/checkpoint-150"
-csv_path = "qwen2.5-1.5B-it-vanilla-GRPO-cp150.csv"
+# model_path = "../qwen2.5-1.5B-it-vanilla-GRPO/checkpoint-150"
+# csv_path = "qwen2.5-1.5B-it-vanilla-GRPO-cp150.csv"
 
 
 ##############################################
@@ -58,16 +58,15 @@ def extract_confidence(text):
 # Settings and Model Initialization
 ##############################################
 
-# SYSTEM_PROMPT = "Please reason step by step, and put your final answer within \\boxed{}."
+SYSTEM_PROMPT = "Please reason step by step, and put your final answer within \\boxed{}."
 
 # Load and process the test dataset
 test_dataset = load_dataset("HuggingFaceH4/MATH-500", split="test")
 test_dataset = test_dataset.map(lambda x: {
-    "prompt": x["problem"],
-    # "prompt": [
-    #     {'role': 'system', 'content': SYSTEM_PROMPT},
-    #     {'role': 'user', 'content': x["problem"]}
-    # ],
+    "prompt": [
+        {'role': 'system', 'content': SYSTEM_PROMPT},
+        {'role': 'user', 'content': x["problem"]}
+    ],
     "answer": x["answer"],
     "level": x["level"],
     "problem": x["problem"]  # store original problem for later reference
@@ -101,9 +100,7 @@ for example in test_dataset:
     ground_truths.append(example["answer"])
 
 # Generate first responses
-# outputs = llm.chat(prompts, sampling_params)
-outputs = llm.generate(prompts, sampling_params)
-
+outputs = llm.chat(prompts, sampling_params)
 for out in outputs:
     responses.append(out.outputs[0].text)
 
@@ -150,9 +147,7 @@ confidence_sampling_params = SamplingParams(
 )
 
 # Generate confidence responses
-# confidence_outputs = llm.chat(confidence_prompts, confidence_sampling_params)
-confidence_outputs = llm.generate(confidence_prompts, confidence_sampling_params)
-
+confidence_outputs = llm.chat(confidence_prompts, confidence_sampling_params)
 confidence_responses = []
 confidence_scores = []
 for out in confidence_outputs:
