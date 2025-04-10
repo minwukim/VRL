@@ -104,6 +104,8 @@ outputs = llm.chat(prompts, sampling_params)
 for out in outputs:
     responses.append(out.outputs[0].text)
 
+
+
 # Compute rewards for the first responses
 rewards = reward_func(responses, ground_truths)
 
@@ -155,6 +157,7 @@ for out in confidence_outputs:
     confidence_responses.append(conf_text)
     score = extract_confidence(conf_text)
     confidence_scores.append(score)
+    
 
 ##############################################
 # Expected Calibration Error (ECE) Computation
