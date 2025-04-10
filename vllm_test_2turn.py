@@ -10,10 +10,10 @@ from math_verify import verify, parse
 ##############################################
 # model_path = "./outputs/qwen2.5-3b-grpo-full/checkpoint-400"  # or update to your desired model path
 # model_path = "./qwen2.5-3b-grpo-switch/checkpoint-350"  # or update to your desired model path
-model_path = "./qwen2.5-3b-grpo-switch-type1-reward/checkpoint-300"
-# model_path = "Qwen/Qwen2.5-3B"
+# model_path = "./qwen2.5-3b-grpo-switch-type1-reward/checkpoint-300"
+model_path = "Qwen/Qwen2.5-3B-instruct"
 # model_path = "hkust-nlp/Qwen-2.5-Math-7B-SimpleRL-Zero"
-csv_file_path = "./qwen2.5-grpo-switch-csvs/qwen2.5-3b-grpo-switch-type1-reward-checkpoint-350_2stage.csv"
+# csv_file_path = "./qwen2.5-grpo-switch-csvs/qwen2.5-3b-grpo-switch-type1-reward-checkpoint-350_2stage.csv"
 
 
 # First turn prompt template
@@ -240,7 +240,7 @@ def main():
     print_turn_stats(df_final, turn_label="A2")
     print_confusion_matrix(df_final)
 
-    df_final.to_csv(csv_file_path, index=False)
+    # df_final.to_csv(csv_file_path, index=False)
     print(f"\nAll done. Results saved to '{csv_file_path}'.")
 
 if __name__ == "__main__":
