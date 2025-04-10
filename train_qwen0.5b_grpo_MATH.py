@@ -2,6 +2,8 @@ import re
 from datasets import load_dataset, Dataset
 from trl import GRPOConfig, GRPOTrainer
 from GRPO_customed.OON_GRPO import OON_GRPOTrainer
+from GRPO_customed.ONN_GRPO import ONN_GRPOTrainer
+
 from math_verify import verify, parse
 
 max_seq_length = 1500
@@ -109,7 +111,8 @@ training_args = GRPOConfig(
     # eval_on_start=True,
 )
 
-trainer = OON_GRPOTrainer(
+# trainer = OON_GRPOTrainer(
+trainer = ONN_GRPOTrainer(
     model=model_name,
     reward_funcs = [
         reward_func
