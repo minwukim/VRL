@@ -56,12 +56,13 @@ parser = TrlParser(dataclass_types=[MyArguments])
 
 training_args = parser.parse_args_and_config()[0]
 
-df = pd.read_csv("qwq_samples.csv")
+#df = pd.read_csv("qwq_samples.csv")
+df = pd.read_csv("process_subset_qwq.csv")
 # Combine 'question' and 'llm_answer' into a single 'text' column
 df['text'] = df['question'] + df['llm_answer']
 
 # Randomly sample 500 rows for the test set
-test_set = df.sample(n=500, random_state=42)
+test_set = df.sample(n=100, random_state=42)
 
 # Remaining rows for the training set
 train_set = df.drop(test_set.index)

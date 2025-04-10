@@ -13,17 +13,26 @@ Assistant: <think>"""
 
 train, test, _ = load_kk()
 
-sampling_params = SamplingParams(temperature=0, max_tokens=3000)
-llm = LLM(model="Qwen/QwQ-32B", max_model_len=3100, gpu_memory_utilization=0.8, tensor_parallel_size=2)
+gpus=4
+sampling_params = SamplingParams(n=4, temperature=0.6, top_p=0.95, top_k=40, max_tokens=8192, stop=["</answer>", "User:", "Assistant:"])
+llm = LLM(model="Qwen/QwQ-32B", max_model_len=9000, gpu_memory_utilization=0.9, tensor_parallel_size=gpus)
 
 process_in = train['prompt']
-outputs = llm.generate(process_in, sampling_params)
-process_out = [output.outputs[0].text for output in outputs]
 
 df = pd.DataFrame()
-df['question'] = process_in
+df['question'] =process_in
+df = df.loc[df.index.repeat(gpus)].reset_index(drop=True)
+
+outputs = llm.generate(process_in, sampling_params)
+
+process_out = []
+
+for output in outputs:
+    for out in output.outputs:
+        process_out.append(out.text)
+#process_out = [output.outputs[0].text for output in outputs]
+
+
 df['llm_answer'] = process_out
 
-df.to_csv("qwq_samples.csv", index=False)
-
-
+df.to_csv("qwq_samples_more.csv", index=False)

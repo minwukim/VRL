@@ -112,15 +112,15 @@ def get_aime_prompts():
 
 
 def main():
-    prompts, ground_truths, reward_kk = get_kk_test_prompts()
+    #prompts, ground_truths, reward_kk = get_kk_test_prompts()
     #prompts, ground_truths = get_ob_test_prompts()
     #prompts, ground_truths = get_aime_prompts()
-    #prompts, ground_truths = get_math_test_prompts()
+    prompts, ground_truths = get_math_test_prompts()
     
     prompts, ground_truths = prompts, ground_truths
     sampling_params = SamplingParams(
-        temperature=0,
-        top_p=1.0,
+        temperature=0.6,
+        top_p=0.95,
         max_tokens=8000
     )
     outputs = llm.generate(prompts, sampling_params)
@@ -137,7 +137,7 @@ def main():
         gt = ground_truths[idx]
         #print(idx, gt)
         
-        #score_corr = reward_kk(generated_text, gt)
+        # score_corr = reward_kk(generated_text, gt)
         
         score_corr = 1 if reward_correct([generated_text], [gt])[0] == 2 else 0
         
