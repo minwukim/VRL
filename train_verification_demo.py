@@ -4,11 +4,11 @@ from datasets import load_dataset, Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import GRPOConfig, TrlParser
 
-from GRPO_custom import VerificationGRPOTrainer, SwitchingGRPOTrainer
+from GRPO_customed.GRPO_custom import VerificationGRPOTrainer, SwitchingGRPOTrainer
 
 from datasets import load_dataset
 from math_verify import verify, parse
-from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
+from obsolete.custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
 
 from dataclasses import dataclass
 from typing import Optional

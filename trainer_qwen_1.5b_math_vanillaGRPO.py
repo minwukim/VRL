@@ -6,7 +6,7 @@ from trl import GRPOConfig, GRPOTrainer, TrlParser
 
 from datasets import load_dataset
 from math_verify import verify, parse
-from custom_MATH_reward import last_boxed_only_string
+from obsolete.custom_MATH_reward import last_boxed_only_string
 # from GRPO_custom import VerificationGRPOTrainer, SwitchingGRPOTrainer
 
 from dataclasses import dataclass
@@ -121,18 +121,18 @@ def reward_func(completions, answer, **kwargs):
         extracted_confidence = last_boxed_only_string(match.group(2))
 
         if extracted_response is None:
-            return -1  # Missing valid \boxed{} in <answer>.
+            return -2  # Missing valid \boxed{} in <answer>.
         if extracted_confidence is None:
-            return -1  # Missing valid \boxed{} in <confidence>.
+            return -2  # Missing valid \boxed{} in <confidence>.
 
         # Remove wrapping from \boxed{} in the confidence string and validate it's numeric.
         extracted_confidence = extracted_confidence.replace("\\boxed{", "").replace("}", "")
         # Check if it is a valid integer.
         if not extracted_confidence.isdigit():
-            return -1  
+            return -2  
         # Check if the confidence value is a digit between 0 and 10.
         if not (0 <= int(extracted_confidence) <= 10):
-            return -1
+            return -2
         
         # (Optional) Check confidence range, e.g., 0 <= int(extracted_confidence) <= 10
         # confidence_val = int(extracted_confidence)

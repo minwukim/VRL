@@ -2,7 +2,7 @@ import re
 import pandas as pd
 from datasets import load_dataset
 from vllm import LLM, SamplingParams
-from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
+from obsolete.custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
 from math_verify import verify, parse
 
 ##############################################
