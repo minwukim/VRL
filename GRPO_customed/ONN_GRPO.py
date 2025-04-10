@@ -243,11 +243,6 @@ class ONN_GRPOTrainer(GRPOTrainer):
             print(f"here3: Main process starting generation. Total prompts: {num_total_prompts}")
             # Check if vLLM is enabled (should be done *after* checking if main process)
             if self.args.use_vllm:
-                # Load model weights if using vLLM and step changed
-                if self.state.global_step != self._last_loaded_step:
-                    print("here3a: Loading/Moving model to vLLM")
-                    self._move_model_to_vllm()
-                    self._last_loaded_step = self.state.global_step
 
                 # --- Turn 1 Generation (Q -> n * A1) ---
                 ordered_unique_prompts = list(dict.fromkeys(all_prompts_text)) # Preserves order
@@ -772,18 +767,18 @@ class ONN_GRPOTrainer(GRPOTrainer):
              all_rewards_to_log = gathered_rewards.tolist()
 
              if self.accelerator.is_main_process:
-                 print(f"\n--- Step {self.state.global_step} Two-Turn Completions (1:n:n) ---")
-                 num_to_log = min(5 * self.num_generations, len(all_prompts_q_text)) # Log more to see variations
-                 for i in range(num_to_log):
-                      print(f"\n[Example {i+1} (Q prompt {i//self.num_generations + 1}, Gen {(i % self.num_generations) + 1})]")
-                      print(f"  Prompt (Q): {all_prompts_q_text[i]}")
-                      print(f"  Turn 1 (A1): {all_completions_text_a1[i]}")
-                      # print(f"  Prompt (A2): {all_prompts_text_turn2[i]}") # Optional: Log A2 prompt
-                      print(f"  Turn 2 (A2): {all_completions_text_a2[i]}")
-                      # Ensure reward index is valid
-                      reward_val = all_rewards_to_log[i] if i < len(all_rewards_to_log) else float('nan')
-                      print(f"  Reward: {reward_val:.4f}")
-                 print("------------------------------------\n")
+                #  print(f"\n--- Step {self.state.global_step} Two-Turn Completions (1:n:n) ---")
+                #  num_to_log = min(5 * self.num_generations, len(all_prompts_q_text)) # Log more to see variations
+                #  for i in range(num_to_log):
+                #       print(f"\n[Example {i+1} (Q prompt {i//self.num_generations + 1}, Gen {(i % self.num_generations) + 1})]")
+                #       print(f"  Prompt (Q): {all_prompts_q_text[i]}")
+                #       print(f"  Turn 1 (A1): {all_completions_text_a1[i]}")
+                #       # print(f"  Prompt (A2): {all_prompts_text_turn2[i]}") # Optional: Log A2 prompt
+                #       print(f"  Turn 2 (A2): {all_completions_text_a2[i]}")
+                #       # Ensure reward index is valid
+                #       reward_val = all_rewards_to_log[i] if i < len(all_rewards_to_log) else float('nan')
+                #       print(f"  Reward: {reward_val:.4f}")
+                #  print("------------------------------------\n")
 
                  if self.args.report_to and "wandb" in self.args.report_to and wandb and wandb.run:
                      if pd:
