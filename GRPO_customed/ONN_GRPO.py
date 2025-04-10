@@ -277,7 +277,7 @@ class ONN_GRPOTrainer(GRPOTrainer):
             print("completion_ids_a2_list[0]: ", completion_ids_a2_list[0]) 
             print("completions_text_a1_list[0]: ", completions_text_a1_list[0])
             print("=================NON MAIN===================")
-            
+
         # --- Broadcast Generated Token Lists to All Processes ---
         # completions_text_a1_list is only needed for reward context construction later
         # broadcast it as well if needed by non-main processes for that (though reward calc is often distributed anyway)
@@ -435,7 +435,7 @@ class ONN_GRPOTrainer(GRPOTrainer):
             # Needs adjustment if multiple reward funcs have different tokenizers
             reward_processing_class = self.reward_processing_classes[0]
             for conv in full_conversations:
-                 processed = apply_chat_template({"messages": conv}, reward_processing_class)
+                 processed = maybe_apply_chat_template({"messages": conv}, reward_processing_class)
                  reward_inputs_texts.append(processed["text"])
         else:
             reward_inputs_texts = [p + c for p, c in zip(reward_prompts, reward_completions)]
