@@ -167,6 +167,7 @@ grpo_config_args = GRPOConfig(
     # evaluation_strategy=training_args.evaluation_strategy,
     # eval_steps = training_args.eval_steps,
     # eval_on_start=training_args.eval_on_start,
+    temperature=1,
 )
 
 trainer = GRPOTrainer(
