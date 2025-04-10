@@ -328,26 +328,7 @@ class OON_GRPOTrainer(GRPOTrainer):
                         )
                     }
 
-                    
-                    # example = {
-                    #     "prompt": (
-                    #         added_instruction
-                    #         + "\n\nQuestion:\n" + extract_math_prompt(q_text)
-                    #         + "\n\nResponse:\n<think> " + a1_text
-                    #         + "\nAssistant: <think>"  # continuing the chain-of-thought
-                    #     ),
-                    # }
                     second_turn_prompts.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
-                # print("======================================================")
-                # print("ordered_unique-prompts[0]:", ordered_unique_prompts[0])
-                # print("\n")
-                # print("first_turn_completions_text[0]:", first_turn_completions_text[0])
-                # print("\n")
-                # print("second_turn_prompts[0]:", second_turn_prompts[0])
-                # print("======================================================")
-                # 2.4) Re-duplicate the second-turn prompts so each distinct prompt is repeated G times,
-                #      exactly matching the shape of the original repeated batch. 
-                #      If we have N distinct Q, each will produce N distinct second-turn prompts, each repeated G times => total = N*G
                 final_second_turn_prompts = []
                 for new_p in second_turn_prompts:
                     final_second_turn_prompts.extend([new_p] * self.num_generations)
