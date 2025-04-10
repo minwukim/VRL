@@ -81,7 +81,7 @@ def reward_func(completions,answer, **kwargs):
         if verify(parse(completion), parse(ground_truth)):   
             return 1
         return 0
-    completions = [completion[0]['content'] for completion in completions]
+    # completions = [completion[0]['content'] for completion in completions]
     return [check_format_and_correctess(c, gt) for c, gt in zip(completions, answer)]
 
 training_args = GRPOConfig(
