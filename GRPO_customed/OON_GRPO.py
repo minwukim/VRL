@@ -310,7 +310,7 @@ class OON_GRPOTrainer(GRPOTrainer):
 
                 # 2.3) Build the new prompt
 
-                second_instruction = "\nUser: There might be an error in the solution above because of lack of understanding of the question. Please correct the error, if any, and rewrite the solution. Maintain the format of: <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>. \nAssistant:"
+                second_instruction = "\nUser: There might be an error in the solution above because of lack of understanding of the question. Please correct the error, if any, and rewrite the solution. Maintain the format of: <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>.\nAssistant: <think>"
 
                 second_turn_prompts = []
                 for q_text, a1_text in zip(ordered_unique_prompts, first_turn_completions_text):
@@ -468,7 +468,6 @@ class OON_GRPOTrainer(GRPOTrainer):
                         rewards_per_func[:, i] = reward_func(**reward_inputs).logits[:, 0]
                 else:
                     # print("REWARD FUNC IS NOT AN NN.MODULE.")
-                    print("inputs[0]:", inputs[0])
                     keys = [key for key in inputs[0] if key not in ["prompt", "completion"]]
                     # print("keys[0]", keys)
                     reward_kwargs = {key: [example[key] for example in inputs] for key in keys}

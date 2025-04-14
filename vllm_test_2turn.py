@@ -18,25 +18,29 @@ model_path = "./qwen3b-it-old-prompt/checkpoint-450"
 
 
 # First turn prompt template
-SYSTEM_PROMPT_FIRST = """A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> final answer inside \\boxed{{}} tag </answer>. User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag.
+SYSTEM_PROMPT_FIRST = """A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>. User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag.
 {prompt}
 Assistant: <think>"""
 
-# Instruction for the second turn (correction/verification)
-ADDED_INSTRUCTION = (
-    "A conversation between User and Assistant. Given a question and a corresponding response provided below, the Assistant systematically reviews and explains each step of the reasoning process to verify the correctness of the response."
-    "If errors are found, the Assistant identifies and corrects them, then re-solves the problem. If the response is correct, the Assistant confirms it and returns the same final answer."
-    "The assistant first thinks about the reasoning process in mind, including verification, correction, and resolving the problem if necessary. Then provides the user with the answer."
-    "The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> final answer inside \\boxed{{}} tag </answer>." 
-    "The reasoning process, including verification and correction, is enclosed within <think> </think> tags, while the final solution is enclosed within <answer> </answer> tags. The final answer is formatted within \\boxed{{}} to enable direct extraction for grading."
-    "User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag."
-)
+# # Instruction for the second turn (correction/verification)
+# ADDED_INSTRUCTION = (
+#     "A conversation between User and Assistant. Given a question and a corresponding response provided below, the Assistant systematically reviews and explains each step of the reasoning process to verify the correctness of the response."
+#     "If errors are found, the Assistant identifies and corrects them, then re-solves the problem. If the response is correct, the Assistant confirms it and returns the same final answer."
+#     "The assistant first thinks about the reasoning process in mind, including verification, correction, and resolving the problem if necessary. Then provides the user with the answer."
+#     "The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> final answer inside \\boxed{{}} tag </answer>." 
+#     "The reasoning process, including verification and correction, is enclosed within <think> </think> tags, while the final solution is enclosed within <answer> </answer> tags. The final answer is formatted within \\boxed{{}} to enable direct extraction for grading."
+#     "User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag."
+# )
+
+
+ADDED_INSTRUCTION = "\nUser: There might be an error in the solution above because of lack of understanding of the question. Please correct the error, if any, and rewrite the solution. Maintain the format of: <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>. \nAssistant:"
+
 
 # Second turn prompt template
 SYSTEM_PROMPT_SECOND = (
     "{instruction}"
-    + "\n\nQuestion:\n{question}"
-    + "\n\nResponse:\n<think>{first_answer}"
+    + "\nQuestion:\n{question}"
+    + "\nResponse:\n<think>{first_answer}"
     + "\nAssistant: <think>" 
 )
 
@@ -211,8 +215,21 @@ def main():
 
     # --- SECOND TURN ---
     prompts_second = []
+    # for item in partial_data:
+    #     prompt_second = build_prompt_second(item["problem"], item["A1"])
+    #     prompts_second.append(prompt_second)
+
     for item in partial_data:
-        prompt_second = build_prompt_second(item["problem"], item["A1"])
+        # 1) Reconstruct the original system+question prompt
+        q_text = SYSTEM_PROMPT_FIRST.format(prompt=item["problem"])
+        # 2) Grab the first‐turn assistant response
+        a1_text = item["A1"]
+        # 3) Append your second‐turn instruction
+        prompt_second = (
+            q_text
+            + "\n" + a1_text
+            + "\n" + ADDED_INSTRUCTION
+        )
         prompts_second.append(prompt_second)
 
     print("\nRunning SECOND TURN for all examples...")
@@ -242,7 +259,7 @@ def main():
     print_confusion_matrix(df_final)
 
     # df_final.to_csv(csv_file_path, index=False)
-    print(f"\nAll done. Results saved to '{csv_file_path}'.")
+    # print(f"\nAll done. Results saved to '{csv_file_path}'.")
 
 if __name__ == "__main__":
     main()

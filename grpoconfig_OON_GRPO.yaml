@@ -32,9 +32,11 @@
 # eval_on_start: False 
 
 
-model_name: "Qwen/Qwen2.5-0.5B-instruct"
-output_dir: "0414-qwen0.5b-it-OON"
-run_name: "0414-qwen0.5b-it-OON"
+
+# model_name: "Qwen/Qwen2.5-3B-instruct"
+model_name: "qwen3b-it-old-prompt/checkpoint-400"
+output_dir: "0414-qwen3b-it-OON"
+run_name: "0414-qwen3b-it-OON"
 scale_rewards: True
 # resume_from_checkpoint: True
 # checkpoint_path: "qwen3b-it-old-prompt/checkpoint-400"
@@ -48,10 +50,10 @@ lr_scheduler_type: constant_with_warmup
 logging_steps: 1
 bf16: True
 bf16_full_eval: True
-per_device_train_batch_size: 2
+per_device_train_batch_size: 4
 gradient_accumulation_steps: 5
 gradient_checkpointing: True
-num_generations: 2
+num_generations: 8
 max_prompt_length: 2560
 max_completion_length: 2048
 num_train_epochs: 1
