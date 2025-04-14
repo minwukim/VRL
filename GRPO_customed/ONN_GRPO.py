@@ -174,8 +174,9 @@ class ONN_GRPOTrainer(GRPOTrainer):
     def __init__(
         self,
         *args,
-        correction_instruction: str = "\n\nThere might be something wrong with the previous response. Please review it critically and provide a corrected or improved answer. If the previous response was already correct, reiterate it.",
+        correction_instruction: str = "There might be something wrong with the previous response. Please review it critically and provide a corrected or improved answer. If the previous response was already correct, reiterate it.",
         a1_prompt_format: str = "{prompt}{completion}<|im_end|>\n<|im_start|>user\n{instruction}<|im_end|>\n<|im_start|>assistant\n",
+        
         **kwargs,
     ):
         """

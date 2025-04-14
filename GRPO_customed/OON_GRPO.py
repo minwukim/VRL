@@ -310,7 +310,7 @@ class OON_GRPOTrainer(GRPOTrainer):
 
                 # 2.3) Build the new prompt
 
-                second_instruction = "There might be an error in the solution above because of lack of understanding of the question. Please correct the error, if any, and rewrite the solution. Put your final answer within \\boxed{}."
+                second_instruction = "\nUser: There might be an error in the solution above because of lack of understanding of the question. Please correct the error, if any, and rewrite the solution. Maintain the format of: <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>. \nAssistant:"
 
                 second_turn_prompts = []
                 for q_text, a1_text in zip(ordered_unique_prompts, first_turn_completions_text):
@@ -320,11 +320,11 @@ class OON_GRPOTrainer(GRPOTrainer):
                         "prompt": (
                             q_text
                             + a1_text
-                            + "<|im_end|>\n"
-                            + "<|im_start|>user\n"
+                            # + "<|im_end|>\n"
+                            # + "<|im_start|>user\n"
                             + second_instruction
-                            + "<|im_end|>\n"
-                            + "<|im_start|>assistant\n"
+                            # + "<|im_end|>\n"
+                            # + "<|im_start|>assistant\n"
                         )
                     }
 

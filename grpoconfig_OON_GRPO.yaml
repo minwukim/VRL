@@ -32,14 +32,12 @@
 # eval_on_start: False 
 
 
-# model_name: "Qwen/Qwen2.5-1.5B-Instruct"
-model_name: "Qwen/Qwen2.5-3B-Instruct"
-
-output_dir: "qwen2.5-3B-it-GRPO"
-run_name: "qwen2.5-3B-it-GRPO"
-scale_rewards: False
-resume_from_checkpoint: False
-# checkpoint_path: "outputs/qwen2.5-3b-grpo-large/checkpoint-125"
+model_name: "Qwen/Qwen2.5-0.5B-instruct"
+output_dir: "0411-qwen0.5b-it-old-prompt"
+run_name: "0411-qwen0.5b-it-old-prompt"
+scale_rewards: True
+resume_from_checkpoint: True
+checkpoint_path: "qwen3b-it-old-prompt/checkpoint-400"
 learning_rate: 1e-6
 beta: 0.0001
 adam_beta1: 0.9
@@ -50,10 +48,10 @@ lr_scheduler_type: constant_with_warmup
 logging_steps: 1
 bf16: True
 bf16_full_eval: True
-per_device_train_batch_size: 4
-gradient_accumulation_steps: 10
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 5
 gradient_checkpointing: True
-num_generations: 10
+num_generations: 2
 max_prompt_length: 2560
 max_completion_length: 2048
 num_train_epochs: 1
@@ -65,5 +63,5 @@ vllm_max_model_len: 5000
 max_steps: 300  
 log_completions: True
 evaluation_strategy: steps
-eval_steps: 25
+eval_steps: 50
 eval_on_start: False 
