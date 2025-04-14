@@ -3,7 +3,7 @@ import torch
 from datasets import load_dataset, Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import GRPOConfig, GRPOTrainer
-from GRPO_customed.ONN_GRPO import OON_GRPOTrainer
+from GRPO_customed.OON_GRPO import OON_GRPOTrainer
 
 from datasets import load_dataset
 from math_verify import verify, parse
