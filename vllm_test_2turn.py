@@ -35,7 +35,7 @@ Assistant: <think>"""
 # )
 
 
-ADDED_INSTRUCTION = "\nUser: There might be an error in the solution above because of lack of understanding of the question. Please correct the error, if any, and rewrite the solution. Maintain the format of: <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>. \nAssistant:"
+ADDED_INSTRUCTION = "\nUser: There might be an error in the solution above because of lack of understanding of the question. Please correct the error, if any, and rewrite the solution. Maintain the format of: <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>. \nAssistant: <think>"
 
 
 # Second turn prompt template
