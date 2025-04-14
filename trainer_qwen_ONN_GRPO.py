@@ -3,7 +3,7 @@ import torch
 from datasets import load_dataset, Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import GRPOConfig, GRPOTrainer
-from GRPO_customed.OON_GRPO import OON_GRPOTrainer
+from GRPO_customed.ONN_GRPO import ONN_GRPOTrainer
 
 from datasets import load_dataset
 from math_verify import verify, parse
@@ -250,10 +250,10 @@ grpo_config_args = GRPOConfig(
     #eval_on_start=training_args.eval_on_start,
 )
 
-trainer = OON_GRPOTrainer(
+trainer = ONN_GRPOTrainer(
     model=model_name,
-    # reward_funcs=[reward_func],
-    reward_funcs = [reward_correct_a1_agnostic],
+    reward_funcs=[reward_func],
+    # reward_funcs = [reward_correct_a1_agnostic],
     args=grpo_config_args,
     train_dataset=train,
     eval_dataset=test,
