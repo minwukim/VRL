@@ -174,7 +174,8 @@ class ONN_GRPOTrainer(GRPOTrainer):
     def __init__(
         self,
         *args,
-        correction_instruction: str = "There might be something wrong with the previous response. Please review it critically and provide a corrected or improved answer. If the previous response was already correct, reiterate it.",
+        correction_instruction: str = "\nUser: There might be an error in the solution above because of lack of understanding of the question. Please correct the error, if any, and rewrite the solution. Maintain the format of: <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>.\nAssistant: <think>",
+        # correction_instruction: str = "There might be something wrong with the previous response. Please review it critically and provide a corrected or improved answer. If the previous response was already correct, reiterate it.",
         a1_prompt_format: str = "{prompt}{completion}<|im_end|>\n<|im_start|>user\n{instruction}<|im_end|>\n<|im_start|>assistant\n",
         
         **kwargs,

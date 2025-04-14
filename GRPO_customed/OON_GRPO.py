@@ -494,7 +494,6 @@ class OON_GRPOTrainer(GRPOTrainer):
                         dtype=torch.float32,
                         device=device
                     )
-                    print("rewards_per-func", rewards_per_func)
 
         # Collect global rewards
         rewards_per_func = gather(rewards_per_func)
