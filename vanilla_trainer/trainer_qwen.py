@@ -111,7 +111,7 @@ def reward_correct(completions, answer, **kwargs):
 
 
 #train, test = get_dataset()
-train, test = load_math(SYSTEM)
+train, test = load_math(SYSTEM, sample=100)
 #train, test, reward_correct = load_kk()
 
 model_path = training_args.model_name if not training_args.resume_from_checkpoint else training_args.checkpoint_path
@@ -145,9 +145,10 @@ grpo_config_args = GRPOConfig(
     vllm_max_model_len=training_args.vllm_max_model_len,
     log_completions=training_args.log_completions,
     max_steps=training_args.max_steps,
-    evaluation_strategy=training_args.evaluation_strategy,
-    eval_steps = training_args.eval_steps,
-    eval_on_start=training_args.eval_on_start,
+    evaluation_strategy="no",
+    #evaluation_strategy=training_args.evaluation_strategy,
+    #eval_steps = training_args.eval_steps,
+    #eval_on_start=training_args.eval_on_start,
 )
 
 trainer = GRPOTrainer(

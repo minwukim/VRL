@@ -1,0 +1,6 @@
+
+------category level sta------
+Average accuracy 0.2500 - business
+
+------average acc sta------
+Average accuracy: 0.2500

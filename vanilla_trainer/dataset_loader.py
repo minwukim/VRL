@@ -8,9 +8,13 @@ from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_stri
 def extract_boxed_answer(solution):
     return last_boxed_only_string(solution)
 
-def load_math(SYSTEM):
+def load_math(SYSTEM, sample=None, diff_filter=False):
     train = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="train")
     test = load_dataset("HuggingFaceH4/MATH-500", split="test")
+
+    #sample 'n' from train
+    if sample is not None:
+        train = train.train_test_split(train_size=100, shuffle=True, seed=42)['train']
 
     train = train.map(lambda x: {
         "prompt": SYSTEM.format(prompt=x["problem"]),
@@ -23,7 +27,10 @@ def load_math(SYSTEM):
         "answer": x["answer"],
         "level": x["level"]
         })
-    train = train.filter(lambda x: (x['level'] == 'Level 4') or (x['level'] == 'Level 5'))
+
+    if diff_filter:
+        train = train.filter(lambda x: (x['level'] == 'Level 4') or (x['level'] == 'Level 5'))
+    
     train = train.remove_columns(["problem", "solution", "type"])
     test = test.remove_columns(["problem", "solution", "subject", "unique_id"])
     return train, test

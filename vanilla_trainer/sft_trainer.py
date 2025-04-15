@@ -107,7 +107,9 @@ sft_config_args = SFTConfig(
     eval_strategy=training_args.evaluation_strategy,
     eval_steps = training_args.eval_steps,
     eval_on_start=training_args.eval_on_start,
-    gradient_checkpointing_kwargs={"use_reentrant": False}
+    gradient_checkpointing_kwargs={"use_reentrant": False},
+    per_device_eval_batch_size=training_args.per_device_train_batch_size,
+    eval_accumulation_steps=training_args.gradient_accumulation_steps
 )
 
 trainer = SFTTrainer(
