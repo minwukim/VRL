@@ -35,8 +35,8 @@
 
 # model_name: "Qwen/Qwen2.5-0.5B-instruct"
 model_name: "qwen3b-it-old-prompt/checkpoint-400"
-output_dir: "0414-qwen3b-it-ONN"
-run_name: "0414-qwen3b-it-ONN"
+output_dir: "0415-qwen3b-it-ONN"
+run_name: "0415-qwen3b-it-ONN"
 scale_rewards: True
 # resume_from_checkpoint: True
 # checkpoint_path: "qwen3b-it-old-prompt/checkpoint-400"
