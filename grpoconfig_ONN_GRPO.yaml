@@ -54,14 +54,14 @@ per_device_train_batch_size: 4
 gradient_accumulation_steps: 5
 gradient_checkpointing: True
 num_generations: 8
-max_prompt_length: 2560
-max_completion_length: 2048
+max_prompt_length: 3000
+max_completion_length: 2500
 num_train_epochs: 1
 save_steps: 25
 max_grad_norm: 0.1
 report_to: wandb
 use_vllm: True
-vllm_max_model_len: 5000
+vllm_max_model_len: 5600
 max_steps: 300  
 log_completions: True
 evaluation_strategy: steps
