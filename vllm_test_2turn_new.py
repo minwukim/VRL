@@ -13,7 +13,7 @@ from math_verify import verify, parse
 # model_path = "./qwen2.5-3b-grpo-switch-type1-reward/checkpoint-300"
 # model_path = "Qwen/Qwen2.5-3B-instruct"
 # model_path = "./qwen3b-it-old-prompt/checkpoint-450"
-model_path = "./0415-qwen3b-it-ONN-a1agnostic/checkpoint-200"
+model_path = "./0415-qwen3b-it-ONN-a1agnostic/checkpoint-250"
 # model_path = "./0414-qwen3b-it-ONN/checkpoint-150"
 # model_path = "hkust-nlp/Qwen-2.5-Math-7B-SimpleRL-Zero"
 # csv_file_path = "./qwen2.5-grpo-switch-csvs/qwen2.5-3b-grpo-switch-type1-reward-checkpoint-350_2stage.csv"
@@ -104,9 +104,9 @@ def get_math_test_data():
 llm = LLM(model=model_path)
 
 sampling_params = SamplingParams(
-    temperature=0.0,
+    temperature=0.1,
     top_p=1.0,
-    max_tokens=4000
+    max_tokens=6000
 )
 
 ##############################################
@@ -237,11 +237,12 @@ def main():
     print("\nRunning SECOND TURN for all examples...")
     print(prompts_second[0])
     outputs_turn2 = llm.generate(prompts_second, sampling_params)
-    
 
     final_data = []
     for idx, item in enumerate(partial_data):
         A2 = outputs_turn2[idx].outputs[0].text
+        if idx==1:
+            print(A2)
         gt = item["ground_truth"]
         score_A2 = reward_func(A2, gt)
         fa_A2 = format_agnostic_reward_func(A2, gt)
