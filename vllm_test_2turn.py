@@ -13,7 +13,7 @@ from math_verify import verify, parse
 # model_path = "./qwen2.5-3b-grpo-switch-type1-reward/checkpoint-300"
 # model_path = "Qwen/Qwen2.5-3B-instruct"
 # model_path = "./qwen3b-it-old-prompt/checkpoint-450"
-model_path = "./0414-qwen3b-it-OON/checkpoint-100"
+model_path = "./0414-qwen3b-it-OON/checkpoint-150"
 # model_path = "./0414-qwen3b-it-ONN/checkpoint-150"
 # model_path = "hkust-nlp/Qwen-2.5-Math-7B-SimpleRL-Zero"
 # csv_file_path = "./qwen2.5-grpo-switch-csvs/qwen2.5-3b-grpo-switch-type1-reward-checkpoint-350_2stage.csv"
