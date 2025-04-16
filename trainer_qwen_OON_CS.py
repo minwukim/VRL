@@ -61,6 +61,91 @@ SYSTEM="""A conversation between User and Assistant. The user asks a question, a
 {prompt}
 Assistant: <think>"""
 
+
+def reward_confidence_format_only(completions, **kwargs):
+
+    def check_confidence_format(s):
+        pattern = r"(.+)</confidence>\s*$"
+        if s.count("</confidence>") != 1: 
+            print("Error: no tag")
+            return -1
+        match = re.search(pattern, s, re.DOTALL)
+        if not match:
+            print("Error: pattern does not match")
+            return -1    
+        extracted_confidence = match.group(1).strip()   
+        print("extracted confidence:", extracted_confidence)
+        if extracted_confidence is None: 
+            print("Nothing extracted")
+            return -1
+        if extracted_confidence not in ['0','1','2','3','4','5','6','7','8','9','10']:
+            print("Not in range")
+            return -0.5
+        return 1
+    
+    return [check_confidence_format(c) for c in completions]
+
+def reward_doubt_a1_format_agnostic(completions, first_completions, answer, **kwargs):
+
+    def check_first_completion_correctness(s, gt):
+        return verify(parse(s), parse(gt))
+
+    def reward_doubt(s, first_correct):
+        pattern = r"(.+)</confidence>\s*$"
+        if s.count("</confidence>") != 1: 
+            print("Error: no tag")
+            return -1
+        match = re.search(pattern, s, re.DOTALL)
+        if not match:
+            print("Error: pattern does not match")
+            return -1    
+        extracted_confidence = match.group(1).strip()   
+        print("extracted confidence:", extracted_confidence)
+        if extracted_confidence is None: 
+            print("Nothing extracted")
+            return -1
+        if extracted_confidence not in ['0','1','2','3','4','5','6','7','8','9','10']:
+            print("Not in range")
+            return -0.5
+        
+        confidence_score = int(extracted_confidence)
+        
+        return 1
+    
+    return [check_confidence_format(c) for c in completions]
+    
+
+
+
+def reward_confidence(completions, answer, first_completions=None, **kwargs):
+
+    # Type 1: A2 accuracy > behavior collapse mitigation (i_c > c_c > i_i > c_i)
+    i_c, c_c, i_i, c_i = 8, 0.5, -0.5, -1
+
+    # Type 2: behavior collapse mitigation > A2 accuracy (i_c >= c_i > c_c >= i_i)
+    # Note: for i->i, we might need to consider two cases and give rewards.
+    # i_c, c_i, c_c, i_i, = 3, 0, -0.5, -1
+
+    # check if the strings ends with </think><answer>[boxed answer]</answer>
+    def rewarding_doubt_with_format(s, gt):
+        pattern = r"(.+)</confidence>\s*$"
+        if s.count("</confidence>") != 1:
+            # incorrect amount of tokens
+            return -2 
+        match = re.search(pattern, s, re.DOTALL)
+        # if answer doesn't match provided format
+        if not match: return -2
+
+        # answer format is correct now
+        ext_string = match.group(1)
+        if ext_string is None: return -2  
+        
+        # if correct, then reward 2
+        if verify(parse(ext_string), parse(gt)): return 2
+        else: return -0.5 # extracted but incorrect then reward -0.5
+
+
+
 def reward_correct_a1_agnostic(completions, answer, **kwargs):
 
     # check if the strings ends with </think><answer>[boxed answer]</answer>

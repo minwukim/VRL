@@ -330,7 +330,7 @@ class OON_Oracle_GRPOTrainer(GRPOTrainer):
                     # Check correctness of the first answer (a1_text) using the provided function
                     # Assuming check_format_and_correctness returns 2 for correct, other values for incorrect.
                     correctness_score = check_correctness(a1_text, gt_answer)
-                    second_instruction = "<|im_start|>user\nRate your confidence in the preceding response on a scale of 0 (likely incorrect) to 10 (likely correct). Output only your integer confidence score using the format: `<confidence> \\boxed{{confidence}} </confidence>`.<|im_end|>\n"
+                    second_instruction = "<|im_start|>user\nRate your confidence in the preceding response on a scale of 0 (likely incorrect) to 10 (likely correct), inclusive. Output only your integer confidence score, with the format as such: `<confidence>10</confidence>`.<|im_end|>\n"
                     third_instruction = "<|im_start|>user\nReview your previous response. Considering your confidence score (where 0 indicates likely incorrect and 10 indicates likely correct), solve the problem again. Provide your revised solution in the format: `<think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>`.<|im_end|>\n"
                     # Determine the second instruction based on correctness
                     if correctness_score == 1:
