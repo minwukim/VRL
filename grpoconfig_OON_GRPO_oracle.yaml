@@ -1,7 +1,7 @@
 
 
-model_name: "Qwen/Qwen2.5-0.5B-instruct"
-# model_name: "qwen3b-it-old-prompt/checkpoint-400"
+# model_name: "Qwen/Qwen2.5-0.5B-instruct"
+model_name: "qwen3b-it-old-prompt/checkpoint-400"
 output_dir: "0416-qwen3b-it-OON-oracle"
 run_name: "0416-qwen3b-it-OON-oracle"
 scale_rewards: True
