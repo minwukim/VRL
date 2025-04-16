@@ -86,7 +86,7 @@ def get_math_test_data():
 llm = LLM(model=model_path)
 
 sampling_params = SamplingParams(
-    temperature=0.5,
+    temperature=0.0,
     top_p=1.0,
     max_tokens=2500
 )
