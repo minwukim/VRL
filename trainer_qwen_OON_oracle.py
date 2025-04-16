@@ -3,7 +3,7 @@ import torch
 from datasets import load_dataset, Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import GRPOConfig, GRPOTrainer
-from GRPO_customed.OON_GRPO_oracle  import OON_Oracle_GRPOTrainer
+from GRPO_customed.OON_GRPO_oracle import OON_Oracle_GRPOTrainer
 
 from datasets import load_dataset
 from math_verify import verify, parse
@@ -55,13 +55,14 @@ from trl import TrlParser
 parser = TrlParser(dataclass_types=[MyArguments])
 
 training_args = parser.parse_args_and_config()[0]
+print("==============")
 print(training_args)
-# SYSTEM="""A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>. User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag.
-# {prompt}
-# Assistant: <think>"""
-SYSTEM="""
-<|im_start|>system\nA conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n<think>
-"""
+print("==============")
+
+
+SYSTEM="""A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>. User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag.
+{prompt}
+Assistant: <think>"""
 
 def reward_correct_a1_agnostic(completions, answer, **kwargs):
 
