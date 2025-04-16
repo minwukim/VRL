@@ -1,6 +1,5 @@
 
 
-# model_name: "Qwen/Qwen2.5-3B-instruct"
 model_name: "qwen3b-it-old-prompt/checkpoint-400"
 output_dir: "0416-qwen3b-it-OON-oracle"
 run_name: "0416-qwen3b-it-OON-oracle"

@@ -113,10 +113,13 @@ def reward_doubt_a1_format_agnostic(completions, first_completions, answer, **kw
         # STEP 2: rounding: 0->0.001 10
         confidence_score = int(extracted_confidence)
         if confidence_score == 0:
-
+            confidence_score = 0.001
+        elif confidence_score == 10:
+            confidence_score = 0.999
+        else:
+            confidence_score = confidence_score / 10
         if first_correct:
-
-        return 1
+            return 1
     
     return [check_confidence_format(c) for c in completions]
     
@@ -149,7 +152,6 @@ def reward_confidence(completions, answer, first_completions=None, **kwargs):
         # if correct, then reward 2
         if verify(parse(ext_string), parse(gt)): return 2
         else: return -0.5 # extracted but incorrect then reward -0.5
-
 
 
 def reward_correct_a1_agnostic(completions, answer, **kwargs):
@@ -238,8 +240,6 @@ def reward_correct_a1_dependent(completions, answer, first_completions=None, **k
     if first_completions is None:
         return [check_format_and_correctness(c, gt) for c, gt in zip(completions, answer)]
     return [give_a1_based_reward(a1,a2,gt) for a1,a2,gt in zip (first_completions, completions, answer)]
-
-
 
 
 def extract_boxed_answer(solution):

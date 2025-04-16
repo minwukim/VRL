@@ -154,6 +154,8 @@ def reward_correct_a1_dependent(completions, answer, first_completions=None, **k
     return [give_a1_based_reward(a1,a2,gt) for a1,a2,gt in zip (first_completions, completions, answer)]
 
 
+
+
 def extract_boxed_answer(solution):
     return last_boxed_only_string(solution)
 
@@ -225,5 +227,4 @@ trainer = OON_Oracle_GRPOTrainer(
     eval_dataset=test,
 )
 # trainer.train(resume_from_checkpoint=training_args.checkpoint_path if training_args.resume_from_checkpoint else False)
-# trainer.train(resume_from_checkpoint=training_args.checkpoint_path if training_args.resume_from_checkpoint else None)
-trainer.train()
+trainer.train(resume_from_checkpoint=training_args.checkpoint_path if training_args.resume_from_checkpoint else None)
