@@ -9,7 +9,7 @@ from math_verify import verify, parse
 # Settings and Model Initialization
 ##############################################
 
-model_path = "./0415-qwen3b-it-ONN-a1agnostic/checkpoint-50"
+model_path = "./0415-qwen3b-it-ONN/checkpoint-300"
 # csv_file_path = "0415-qwen3b-it-ONN-a1agnostic-cp150.csv"
 
 # First turn prompt template
