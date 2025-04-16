@@ -22,7 +22,7 @@ gradient_accumulation_steps: 5
 gradient_checkpointing: True
 num_generations: 10
 max_prompt_length: 3060
-max_completion_length: 2548
+max_completion_length: 2560
 num_train_epochs: 1
 save_steps: 25
 max_grad_norm: 0.1
