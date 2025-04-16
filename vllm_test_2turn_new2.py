@@ -98,7 +98,8 @@ def get_math_test_data():
     """
     Loads the MATH-500 test dataset.
     """
-    dataset = load_dataset("HuggingFaceH4/MATH-500", trust_remote_code=True)["test"]
+    # dataset = load_dataset("HuggingFaceH4/MATH-500", trust_remote_code=True)["test"]
+    dataset = load_dataset("DigitalLearningGmbH/MATH-lighteval",  trust_remote_code=True)["test"]
     return dataset
 
 # Set your model checkpoint path
