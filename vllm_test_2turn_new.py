@@ -8,32 +8,14 @@ from math_verify import verify, parse
 ##############################################
 # Settings and Model Initialization
 ##############################################
-# model_path = "./outputs/qwen2.5-3b-grpo-full/checkpoint-400"  # or update to your desired model path
-# model_path = "./qwen2.5-3b-grpo-switch/checkpoint-350"  # or update to your desired model path
-# model_path = "./qwen2.5-3b-grpo-switch-type1-reward/checkpoint-300"
-# model_path = "Qwen/Qwen2.5-3B-instruct"
-# model_path = "./qwen3b-it-old-prompt/checkpoint-450"
-model_path = "./0415-qwen3b-it-ONN-a1agnostic/checkpoint-250"
-# model_path = "./0414-qwen3b-it-ONN/checkpoint-150"
-# model_path = "hkust-nlp/Qwen-2.5-Math-7B-SimpleRL-Zero"
-# csv_file_path = "./qwen2.5-grpo-switch-csvs/qwen2.5-3b-grpo-switch-type1-reward-checkpoint-350_2stage.csv"
 
+model_path = "./0415-qwen3b-it-ONN-a1agnostic/checkpoint-250"
+csv_file_path = "0415-qwen3b-it-ONN-a1agnostic-cp250.csv"
 
 # First turn prompt template
 SYSTEM_PROMPT_FIRST="""
 <|im_start|>system\nA conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n<think>
 """
-
-# # Instruction for the second turn (correction/verification)
-# ADDED_INSTRUCTION = (
-#     "A conversation between User and Assistant. Given a question and a corresponding response provided below, the Assistant systematically reviews and explains each step of the reasoning process to verify the correctness of the response."
-#     "If errors are found, the Assistant identifies and corrects them, then re-solves the problem. If the response is correct, the Assistant confirms it and returns the same final answer."
-#     "The assistant first thinks about the reasoning process in mind, including verification, correction, and resolving the problem if necessary. Then provides the user with the answer."
-#     "The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> final answer inside \\boxed{{}} tag </answer>." 
-#     "The reasoning process, including verification and correction, is enclosed within <think> </think> tags, while the final solution is enclosed within <answer> </answer> tags. The final answer is formatted within \\boxed{{}} to enable direct extraction for grading."
-#     "User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag."
-# )
-
 
 # ADDED_INSTRUCTION = "User: There might be an error in the solution above because of lack of understanding of the question. Please correct the error, if any, and rewrite the solution. Maintain the format of: <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>. \nAssistant: <think>"
 ADDED_INSTRUCTION = "<|im_end|>\n<|im_start|>user\n There might be an error in the solution above because of lack of understanding of the question. Please correct the error, if any, and rewrite the solution. Maintain the format of: <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>.<|im_end|>\n<|im_start|>assistant\n <think>"
@@ -104,9 +86,9 @@ def get_math_test_data():
 llm = LLM(model=model_path)
 
 sampling_params = SamplingParams(
-    temperature=0.1,
+    temperature=0.5,
     top_p=1.0,
-    max_tokens=6000
+    max_tokens=2500
 )
 
 ##############################################
@@ -190,7 +172,7 @@ def main():
         ground_truths.append(gt)
 
     print("\nRunning FIRST TURN for all examples...")
-    print(prompts_first[0])
+    print(prompts_first[100])
     outputs_turn1 = llm.generate(prompts_first, sampling_params)
 
     partial_data = []
@@ -235,7 +217,7 @@ def main():
         prompts_second.append(prompt_second)
 
     print("\nRunning SECOND TURN for all examples...")
-    print(prompts_second[0])
+    print(prompts_second[100])
     outputs_turn2 = llm.generate(prompts_second, sampling_params)
 
     final_data = []
@@ -263,8 +245,8 @@ def main():
     print_turn_stats(df_final, turn_label="A2")
     print_confusion_matrix(df_final)
 
-    # df_final.to_csv(csv_file_path, index=False)
-    # print(f"\nAll done. Results saved to '{csv_file_path}'.")
+    df_final.to_csv(csv_file_path, index=False)
+    print(f"\nAll done. Results saved to '{csv_file_path}'.")
 
 if __name__ == "__main__":
     main()
