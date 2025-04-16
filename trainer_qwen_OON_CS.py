@@ -91,6 +91,8 @@ def reward_doubt_a1_format_agnostic(completions, first_completions, answer, **kw
         return verify(parse(s), parse(gt))
 
     def reward_doubt(s, first_correct):
+
+        # STEP 1: CHECK FORMAT
         pattern = r"(.+)</confidence>\s*$"
         if s.count("</confidence>") != 1: 
             print("Error: no tag")
@@ -108,8 +110,12 @@ def reward_doubt_a1_format_agnostic(completions, first_completions, answer, **kw
             print("Not in range")
             return -0.5
         
+        # STEP 2: rounding: 0->0.001 10
         confidence_score = int(extracted_confidence)
-        
+        if confidence_score == 0:
+
+        if first_correct:
+
         return 1
     
     return [check_confidence_format(c) for c in completions]
