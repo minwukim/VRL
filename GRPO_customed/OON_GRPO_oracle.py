@@ -25,6 +25,8 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from math_verify import verify, parse
+
 import re
 import functools
 
@@ -261,7 +263,16 @@ def extract_a1_text(prompt_string):
     return None
 
 
-class OON_GRPOTrainer(GRPOTrainer):
+def check_correctness(completion: str, ground_truth: str) -> float:
+    """
+    Directly computes the correctness regardless of formatting.
+    Returns 1.0 if the parsed completion matches the ground truth; otherwise 0.0.
+    """
+    return 1.0 if verify(parse(completion), parse(ground_truth)) else 0.0
+
+
+
+class OON_Oracle_GRPOTrainer(GRPOTrainer):
 
     def _generate_and_score_completions(
         self, inputs: dict[str, Union[torch.Tensor, Any]]
@@ -287,11 +298,13 @@ class OON_GRPOTrainer(GRPOTrainer):
             
             # Gather prompts from all processes -> one big list on rank 0
             all_prompts_text = gather_object(prompts_text)
+            all_ground_truths = gather_object([x["answer"] for x in inputs])
 
             if self.accelerator.is_main_process:            
                 # 2.1) De-duplicate the original prompts: 
                 # for a batch of size B = (#distinct Q * self.num_generations), we want the distinct Q.
                 ordered_unique_prompts = all_prompts_text[:: self.num_generations]
+                ordered_unique_ground_truths = all_ground_truths[:: self.num_generations] # Get corresponding GTs
 
                 sampling_params_1n = deepcopy(self.sampling_params)
                 sampling_params_1n.n = 1
@@ -308,27 +321,45 @@ class OON_GRPOTrainer(GRPOTrainer):
                 # Decode the first_turn outputs to string.
                 first_turn_completions_text = [self.processing_class.decode(ids, skip_special_tokens=True) for ids in first_turn_completions_ids]
 
-                # 2.3) Build the new prompt
-
-                second_instruction = "\nUser: There might be an error in the solution above because of lack of understanding of the question. Please correct the error, if any, and rewrite the solution. Maintain the format of: <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>.\nAssistant: <think>"
+                # 2.3) Build the new prompt conditionally based on A1 correctness
 
                 second_turn_prompts = []
-                for q_text, a1_text in zip(ordered_unique_prompts, first_turn_completions_text):
-                    
-                    # Build the second-turn prompt
+                # Iterate over unique prompts, their first answers (A1), and their ground truths (GT)
+                for q_text, a1_text, gt_answer in zip(ordered_unique_prompts, first_turn_completions_text, ordered_unique_ground_truths):
+
+                    # Check correctness of the first answer (a1_text) using the provided function
+                    # Assuming check_format_and_correctness returns 2 for correct, other values for incorrect.
+                    correctness_score = check_correctness(a1_text, gt_answer)
+                    second_instruction = "<|im_start|>user\nRate your confidence in the preceding response on a scale of 0 (likely incorrect) to 10 (likely correct). Output only your integer confidence score using the format: `<confidence> \\boxed{{confidence}} </confidence>`.<|im_end|>\n"
+                    third_instruction = "<|im_start|>user\nReview your previous response. Considering your confidence score (where 0 indicates likely incorrect and 10 indicates likely correct), solve the problem again. Provide your revised solution in the format: `<think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>`.<|im_end|>\n"
+                    # Determine the second instruction based on correctness
+                    if correctness_score == 1:
+                        # Correct answer instruction
+                        confidence_response = "<|im_start|>assistant\n<confidence>10</confidence><||im_end|>\n"
+                    else:
+                        # Incorrect answer instruction (handles -2, -1, -0.5)
+                        # Note: You wrote "confidence", keeping it as is. If it should be "confident", change below.
+                        confidence_response = "<|im_start|>assistant\n<confidence>0</confidence><||im_end|>\n"
+
+                    # Build the second-turn prompt structure: Q + A1 + Conditional Instruction
+                    # Ensure the structure matches what your model expects for few-shot/instruction following.
+                    # The example structure below follows the pattern from your original code.
                     example = {
                         "prompt": (
-                            q_text
-                            + a1_text
-                            # + "<|im_end|>\n"
-                            # + "<|im_start|>user\n"
+                            q_text          # Original prompt
+                            + a1_text       # First generated answer
+                            + "<|im_end|>\n"  # Optional separators if using chat templates
                             + second_instruction
-                            # + "<|im_end|>\n"
-                            # + "<|im_start|>assistant\n"
+                            + confidence_response
+                            + third_instruction
+                            + "<|im_start|>assistant\n<think>"
                         )
                     }
+                    # Apply chat template if necessary (as in your original code)
+                    processed_prompt = maybe_apply_chat_template(example, self.processing_class)["prompt"]
+                    second_turn_prompts.append(processed_prompt)
 
-                    second_turn_prompts.append(maybe_apply_chat_template(example, self.processing_class)["prompt"])
+
                 final_second_turn_prompts = []
                 for new_p in second_turn_prompts:
                     final_second_turn_prompts.extend([new_p] * self.num_generations)
@@ -469,26 +500,15 @@ class OON_GRPOTrainer(GRPOTrainer):
                 else:
                     # print("REWARD FUNC IS NOT AN NN.MODULE.")
                     keys = [key for key in inputs[0] if key not in ["prompt", "completion"]]
-                    # print("keys[0]", keys)
                     reward_kwargs = {key: [example[key] for example in inputs] for key in keys}
-                    # print("reward_kwargs",reward_kwargs)
                     a1_texts = [extract_a1_text(text) for text in local_second_turn_prompts]
-                    # print("COMPLETIONS,", completions[0])
-                    # print("COMPLETIONS length", len(completions))
-                    # print("COMPLETIONS_TEXT,", completions_text[0])
-                    # print("COMPLETIONS_TEXT length", len(completions_text))
+
                     output_reward_func = reward_func(
                         prompts=prompts,
                         completions=completions,
                         first_completions=a1_texts,
                         **reward_kwargs
                     )
-                    # output_reward_func = reward_func(
-                    #     prompts=final_second_turn_prompts,
-                    #     completions=completions,
-                    #     **reward_kwargs
-                    # )
-                    # print("output_reward_func", output_reward_func)
                     rewards_per_func[:, i] = torch.tensor(
                         output_reward_func,
                         dtype=torch.float32,

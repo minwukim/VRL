@@ -1,0 +1,36 @@
+
+
+# model_name: "Qwen/Qwen2.5-3B-instruct"
+model_name: "qwen3b-it-old-prompt/checkpoint-400"
+output_dir: "0416-qwen3b-it-OON-oracle"
+run_name: "0416-qwen3b-it-OON-oracle"
+scale_rewards: True
+# resume_from_checkpoint: True
+# checkpoint_path: "qwen3b-it-old-prompt/checkpoint-400"
+learning_rate: 1e-6
+beta: 0.0001
+adam_beta1: 0.9
+adam_beta2: 0.99
+weight_decay: 0.1
+warmup_steps: 20
+lr_scheduler_type: constant_with_warmup
+logging_steps: 1
+bf16: True
+bf16_full_eval: True
+per_device_train_batch_size: 4
+gradient_accumulation_steps: 5
+gradient_checkpointing: True
+num_generations: 10
+max_prompt_length: 3060
+max_completion_length: 2548
+num_train_epochs: 1
+save_steps: 25
+max_grad_norm: 0.1
+report_to: wandb
+use_vllm: True
+vllm_max_model_len: 5800
+max_steps: 300  
+log_completions: True
+evaluation_strategy: steps
+eval_steps: 50
+eval_on_start: False 
