@@ -181,7 +181,7 @@ def main():
         ground_truths.append(gt)
 
     print("\nRunning First Turn Generation...")
-    print(prompts_first[0])
+    print(prompts_first[120])
     outputs_turn1 = llm.generate(prompts_first, sampling_params)
 
     first_turn_data = []
@@ -212,7 +212,7 @@ def main():
         prompts_second.append(prompt_second)
     
     print("\nRunning Second Turn Generation...")
-    print(prompts_second[0])
+    print(prompts_second[120])
     outputs_turn2 = llm.generate(prompts_second, sampling_params)
 
     final_data = []
