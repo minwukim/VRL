@@ -102,7 +102,7 @@ def get_math_test_data():
     return dataset
 
 # Set your model checkpoint path
-model_path = "./0415-qwen3b-it-ONN/checkpoint-125"  # adjust if necessary
+model_path = "./0415-qwen3b-it-ONN/checkpoint-300"  # adjust if necessary
 llm = LLM(model=model_path)
 
 # Define sampling parameters for generation
