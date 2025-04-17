@@ -88,7 +88,7 @@ def get_math_test_data():
     return load_dataset("HuggingFaceH4/MATH-500", trust_remote_code=True)["test"]
     # return load_dataset("DigitalLearningGmbH/MATH-lighteval", trust_remote_code=True)["test"]
 
-model_path = "./0416-qwen3b-it-OON-oracle/checkpoint-10"
+model_path = "./0416-qwen3b-it-OON-oracle/checkpoint-125"
 # model_path = "./qwen3b-it-old-prompt/checkpoint-350"
 llm = LLM(model=model_path)
 
