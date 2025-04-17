@@ -6,7 +6,7 @@ from obsolete.custom_MATH_reward import remove_boxed, last_boxed_only_string
 from math_verify import verify, parse
 
 
-model_path = "./0415-qwen3b-it-ONN/checkpoint-300"
+model_path = "./0416-qwen3b-it-OON-oracle/checkpoint-200"
 ##############################################
 # Prompt Templates
 ##############################################
