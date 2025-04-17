@@ -5,8 +5,8 @@ model_name: "qwen3b-it-old-prompt/checkpoint-400"
 output_dir: "0417-qwen3b-it-OON-oracle-switch"
 run_name: "0417-qwen3b-it-OON-oracle-switch"
 scale_rewards: True
-# resume_from_checkpoint: True
-# checkpoint_path: "qwen3b-it-old-prompt/checkpoint-400"
+resume_from_checkpoint: True
+checkpoint_path: "0417-qwen3b-it-OON-oracle-switch/checkpoint-200"
 learning_rate: 1e-6
 beta: 0.0001
 adam_beta1: 0.9
