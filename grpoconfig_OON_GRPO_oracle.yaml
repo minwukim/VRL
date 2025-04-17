@@ -2,8 +2,8 @@
 
 # model_name: "Qwen/Qwen2.5-0.5B-instruct"
 model_name: "qwen3b-it-old-prompt/checkpoint-400"
-output_dir: "0416-qwen3b-it-OON-oracle"
-run_name: "0416-qwen3b-it-OON-oracle"
+output_dir: "0417-qwen3b-it-OON-oracle-switch"
+run_name: "0417-qwen3b-it-OON-oracle-switch"
 scale_rewards: True
 # resume_from_checkpoint: True
 # checkpoint_path: "qwen3b-it-old-prompt/checkpoint-400"
@@ -18,18 +18,18 @@ logging_steps: 1
 bf16: True
 bf16_full_eval: True
 per_device_train_batch_size: 4
-gradient_accumulation_steps: 5
+gradient_accumulation_steps: 10
 gradient_checkpointing: True
 num_generations: 10
 max_prompt_length: 3060
 max_completion_length: 2560
 num_train_epochs: 1
-save_steps: 25
+save_steps: 50
 max_grad_norm: 0.1
 report_to: wandb
 use_vllm: True
 vllm_max_model_len: 5800
-max_steps: 200  
+max_steps: 400  
 log_completions: True
 evaluation_strategy: steps
 eval_steps: 50
