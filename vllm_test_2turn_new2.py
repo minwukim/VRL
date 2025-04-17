@@ -5,8 +5,6 @@ from vllm import LLM, SamplingParams
 from obsolete.custom_MATH_reward import remove_boxed, last_boxed_only_string
 from math_verify import verify, parse
 
-
-model_path = "./0416-qwen3b-it-OON-oracle/checkpoint-200"
 ##############################################
 # Prompt Templates
 ##############################################
@@ -15,7 +13,7 @@ SYSTEM_PROMPT = (
     "A conversation between User and Assistant. The user asks a question, "
     "and the Assistant solves it. The assistant first thinks about the reasoning process "
     "in mind and then provides the user with the answer. The reasoning process and answer "
-    "are enclosed within <think> </think> and <answer> \\\boxed{final answer inside} </answer> tags, "
+    "are enclosed within <think> </think> and <answer> \\\boxed{{final answer inside}} </answer> tags, "
     "respectively.<|im_end|>\n"
     "<|im_start|>user\n{prompt}<|im_end|>\n"
     "<|im_start|>assistant\n<think>"
@@ -43,13 +41,13 @@ def build_first_turn_prompt(problem: str) -> str:
     return SYSTEM_PROMPT.format(prompt=problem)
 
 
-def build_second_turn_prompt(problem: str, a1_response: str, reward_score: float) -> str:
+def build_second_turn_prompt(problem: str, a1_response: str, fa_score: float) -> str:
     """
     Build the second-turn prompt by appending the first response, a confidence step, and a review instruction.
-    If reward_score == 2, the model is fully confident (10); otherwise confidence=0.
+    If format-agnostic score == 1.0, the model is fully confident (10); otherwise confidence=0.
     """
     first_prompt = build_first_turn_prompt(problem)
-    confidence_value = 10 if reward_score == 2 else 0
+    confidence_value = 10 if fa_score >= 1.0 else 0
 
     return (
         f"{first_prompt}{a1_response}"
@@ -64,7 +62,6 @@ def build_second_turn_prompt(problem: str, a1_response: str, reward_score: float
 ##############################################
 def reward_func(response: str, ground_truth: str) -> float:
     pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
-    # ensure exactly one of each tag
     if not (response.count("</think>") == 1 and response.count("<answer>") == 1 and response.count("</answer>") == 1):
         return -2
     match = re.search(pattern, response, re.DOTALL)
@@ -89,8 +86,7 @@ def extract_ground_truth(solution: str) -> str:
 def get_math_test_data():
     return load_dataset("DigitalLearningGmbH/MATH-lighteval", trust_remote_code=True)["test"]
 
-# adjust this path as necessary
-
+model_path = "./0415-qwen3b-it-ONN/checkpoint-300"
 llm = LLM(model=model_path)
 
 sampling_params = SamplingParams(
@@ -100,7 +96,7 @@ sampling_params = SamplingParams(
 )
 
 ##############################################
-# Statistics and Logging
+# Stats and Logging
 ##############################################
 def print_turn_stats(df, turn_label="A1"):
     print(f"\nAverage Metrics for {turn_label}:")
@@ -123,76 +119,66 @@ def print_turn_stats(df, turn_label="A1"):
 
 
 def print_confusion_matrix(df):
-    c_to_c = ((df["A1_total_reward"] == 2) & (df["A2_total_reward"] == 2)).sum()
-    c_to_i = ((df["A1_total_reward"] == 2) & (df["A2_total_reward"] != 2)).sum()
-    i_to_c = ((df["A1_total_reward"] != 2) & (df["A2_total_reward"] == 2)).sum()
-    i_to_i = ((df["A1_total_reward"] != 2) & (df["A2_total_reward"] != 2)).sum()
-    print("\nConfusion Matrix (Reward Function Scores, A1 -> A2):")
+    c_to_c = ((df["A1_format_agnostic"] == 1) & (df["A2_format_agnostic"] == 1)).sum()
+    c_to_i = ((df["A1_format_agnostic"] == 1) & (df["A2_format_agnostic"] == 0)).sum()
+    i_to_c = ((df["A1_format_agnostic"] == 0) & (df["A2_format_agnostic"] == 1)).sum()
+    i_to_i = ((df["A1_format_agnostic"] == 0) & (df["A2_format_agnostic"] == 0)).sum()
+    print("\nConfusion Matrix (Format-Agnostic Correctness, A1 -> A2):")
     print(f"  Correct to Correct: {c_to_c}")
     print(f"  Correct to Incorrect: {c_to_i}")
     print(f"  Incorrect to Correct: {i_to_c}")
     print(f"  Incorrect to Incorrect: {i_to_i}")
 
 ##############################################
-# Main Two-Turn Evaluation
+# Main Evaluation
 ##############################################
 def main():
     print("Loading test data...")
     data = get_math_test_data()
 
     # FIRST TURN
-    first_records = []
-    prompts_first = []
-    for example in data:
-        prompt = build_first_turn_prompt(example["problem"])
-        prompts_first.append(prompt)
-        gt = extract_ground_truth(example["solution"])
-        first_records.append({
-            "problem": example["problem"],
-            "prompt_first": prompt,
-            "ground_truth": gt
+    records = []
+    prompts1 = []
+    for ex in data:
+        prompt1 = build_first_turn_prompt(ex["problem"])
+        gt = extract_ground_truth(ex["solution"])
+        records.append({"problem": ex["problem"], "ground_truth": gt})
+        prompts1.append(prompt1)
+
+    print("Generating A1...")
+    outs1 = llm.generate(prompts1, sampling_params)
+    for rec, out in zip(records, outs1):
+        a1 = out.outputs[0].text
+        rec.update({
+            "A1": a1,
+            "A1_total_reward": reward_func(a1, rec["ground_truth"]),
+            "A1_format_agnostic": format_agnostic_reward(a1, rec["ground_truth"]),
+            "A1_token_length": len(llm.get_tokenizer().encode(a1))
         })
 
-    print("Running first-turn generation...")
-    outputs1 = llm.generate(prompts_first, sampling_params)
+    df1 = pd.DataFrame(records)
+    print_turn_stats(df1, "A1")
 
-    for rec, out in zip(first_records, outputs1):
-        a1 = out.outputs[0].text
-        rec["A1"] = a1
-        rec["A1_total_reward"] = reward_func(a1, rec["ground_truth"])
-        rec["A1_format_agnostic"] = format_agnostic_reward(a1, rec["ground_truth"])
-        rec["A1_token_length"] = len(llm.get_tokenizer().encode(a1))
+    # SECOND TURN using format-agnostic correctness
+    prompts2 = [
+        build_second_turn_prompt(r["problem"], r["A1"], r["A1_format_agnostic"])
+        for r in records
+    ]
 
-    df1 = pd.DataFrame(first_records)
-    print_turn_stats(df1, turn_label="A1")
-
-    # SECOND TURN
-    prompts_second = []
-    for rec in first_records:
-        prompts_second.append(
-            build_second_turn_prompt(
-                rec["problem"], rec["A1"], rec["A1_total_reward"]
-            )
-        )
-
-    print("Running second-turn generation...")
-    outputs2 = llm.generate(prompts_second, sampling_params)
-
-    final_records = []
-    for rec, out in zip(first_records, outputs2):
+    print("Generating A2...")
+    outs2 = llm.generate(prompts2, sampling_params)
+    for rec, out in zip(records, outs2):
         a2 = out.outputs[0].text
-        rec["A2"] = a2
-        rec["A2_total_reward"] = reward_func(a2, rec["ground_truth"])
-        rec["A2_format_agnostic"] = format_agnostic_reward(a2, rec["ground_truth"])
-        rec["A2_token_length"] = len(llm.get_tokenizer().encode(a2))
-        final_records.append(rec)
+        rec.update({
+            "A2": a2,
+            "A2_total_reward": reward_func(a2, rec["ground_truth"]),
+            "A2_format_agnostic": format_agnostic_reward(a2, rec["ground_truth"]),
+            "A2_token_length": len(llm.get_tokenizer().encode(a2))
+        })
 
-    df_final = pd.DataFrame(final_records)
-    print_turn_stats(df_final, turn_label="A2")
+    df_final = pd.DataFrame(records)
+    print_turn_stats(df_final, "A2")
     print_confusion_matrix(df_final)
-
-    # Optionally save
-    # df_final.to_csv("evaluation_results_with_confidence.csv", index=False)
 
 if __name__ == "__main__":
     main()
