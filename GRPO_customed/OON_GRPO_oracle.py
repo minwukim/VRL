@@ -331,15 +331,15 @@ class OON_Oracle_GRPOTrainer(GRPOTrainer):
                     # Assuming check_format_and_correctness returns 2 for correct, other values for incorrect.
                     correctness_score = check_correctness(a1_text, gt_answer)
                     second_instruction = "<|im_start|>user\nRate your confidence in the preceding response on a scale of 0 (likely incorrect) to 10 (likely correct), inclusive. Output only your integer confidence score, with the format as such: `<confidence>10</confidence>`.<|im_end|>\n"
-                    third_instruction = "<|im_start|>user\nReview your previous response. Considering your confidence score (where 0 indicates likely incorrect and 10 indicates likely correct), solve the problem again. Provide your revised solution in the format: `<think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>`.<|im_end|>\n"
+                    third_instruction = "<|im_start|>user\nReview your previous response. Considering your confidence score (where 0 indicates likely incorrect and 10 indicates likely correct), solve the problem again. Provide your revised solution in the format: <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>.<|im_end|>\n"
                     # Determine the second instruction based on correctness
                     if correctness_score == 1:
                         # Correct answer instruction
-                        confidence_response = "<|im_start|>assistant\n<confidence>10</confidence><||im_end|>\n"
+                        confidence_response = "<|im_start|>assistant\n<confidence>10</confidence><|im_end|>\n"
                     else:
                         # Incorrect answer instruction (handles -2, -1, -0.5)
                         # Note: You wrote "confidence", keeping it as is. If it should be "confident", change below.
-                        confidence_response = "<|im_start|>assistant\n<confidence>0</confidence><||im_end|>\n"
+                        confidence_response = "<|im_start|>assistant\n<confidence>0</confidence><|im_end|>\n"
 
                     # Build the second-turn prompt structure: Q + A1 + Conditional Instruction
                     # Ensure the structure matches what your model expects for few-shot/instruction following.
@@ -588,3 +588,26 @@ class OON_Oracle_GRPOTrainer(GRPOTrainer):
             "ref_per_token_logps": ref_per_token_logps,
             "advantages": advantages,
         }
+    
+
+    @profiling_decorator
+    def _prepare_inputs(self, inputs: dict[str, Union[torch.Tensor, Any]]) -> dict[str, Union[torch.Tensor, Any]]:
+        mode = "eval" if self.control.should_evaluate else "train"
+        if mode == "train":
+            if self.state.global_step % self.num_iterations == 0:
+                if self.state.global_step % 2 == 0:
+                    print("2 TURN TRAINING")
+                    inputs = self._generate_and_score_completions(inputs)
+                    self._buffered_inputs[self._step % self.args.gradient_accumulation_steps] = inputs
+                else:
+                    print("1 TURN TRAINING")
+                    inputs = super()._generate_and_score_completions(inputs)
+                    self._buffered_inputs[self._step % self.args.gradient_accumulation_steps] = inputs
+            else:
+                inputs = self._buffered_inputs[self._step % self.args.gradient_accumulation_steps]
+            self._step += 1
+        else:
+            # In evaluation, we don't reuse completions across multiple updates, so we don't need to buffer inputs.
+            inputs = super()._generate_and_score_completions(inputs)
+        return inputs
+    

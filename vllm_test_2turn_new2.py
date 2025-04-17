@@ -13,7 +13,7 @@ SYSTEM_PROMPT = (
     "A conversation between User and Assistant. The user asks a question, "
     "and the Assistant solves it. The assistant first thinks about the reasoning process "
     "in mind and then provides the user with the answer. The reasoning process and answer "
-    "are enclosed within <think> </think> and <answer> \\\boxed{{final answer inside}} </answer> tags, "
+    "are enclosed within <think> </think> and <answer> \\boxed{{final answer inside}} </answer> tags, "
     "respectively.<|im_end|>\n"
     "<|im_start|>user\n{prompt}<|im_end|>\n"
     "<|im_start|>assistant\n<think>"
@@ -30,7 +30,7 @@ CONFIDENCE_PROMPT = (
 REVIEW_PROMPT = (
     "<|im_start|>user\n"
     "Review your previous response considering your confidence score, and if needed, correct any errors. "
-    "Provide your revised solution in the format: `<think> reasoning process here </think> <answer> \\\boxed{{final answer inside} </answer>`.\n"
+    "Provide your revised solution in the format: `<think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>`.\n"
     "<|im_end|>\n"
 )
 
@@ -88,7 +88,7 @@ def get_math_test_data():
     return load_dataset("HuggingFaceH4/MATH-500", trust_remote_code=True)["test"]
     # return load_dataset("DigitalLearningGmbH/MATH-lighteval", trust_remote_code=True)["test"]
 
-model_path = "./0416-qwen3b-it-OON-oracle/checkpoint-100"
+model_path = "./0416-qwen3b-it-OON-oracle/checkpoint-10"
 # model_path = "./qwen3b-it-old-prompt/checkpoint-350"
 llm = LLM(model=model_path)
 
