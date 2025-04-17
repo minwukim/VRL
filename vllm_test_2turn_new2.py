@@ -30,7 +30,7 @@ CONFIDENCE_PROMPT = (
 REVIEW_PROMPT = (
     "<|im_start|>user\n"
     "Review your previous response considering your confidence score, and if needed, correct any errors. "
-    "Provide your revised solution in the format: `<think> reasoning process here </think> <answer> \\\boxed{{final answer inside}} </answer>`.\n"
+    "Provide your revised solution in the format: `<think> reasoning process here </think> <answer> \\\boxed{{final answer inside} </answer>`.\n"
     "<|im_end|>\n"
 )
 
@@ -86,7 +86,7 @@ def extract_ground_truth(solution: str) -> str:
 def get_math_test_data():
     return load_dataset("DigitalLearningGmbH/MATH-lighteval", trust_remote_code=True)["test"]
 
-model_path = "./0415-qwen3b-it-ONN/checkpoint-300"
+model_path = "./0416-qwen3b-it-OON-oracle/checkpoint-200"
 llm = LLM(model=model_path)
 
 sampling_params = SamplingParams(
