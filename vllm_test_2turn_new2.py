@@ -30,7 +30,7 @@ CONFIDENCE_PROMPT = (
 REVIEW_PROMPT = (
     "<|im_start|>user\n"
     "Review your previous response considering your confidence score, and if needed, correct any errors. "
-    "Provide your revised solution in the format: `<think> reasoning process here </think> <answer> \\\boxed{final answer inside} </answer>`.\n"
+    "Provide your revised solution in the format: `<think> reasoning process here </think> <answer> \\\boxed{{final answer inside}} </answer>`.\n"
     "<|im_end|>\n"
 )
 
