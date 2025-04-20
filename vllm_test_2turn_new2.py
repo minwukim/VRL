@@ -8,16 +8,16 @@ from math_verify import verify, parse
 ##############################################
 # Prompt Templates
 ##############################################
-SYSTEM_PROMPT = (
-    "<|im_start|>system\n"
-    "A conversation between User and Assistant. The user asks a question, "
-    "and the Assistant solves it. The assistant first thinks about the reasoning process "
-    "in mind and then provides the user with the answer. The reasoning process and answer "
-    "are enclosed within <think> </think> and <answer> \\boxed{{final answer inside}} </answer> tags, "
-    "respectively.<|im_end|>\n"
-    "<|im_start|>user\n{prompt}<|im_end|>\n"
-    "<|im_start|>assistant\n<think>"
-)
+# SYSTEM_PROMPT = (
+#     "<|im_start|>system\n"
+#     "A conversation between User and Assistant. The user asks a question, "
+#     "and the Assistant solves it. The assistant first thinks about the reasoning process "
+#     "in mind and then provides the user with the answer. The reasoning process and answer "
+#     "are enclosed within <think> </think> and <answer> \\boxed{{final answer inside}} </answer> tags, "
+#     "respectively.<|im_end|>\n"
+#     "<|im_start|>user\n{prompt}<|im_end|>\n"
+#     "<|im_start|>assistant\n<think>"
+# )
 
 SYSTEM_PROMPT="""
 <|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n
@@ -76,7 +76,7 @@ def build_second_turn_prompt(problem: str, a1_response: str, fa_score: float) ->
 #         return -1
 #     return 2 if verify(parse(extracted), parse(ground_truth)) else -0.5
 
-def check_format_and_correctness(s, gt):
+def reward_func(s, gt):
     extract_boxed_answer = last_boxed_only_string(s)
     if extract_boxed_answer is None: 
         return 0   
