@@ -64,17 +64,27 @@ def build_second_turn_prompt(problem: str, a1_response: str, fa_score: float) ->
 ##############################################
 # Reward and Utility Functions
 ##############################################
-def reward_func(response: str, ground_truth: str) -> float:
-    pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
-    if not (response.count("</think>") == 1 and response.count("<answer>") == 1 and response.count("</answer>") == 1):
-        return -2
-    match = re.search(pattern, response, re.DOTALL)
-    if not match:
-        return -2
-    extracted = last_boxed_only_string(match.group(1))
-    if extracted is None:
-        return -1
-    return 2 if verify(parse(extracted), parse(ground_truth)) else -0.5
+# def reward_func(response: str, ground_truth: str) -> float:
+#     pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
+#     if not (response.count("</think>") == 1 and response.count("<answer>") == 1 and response.count("</answer>") == 1):
+#         return -2
+#     match = re.search(pattern, response, re.DOTALL)
+#     if not match:
+#         return -2
+#     extracted = last_boxed_only_string(match.group(1))
+#     if extracted is None:
+#         return -1
+#     return 2 if verify(parse(extracted), parse(ground_truth)) else -0.5
+
+def check_format_and_correctness(s, gt):
+    extract_boxed_answer = last_boxed_only_string(s)
+    if extract_boxed_answer is None: 
+        return 0   
+    
+    if verify(parse(extract_boxed_answer), parse(gt)): 
+        return 1
+    return 0
+
 
 
 def format_agnostic_reward(response: str, ground_truth: str) -> float:
