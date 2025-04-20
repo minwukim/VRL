@@ -33,8 +33,8 @@
 
 
 model_name: "Qwen/Qwen2.5-3B-instruct"
-output_dir: "qwen3b-it-SFT"
-run_name: "qwen3b-it-SFT"
+output_dir: "qwen3b-it-SFT-boxed"
+run_name: "qwen3b-it-SFT-boxed"
 scale_rewards: True
 # resume_from_checkpoint: True
 # checkpoint_path: "qwen3b-it-old-prompt/checkpoint-450"
