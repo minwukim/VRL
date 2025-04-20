@@ -8,20 +8,20 @@ from math_verify import verify, parse
 ##############################################
 # Prompt Templates
 ##############################################
-# SYSTEM_PROMPT = (
-#     "<|im_start|>system\n"
-#     "A conversation between User and Assistant. The user asks a question, "
-#     "and the Assistant solves it. The assistant first thinks about the reasoning process "
-#     "in mind and then provides the user with the answer. The reasoning process and answer "
-#     "are enclosed within <think> </think> and <answer> \\boxed{{final answer inside}} </answer> tags, "
-#     "respectively.<|im_end|>\n"
-#     "<|im_start|>user\n{prompt}<|im_end|>\n"
-#     "<|im_start|>assistant\n<think>"
-# )
+SYSTEM_PROMPT = (
+    "<|im_start|>system\n"
+    "A conversation between User and Assistant. The user asks a question, "
+    "and the Assistant solves it. The assistant first thinks about the reasoning process "
+    "in mind and then provides the user with the answer. The reasoning process and answer "
+    "are enclosed within <think> </think> and <answer> \\boxed{{final answer inside}} </answer> tags, "
+    "respectively.<|im_end|>\n"
+    "<|im_start|>user\n{prompt}<|im_end|>\n"
+    "<|im_start|>assistant\n<think>"
+)
 
-SYSTEM_PROMPT="""
-<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n
-"""
+# SYSTEM_PROMPT="""
+# <|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n
+# """
 
 CONFIDENCE_PROMPT = (
     "<|im_end|>\n"
