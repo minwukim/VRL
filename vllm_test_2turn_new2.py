@@ -85,8 +85,8 @@ def extract_ground_truth(solution: str) -> str:
 ##############################################
 def get_math_test_data():
     
-    # return load_dataset("HuggingFaceH4/MATH-500", trust_remote_code=True)["test"]
-    return load_dataset("DigitalLearningGmbH/MATH-lighteval", trust_remote_code=True)["test"]
+    return load_dataset("HuggingFaceH4/MATH-500", trust_remote_code=True)["test"]
+    # return load_dataset("DigitalLearningGmbH/MATH-lighteval", trust_remote_code=True)["test"]
 
 # model_path = "./0417-qwen3b-it-OON-oracle-switch/checkpoint-200"
 # model_path = "./qwen3b-it-old-prompt/checkpoint-350"
