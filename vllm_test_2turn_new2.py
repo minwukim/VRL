@@ -104,7 +104,7 @@ def get_math_test_data():
 
 # model_path = "./0417-qwen3b-it-OON-oracle-switch/checkpoint-200"
 # model_path = "./qwen3b-it-old-prompt/checkpoint-350"
-model_path = "./qwen3b-it-SFT-boxed/checkpoint-75"
+model_path = "./qwen3b-it-SFT-boxed/checkpoint-100"
 # model_path = "Qwen/Qwen2.5-3B-instruct"
 llm = LLM(model=model_path)
 
@@ -125,12 +125,12 @@ def print_turn_stats(df, turn_label="A1"):
     print(f"  Token Length: {avg_length}")
 
     total = len(df)
-    correct = (df[f"{turn_label}_total_reward"] == 2).sum()
+    correct = (df[f"{turn_label}_total_reward"] == 1).sum()
     print(f"  Correct: {correct} ({(correct/total)*100:.2f}%)")
     print(f"  Incorrect: {total - correct} ({((total - correct)/total)*100:.2f}%)")
 
-    counts = {score: (df[f"{turn_label}_total_reward"] == score).sum() for score in [2, -0.5, -1, -2]}
-    print(f"  Counts -> 2: {counts[2]}, -0.5: {counts[-0.5]}, -1: {counts[-1]}, -2: {counts[-2]}")
+    # counts = {score: (df[f"{turn_label}_total_reward"] == score).sum() for score in [2, -0.5, -1, -2]}
+    # print(f"  Counts -> 2: {counts[2]}, -0.5: {counts[-0.5]}, -1: {counts[-1]}, -2: {counts[-2]}")
 
     if f"{turn_label}_format_agnostic" in df.columns:
         fa_counts = {val: (df[f"{turn_label}_format_agnostic"] == val).sum() for val in [1, 0]}
