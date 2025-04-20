@@ -19,9 +19,9 @@ SYSTEM_PROMPT = (
     "<|im_start|>assistant\n<think>"
 )
 
-# SYSTEM_PROMPT="""
-# <|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n
-# """
+SYSTEM_PROMPT="""
+<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n
+"""
 
 CONFIDENCE_PROMPT = (
     "<|im_end|>\n"
@@ -105,7 +105,7 @@ def get_math_test_data():
 # model_path = "./0417-qwen3b-it-OON-oracle-switch/checkpoint-200"
 # model_path = "./qwen3b-it-old-prompt/checkpoint-350"
 # model_path = "./qwen3b-it-SFT-boxed/checkpoint-100"
-model_path = "Qwen/Qwen2.5-3B"
+model_path = "Qwen/Qwen2.5-7B"
 llm = LLM(model=model_path)
 
 sampling_params = SamplingParams(
