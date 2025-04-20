@@ -104,8 +104,8 @@ def get_math_test_data():
 
 # model_path = "./0417-qwen3b-it-OON-oracle-switch/checkpoint-200"
 # model_path = "./qwen3b-it-old-prompt/checkpoint-350"
-# model_path = "./qwen3b-it-SFT-boxed/checkpoint-100"
-model_path = "Qwen/Qwen2.5-3B"
+model_path = "./qwen3b-it-SFT-boxed/checkpoint-175"
+# model_path = "Qwen/Qwen2.5-3B"
 llm = LLM(model=model_path)
 
 sampling_params = SamplingParams(
