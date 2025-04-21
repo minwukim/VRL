@@ -27,7 +27,7 @@ SYSTEM_PROMPT_2="""
 
 SYSTEM_PROMPT_3="{prompt}"
 
-SYSTEM_PROMPT = SYSTEM_PROMPT_1
+SYSTEM_PROMPT = SYSTEM_PROMPT_2
 
 # ——————————————
 # Reward functions
