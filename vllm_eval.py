@@ -9,7 +9,7 @@ from math_verify import verify, parse
 # Config
 # ——————————————
 model_path = "Qwen/Qwen2.5-3B"
-csv_path   = "qwen_3b_base.csv"
+csv_path   = "qwen_3b_base_eval.csv"
 
 SYSTEM_PROMPT = """
 <|im_start|>system
@@ -22,16 +22,22 @@ Please reason step by step, and put your final answer within \\boxed{{}}.
 """
 
 # ——————————————
-# Reward functions (you already wrote these)
+# Reward functions
 # ——————————————
 def reward_with_format(s, gt):
     answer = last_boxed_only_string(s)
     if answer is None:
         return 0
-    return int(verify(parse(answer), parse(gt)))
+    try:
+        return int(verify(parse(answer), parse(gt)))
+    except:
+        return 0
 
 def reward_without_format(s, gt):
-    return int(verify(parse(s), parse(gt)))
+    try:
+        return int(verify(parse(s), parse(gt)))
+    except:
+        return 0
 
 # ——————————————
 # Load data
@@ -48,42 +54,49 @@ sampling_params = SamplingParams(temperature=0.0, max_tokens=2560, top_p=1.0)
 # Inference + scoring loop
 # ——————————————
 records = []
-for sample in test_ds:
-    question = sample["problem"]      # adjust key if your split uses a different field
-    ground_truth = sample["solution"]    # adjust if necessary
+prompts = []
 
-    # build the full prompt
-    prompt = SYSTEM_PROMPT.format(prompt=question)
+for ex in test_ds:
+    prompt = SYSTEM_PROMPT.format(prompt=ex["problem"])
+    gt = last_boxed_only_string(ex["solution"])
+    records.append({"problem": ex["problem"], "ground_truth": gt})
+    prompts.append(prompt)
 
-    # generate one response
-    outputs = llm.generate([
-        {"prompt": prompt, "sampling_params": sampling_params}
-    ])
-    # grab the text of the very first output
-    response_text = next(outputs).outputs[0].text
+outs = llm.generate(prompts, sampling_params)
 
-    # compute rewards
-    r_fmt = reward_with_format(response_text, ground_truth)
-    r_nofmt = reward_without_format(response_text, ground_truth)
+results = []
 
-    # collect
-    records.append({
-        "question":           question,
-        "response":           response_text,
-        "ground_truth":       ground_truth,
-        "reward_with_format": r_fmt,
-        "reward_no_format":   r_nofmt
-    })
+for rec, out in zip(records, outs):
+    a1 = out.outputs[0].text
+    rec["response"] = a1
+
+    # Compute rewards
+    gt = rec["ground_truth"]
+    rec["reward_with_format"] = reward_with_format(a1, gt)
+    rec["reward_without_format"] = reward_without_format(remove_boxed(a1), gt)
+
+    results.append(rec)
 
 # ——————————————
-# Save + report
+# Save results to CSV
 # ——————————————
-df = pd.DataFrame.from_records(records)
+df = pd.DataFrame(results)
 df.to_csv(csv_path, index=False)
 
-mean_with   = df["reward_with_format"].mean()
-mean_no_fmt = df["reward_no_format"].mean()
+# ——————————————
+# Print summary stats
+# ——————————————
+mean_with_format = df["reward_with_format"].mean()
+mean_without_format = df["reward_without_format"].mean()
 
-print(f"Saved results to {csv_path}")
-print(f"Mean reward (with format):    {mean_with:.4f}")
-print(f"Mean reward (without format): {mean_no_fmt:.4f}")
+count_with_format = df["reward_with_format"].value_counts().sort_index()
+count_without_format = df["reward_without_format"].value_counts().sort_index()
+
+print(f"Mean Reward (with format): {mean_with_format:.3f}")
+print(f"Mean Reward (without format): {mean_without_format:.3f}\n")
+
+print("Reward With Format - Distribution:")
+print(count_with_format.to_string())
+
+print("\nReward Without Format - Distribution:")
+print(count_without_format.to_string())
