@@ -22,6 +22,8 @@ SYSTEM_PROMPT = (
 SYSTEM_PROMPT="""
 <|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n
 """
+
+
 SYSTEM_PROMPT="{prompt}"
 
 CONFIDENCE_PROMPT = (

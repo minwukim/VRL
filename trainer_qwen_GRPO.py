@@ -60,98 +60,108 @@ print(training_args)
 # {prompt}
 # Assistant: <think>"""
 
-SYSTEM="""
-<|im_start|>system\nA conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n<think>
-"""
+# SYSTEM="""
+# <|im_start|>system\nA conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n<think>
+# """
+
+# SYSTEM="{prompt}"
+
+def reward_func(completions, answer, **kwargs):
+    def reward(s, gt):
+        try:
+            is_correct = verify(parse(s), parse(gt))
+            return 1 if is_correct else -1
+        except:
+            return -1  # parsing/verification failed
+    return [reward(c, gt) for c, gt in zip(completions, answer)]
 
 
-def reward_correct_a1_agnostic(completions, answer, **kwargs):
+# def reward_correct_a1_agnostic(completions, answer, **kwargs):
 
-    # check if the strings ends with </think><answer>[boxed answer]</answer>
-    def check_format_and_correctness(s, gt):
-        pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
-        if not (s.count("</think>") == 1 and s.count("<answer>") == 1 and s.count("</answer>") == 1):
-            # incorrect amount of tokens
-            return -2 
-        match = re.search(pattern, s, re.DOTALL)
-        # if answer doesn't match provided format
-        if not match: return -2
+#     # check if the strings ends with </think><answer>[boxed answer]</answer>
+#     def check_format_and_correctness(s, gt):
+#         pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
+#         if not (s.count("</think>") == 1 and s.count("<answer>") == 1 and s.count("</answer>") == 1):
+#             # incorrect amount of tokens
+#             return -2 
+#         match = re.search(pattern, s, re.DOTALL)
+#         # if answer doesn't match provided format
+#         if not match: return -2
 
-        # answer format is correct now
-        # look for boxed tag
-        ext_string = last_boxed_only_string(match.group(1))
-        if ext_string is None: return -1   #No boxed tag found
+#         # answer format is correct now
+#         # look for boxed tag
+#         ext_string = last_boxed_only_string(match.group(1))
+#         if ext_string is None: return -1   #No boxed tag found
         
-        # if correct, then reward 2
-        if verify(parse(ext_string), parse(gt)): return 2
-        else: return -0.5 # extracted but incorrect then reward -0.5
+#         # if correct, then reward 2
+#         if verify(parse(ext_string), parse(gt)): return 2
+#         else: return -0.5 # extracted but incorrect then reward -0.5
     
-    return [check_format_and_correctness(c, gt) for c, gt in zip(completions, answer)]
+#     return [check_format_and_correctness(c, gt) for c, gt in zip(completions, answer)]
 
 
-def reward_correct_a1_dependent(completions, answer, first_completions=None, **kwargs):
+# def reward_correct_a1_dependent(completions, answer, first_completions=None, **kwargs):
 
-    # Type 1: A2 accuracy > behavior collapse mitigation (i_c > c_c > i_i > c_i)
-    i_c, c_c, i_i, c_i = 8, 0.5, -0.5, -1
+#     # Type 1: A2 accuracy > behavior collapse mitigation (i_c > c_c > i_i > c_i)
+#     i_c, c_c, i_i, c_i = 8, 0.5, -0.5, -1
 
-    # Type 2: behavior collapse mitigation > A2 accuracy (i_c >= c_i > c_c >= i_i)
-    # Note: for i->i, we might need to consider two cases and give rewards.
-    # i_c, c_i, c_c, i_i, = 3, 0, -0.5, -1
+#     # Type 2: behavior collapse mitigation > A2 accuracy (i_c >= c_i > c_c >= i_i)
+#     # Note: for i->i, we might need to consider two cases and give rewards.
+#     # i_c, c_i, c_c, i_i, = 3, 0, -0.5, -1
 
-    # check if the strings ends with </think><answer>[boxed answer]</answer>
-    def check_format_and_correctness(s, gt):
-        pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
-        if not (s.count("</think>") == 1 and s.count("<answer>") == 1 and s.count("</answer>") == 1):
-            # incorrect amount of tokens
-            return -2 
-        match = re.search(pattern, s, re.DOTALL)
-        # if answer doesn't match provided format
-        if not match: return -2
+#     # check if the strings ends with </think><answer>[boxed answer]</answer>
+#     def check_format_and_correctness(s, gt):
+#         pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
+#         if not (s.count("</think>") == 1 and s.count("<answer>") == 1 and s.count("</answer>") == 1):
+#             # incorrect amount of tokens
+#             return -2 
+#         match = re.search(pattern, s, re.DOTALL)
+#         # if answer doesn't match provided format
+#         if not match: return -2
 
-        # answer format is correct now
-        # look for boxed tag
-        ext_string = last_boxed_only_string(match.group(1))
-        if ext_string is None: return -1   #No boxed tag found
+#         # answer format is correct now
+#         # look for boxed tag
+#         ext_string = last_boxed_only_string(match.group(1))
+#         if ext_string is None: return -1   #No boxed tag found
         
-        # if correct, then reward 2
-        if verify(parse(ext_string), parse(gt)): return 2
-        else: return -0.5 # extracted but incorrect then reward -0.5
+#         # if correct, then reward 2
+#         if verify(parse(ext_string), parse(gt)): return 2
+#         else: return -0.5 # extracted but incorrect then reward -0.5
 
     
-    def give_a1_based_reward(a1, a2, gt, i_c=i_c, c_c=c_c, i_i=i_i, c_i=c_i):
+#     def give_a1_based_reward(a1, a2, gt, i_c=i_c, c_c=c_c, i_i=i_i, c_i=c_i):
         
-        # If the format is wrong, return the value right away regardless of a1. 
-        a2_score = check_format_and_correctness(a2,gt)
-        if a2_score == -2:
-            return -4
-        if a2_score == -1:
-            return -3
+#         # If the format is wrong, return the value right away regardless of a1. 
+#         a2_score = check_format_and_correctness(a2,gt)
+#         if a2_score == -2:
+#             return -4
+#         if a2_score == -1:
+#             return -3
 
-        a1_score = check_format_and_correctness(a1,gt)
+#         a1_score = check_format_and_correctness(a1,gt)
         
-        # Case 1: a1 is correct. 
-        if a1_score == 2:
-            # Case 1.1: correct to correct
-            if a2_score == 2:
-                return c_c
-            # Case 1.2: correct to incorrect
-            else:
-                return c_i
+#         # Case 1: a1 is correct. 
+#         if a1_score == 2:
+#             # Case 1.1: correct to correct
+#             if a2_score == 2:
+#                 return c_c
+#             # Case 1.2: correct to incorrect
+#             else:
+#                 return c_i
             
-        # Case 2: a1 is incorrect.
-        else:
-            # Case 2.1 incorrect to correct 
-            if a2_score == 2:
-                return i_c
-            # Case 2.2 incorrect to incorrect
-            else:
-                return i_i
+#         # Case 2: a1 is incorrect.
+#         else:
+#             # Case 2.1 incorrect to correct 
+#             if a2_score == 2:
+#                 return i_c
+#             # Case 2.2 incorrect to incorrect
+#             else:
+#                 return i_i
 
-    # Case 1: For (Q->A1) setting
-    if first_completions is None:
-        return [check_format_and_correctness(c, gt) for c, gt in zip(completions, answer)]
-    return [give_a1_based_reward(a1,a2,gt) for a1,a2,gt in zip (first_completions, completions, answer)]
-
+#     # Case 1: For (Q->A1) setting
+#     if first_completions is None:
+#         return [check_format_and_correctness(c, gt) for c, gt in zip(completions, answer)]
+#     return [give_a1_based_reward(a1,a2,gt) for a1,a2,gt in zip (first_completions, completions, answer)]
 
 
 
@@ -163,7 +173,7 @@ def get_dataset():
     test = load_dataset("HuggingFaceH4/MATH-500", split="test")
     
     train = train.map(lambda x: {
-        "prompt": SYSTEM.format(prompt=x["problem"]),
+        "prompt": x["problem"],
         "answer": extract_boxed_answer(x["solution"]),
         "level": x["level"]
         })

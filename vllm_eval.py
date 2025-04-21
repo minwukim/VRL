@@ -89,7 +89,7 @@ for rec, out in zip(records, outs):
 # Save results to CSV
 # ——————————————
 df = pd.DataFrame(results)
-df.to_csv(csv_path, index=False)
+# df.to_csv(csv_path, index=False)
 
 # ——————————————
 # Print summary stats
