@@ -6,12 +6,10 @@ from obsolete.custom_MATH_reward import remove_boxed, last_boxed_only_string
 from math_verify import verify, parse
 
 # ——————————————
-# Config
+# Prompt Templates
 # ——————————————
-model_path = "Qwen/Qwen2.5-3B"
-csv_path   = "qwen_3b_dual_prompt_eval.csv"
-
-SYSTEM_PROMPT_1 = """
+PROMPT_TEMPLATES = {
+    "TYPE1": """
 <|im_start|>system
 Please reason step by step, and put your final answer within \\boxed{{}}.
 <|im_end|>
@@ -19,9 +17,10 @@ Please reason step by step, and put your final answer within \\boxed{{}}.
 {prompt}
 <|im_end|>
 <|im_start|>assistant
-"""
-
-SYSTEM_PROMPT_2 = "<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
+""",
+    "TYPE2": """<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n""",
+    "TYPE3": "{prompt}"
+}
 
 # ——————————————
 # Reward functions
@@ -49,68 +48,53 @@ test_ds = load_dataset("HuggingFaceH4/MATH-500", trust_remote_code=True)["test"]
 # ——————————————
 # Prepare model + sampling
 # ——————————————
+model_path = "Qwen/Qwen2.5-3B"
 llm = LLM(model=model_path)
 sampling_params = SamplingParams(temperature=0.0, max_tokens=2560, top_p=1.0)
 
 # ——————————————
-# Generate prompts
+# Main loop over prompt types
 # ——————————————
-records = []
-prompts_1, prompts_2 = [], []
+for prompt_type, SYSTEM_PROMPT in PROMPT_TEMPLATES.items():
+    print(f"Running inference with {prompt_type}...")
 
-for ex in test_ds:
-    problem = ex["problem"]
-    gt = last_boxed_only_string(ex["solution"])
-    p1 = SYSTEM_PROMPT_1.format(prompt=problem)
-    p2 = SYSTEM_PROMPT_2.format(prompt=problem)
-    records.append({
-        "problem": problem,
-        "ground_truth": gt,
-        "prompt_1": p1,
-        "prompt_2": p2
-    })
-    prompts_1.append(p1)
-    prompts_2.append(p2)
+    # Prepare prompts and records
+    records = []
+    prompts = []
+    for ex in test_ds:
+        prompt = SYSTEM_PROMPT.format(prompt=ex["problem"])
+        gt = last_boxed_only_string(ex["solution"])
+        records.append({"problem": ex["problem"], "prompt": prompt, "ground_truth": gt})
+        prompts.append(prompt)
 
-# ——————————————
-# Generate outputs for both prompts
-# ——————————————
-outs_1 = llm.generate(prompts_1, sampling_params)
-outs_2 = llm.generate(prompts_2, sampling_params)
+    # Generate responses
+    outs = llm.generate(prompts, sampling_params)
 
-# ——————————————
-# Score and collect results
-# ——————————————
-for rec, o1, o2 in zip(records, outs_1, outs_2):
-    r1 = o1.outputs[0].text
-    r2 = o2.outputs[0].text
-    gt = rec["ground_truth"]
+    # Evaluate responses
+    results = []
+    for rec, out in zip(records, outs):
+        a1 = out.outputs[0].text
+        rec["response"] = a1
+        gt = rec["ground_truth"]
+        rec["reward_with_format"] = reward_with_format(a1, gt)
+        rec["reward_without_format"] = reward_without_format(a1, gt)
+        results.append(rec)
 
-    rec["response_1"] = r1
-    rec["response_2"] = r2
+    # Save to CSV
+    df = pd.DataFrame(results)
+    # csv_path = f"qwen_3b_base_eval_{prompt_type}.csv"
+    # df.to_csv(csv_path, index=False)
 
-    rec["prompt1_format"] = reward_with_format(r1, gt)
-    rec["prompt1_noformat"] = reward_without_format(r1, gt)
+    # Print summary stats
+    mean_with_format = df["reward_with_format"].mean()
+    mean_without_format = df["reward_without_format"].mean()
 
-    rec["prompt2_format"] = reward_with_format(r2, gt)
-    rec["prompt2_noformat"] = reward_without_format(r2, gt)
+    print(f"[{prompt_type}] Mean Reward (with format): {mean_with_format:.3f}")
+    print(f"[{prompt_type}] Mean Reward (without format): {mean_without_format:.3f}\n")
 
-# ——————————————
-# Export to CSV
-# ——————————————
-df = pd.DataFrame(records)
-df.to_csv(csv_path, index=False)
+    def print_reward_counts(col_name):
+        counts = df[col_name].value_counts().sort_index()
+        print(f"[{prompt_type}] {col_name} distribution:\n{counts.to_string()}\n")
 
-# ——————————————
-# Print summary stats
-# ——————————————
-print("========== REWARD DISTRIBUTIONS ==========\n")
-
-def print_reward_counts(col_name):
-    counts = df[col_name].value_counts().sort_index()
-    print(f"{col_name} distribution:\n{counts.to_string()}\n")
-
-print_reward_counts("prompt1_format")
-print_reward_counts("prompt1_noformat")
-print_reward_counts("prompt2_format")
-print_reward_counts("prompt2_noformat")
+    print_reward_counts("reward_with_format")
+    print_reward_counts("reward_without_format")
