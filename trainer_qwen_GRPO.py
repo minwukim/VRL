@@ -229,7 +229,7 @@ grpo_config_args = GRPOConfig(
 
 trainer = GRPOTrainer(
     model=model_name,
-    reward_funcs=[reward_correct_a1_agnostic],
+    reward_funcs=[reward_func],
     # reward_funcs = [reward_correct_a1_dependent],
     args=grpo_config_args,
     train_dataset=train,
