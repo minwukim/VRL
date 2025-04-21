@@ -33,8 +33,8 @@
 
 
 model_name: "Qwen/Qwen2.5-3B"
-output_dir: "0421-qwen3b-question-only-no-format-sft"
-run_name: "0421-qwen3b-question-only-no-format-sft"
+output_dir: "0421-qwen3b-question-only-no-format-online-sft"
+run_name: "0421-qwen3b-question-only-no-format-online-sft"
 scale_rewards: True
 # resume_from_checkpoint: True
 # checkpoint_path: "qwen3b-it-old-prompt/checkpoint-450"
