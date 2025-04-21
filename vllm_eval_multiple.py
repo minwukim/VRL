@@ -11,7 +11,7 @@ from math_verify import verify, parse
 # ——————————————
 # model_path = "Qwen/Qwen2.5-Math-1.5B"
 # model_path = "./qwen3b-it-SFT-boxed/checkpoint-250"
-model_path = "./0421-qwen3b-question-only-no-format/checkpoint-25"
+model_path = "./0421-qwen3b-question-only-no-format/checkpoint-50"
 # model_path ="Qwen/Qwen2.5-3B-instruct"
 # model_path = "Qwen/Qwen2.5-3B"
 
