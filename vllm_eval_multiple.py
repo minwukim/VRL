@@ -10,6 +10,7 @@ from math_verify import verify, parse
 # Config (user-defined)
 # ——————————————
 model_path = "Qwen/Qwen2.5-3B"
+# FOLLOWING THE SOBER PAPER
 num_trials = 10              # Number of full runs over the dataset
 temperature = 0.8
 top_p = 0.9
@@ -20,7 +21,9 @@ top_p = 0.9
 SYSTEM_PROMPT_1="<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
 SYSTEM_PROMPT_2="{prompt}"
 SYSTEM_PROMPT_3="A conversation between User and Assistant. The User asks a question, and the Assistant solves it. The Assistant first thinks about the reasoning process in mind and then provides the User with the answer. The reasoning process is enclosed within <think> </think> and answer is enclosed within <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer>.\nUser: {prompt}\nAssistant: <think>"
-SYSTEM_PROMPT = SYSTEM_PROMPT_1
+SYSTEM_PROMPT_4="\n<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n\n"
+
+SYSTEM_PROMPT = SYSTEM_PROMPT_2
 
 # ——————————————
 # Reward functions
@@ -88,10 +91,10 @@ trial_means_wf = rewards_with_format.mean(axis=1)
 trial_means_wof = rewards_without_format.mean(axis=1)
 
 print("\n========== FINAL SUMMARY ==========")
-print(f"Meas (with format):                 {reward_with_format}")
+print(f"Meas (with format):                 {trial_means_wf}")
 print(f"Mean of means (with format):        {np.mean(trial_means_wf):.3f}")
 print(f"Standard deviation of means (with): {np.std(trial_means_wf):.6f}\n")
 
-print(f"Means (without format):                {reward_without_format}")
+print(f"Means (without format):                {trial_means_wof}")
 print(f"Mean of means (without format):        {np.mean(trial_means_wof):.3f}")
 print(f"Standard deviation of means (without): {np.std(trial_means_wof):.6f}")
