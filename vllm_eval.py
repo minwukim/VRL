@@ -9,7 +9,7 @@ from math_verify import verify, parse
 # Config
 # ——————————————
 model_path = "Qwen/Qwen2.5-3B"
-csv_path   = "qwen_3b_base_eval_TYPE2.csv"
+csv_path   = "qwen_3b_base_eval_TYPE3.csv"
 
 SYSTEM_PROMPT_1 = """
 <|im_start|>system
@@ -27,7 +27,7 @@ SYSTEM_PROMPT_2="""
 
 SYSTEM_PROMPT_3="{prompt}"
 
-SYSTEM_PROMPT = SYSTEM_PROMPT_2
+SYSTEM_PROMPT = SYSTEM_PROMPT_3
 
 # ——————————————
 # Reward functions
