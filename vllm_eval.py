@@ -11,9 +11,21 @@ from math_verify import verify, parse
 model_path = "Qwen/Qwen2.5-3B"
 csv_path   = "qwen_3b_base_eval.csv"
 
-SYSTEM_PROMPT="""
+SYSTEM_PROMPT_1 = """
+<|im_start|>system
+Please reason step by step, and put your final answer within \\boxed{{}}.
+<|im_end|>
+<|im_start|>user
+{prompt}
+<|im_end|>
+<|im_start|>assistant
+"""
+
+SYSTEM_PROMPT_2="""
 <|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n
 """
+
+SYSTEM_PROMPT = SYSTEM_PROMPT_2
 
 # ——————————————
 # Reward functions
