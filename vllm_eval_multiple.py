@@ -10,16 +10,17 @@ from math_verify import verify, parse
 # Config (user-defined)
 # ——————————————
 model_path = "Qwen/Qwen2.5-3B"
-num_trials = 5              # Number of full runs over the dataset
-temperature = 0.7
+num_trials = 10              # Number of full runs over the dataset
+temperature = 0.8
 top_p = 0.9
 
 # ——————————————
 # Prompt Template
 # ——————————————
-SYSTEM_PROMPT="""
-<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n
-"""
+SYSTEM_PROMPT_1="<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
+SYSTEM_PROMPT_2="{prompt}"
+SYSTEM_PROMPT_3="A conversation between User and Assistant. The User asks a question, and the Assistant solves it. The Assistant first thinks about the reasoning process in mind and then provides the User with the answer. The reasoning process is enclosed within <think> </think> and answer is enclosed within <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer>.\nUser: {prompt}\nAssistant: <think>"
+SYSTEM_PROMPT = SYSTEM_PROMPT_1
 
 # ——————————————
 # Reward functions
