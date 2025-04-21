@@ -9,17 +9,19 @@ from math_verify import verify, parse
 # Prompt Templates
 # ——————————————
 PROMPT_TEMPLATES = {
-    "TYPE1": """
-<|im_start|>system
-Please reason step by step, and put your final answer within \\boxed{{}}.
-<|im_end|>
-<|im_start|>user
-{prompt}
-<|im_end|>
-<|im_start|>assistant
+#     "TYPE1": """
+# <|im_start|>system
+# Please reason step by step, and put your final answer within \\boxed{{}}.
+# <|im_end|>
+# <|im_start|>user
+# {prompt}
+# <|im_end|>
+# <|im_start|>assistant
+# """,
+    "TYPE2": """
+<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n
 """,
-    "TYPE2": """<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n""",
-    "TYPE3": "{prompt}"
+    # "TYPE3": "{prompt}"
 }
 
 # ——————————————
