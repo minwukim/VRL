@@ -67,7 +67,7 @@ llm = LLM(model=model_path)
 sampling_params = SamplingParams(
     temperature=temperature,
     top_p=top_p,
-    max_tokens=2560,
+    max_tokens=3000,
     n=1
 )
 
