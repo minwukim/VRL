@@ -9,7 +9,9 @@ from math_verify import verify, parse
 # ——————————————
 # Config (user-defined)
 # ——————————————
-model_path = "Qwen/Qwen2.5-Math-1.5B"
+# model_path = "Qwen/Qwen2.5-Math-1.5B"
+model_path = "Qwen/Qwen2.5-3B"
+
 # FOLLOWING THE SOBER PAPER
 num_trials = 10              # Number of full runs over the dataset
 temperature = 0.8
