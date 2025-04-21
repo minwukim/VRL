@@ -73,7 +73,7 @@ for rec, out in zip(records, outs):
     # Compute rewards
     gt = rec["ground_truth"]
     rec["reward_with_format"] = reward_with_format(a1, gt)
-    rec["reward_without_format"] = reward_without_format(remove_boxed(a1), gt)
+    rec["reward_without_format"] = reward_without_format(a1, gt)
 
     results.append(rec)
 
