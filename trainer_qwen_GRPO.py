@@ -180,7 +180,7 @@ def get_dataset():
 
     
     test = test.map(lambda x: {
-        "prompt": SYSTEM.format(prompt=x["problem"]),
+        "prompt": x["problem"],
         "answer": x["answer"],
         "level": x["level"]
         })
