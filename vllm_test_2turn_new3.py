@@ -89,11 +89,11 @@ for rec, o1, o2 in zip(records, outs_1, outs_2):
     rec["response_1"] = r1
     rec["response_2"] = r2
 
-    rec["reward1_format"] = reward_with_format(r1, gt)
-    rec["reward1_noformat"] = reward_without_format(r1, gt)
+    rec["prompt1_format"] = reward_with_format(r1, gt)
+    rec["prompt1_noformat"] = reward_without_format(r1, gt)
 
-    rec["reward2_format"] = reward_with_format(r2, gt)
-    rec["reward2_noformat"] = reward_without_format(r2, gt)
+    rec["prompt2_format"] = reward_with_format(r2, gt)
+    rec["prompt2_noformat"] = reward_without_format(r2, gt)
 
 # ——————————————
 # Export to CSV
@@ -110,22 +110,7 @@ def print_reward_counts(col_name):
     counts = df[col_name].value_counts().sort_index()
     print(f"{col_name} distribution:\n{counts.to_string()}\n")
 
-print_reward_counts("reward1_format")
-print_reward_counts("reward2_format")
-print_reward_counts("reward1_noformat")
-print_reward_counts("reward2_noformat")
-
-# ——————————————
-# Print mismatched rewards
-# ——————————————
-print("========== MISMATCHED REWARDS ==========\n")
-
-# 1. Format-sensitive mismatch
-mismatch_format = df[df["reward1_format"] != df["reward2_format"]]
-print(f"Mismatched reward_with_format: {len(mismatch_format)} examples")
-print(mismatch_format[["problem", "reward1_format", "reward2_format"]].head(5).to_string(index=False), "\n")
-
-# 2. Format-agnostic mismatch
-mismatch_noformat = df[df["reward1_noformat"] != df["reward2_noformat"]]
-print(f"Mismatched reward_without_format: {len(mismatch_noformat)} examples")
-print(mismatch_noformat[["problem", "reward1_noformat", "reward2_noformat"]].head(5).to_string(index=False))
+print_reward_counts("prompt1_format")
+print_reward_counts("prompt1_noformat")
+print_reward_counts("prompt2_format")
+print_reward_counts("prompt2_noformat")

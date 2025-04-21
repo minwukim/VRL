@@ -101,8 +101,16 @@ count_without_format = df["reward_without_format"].value_counts().sort_index()
 print(f"Mean Reward (with format): {mean_with_format:.3f}")
 print(f"Mean Reward (without format): {mean_without_format:.3f}\n")
 
-print("Reward With Format - Distribution:")
-print(count_with_format.to_string())
 
-print("\nReward Without Format - Distribution:")
-print(count_without_format.to_string())
+def print_reward_counts(col_name):
+    counts = df[col_name].value_counts().sort_index()
+    print(f"{col_name} distribution:\n{counts.to_string()}\n")
+
+print_reward_counts("reward_with_format")
+print_reward_counts("reward_without_format")
+
+# print("Reward With Format - Distribution:")
+# print(count_with_format.to_string())
+
+# print("\nReward Without Format - Distribution:")
+# print(count_without_format.to_string())
