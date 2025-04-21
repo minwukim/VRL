@@ -68,6 +68,10 @@ print(training_args)
 
 def reward_func(completions, answer, **kwargs):
     def reward(s, gt):
+        # add the last boxed tag
+        last_boxed = last_boxed_only_string(s)
+        if last_boxed is not None:
+            s = last_boxed
         try:
             is_correct = verify(parse(s), parse(gt))
             return 1 if is_correct else -1

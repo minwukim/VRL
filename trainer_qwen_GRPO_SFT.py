@@ -57,13 +57,27 @@ parser = TrlParser(dataclass_types=[MyArguments])
 training_args = parser.parse_args_and_config()[0]
 print(training_args)
 
-SYSTEM="""A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer>  \\boxed{{final answer inside}} </answer>. User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag.
-{prompt}
-Assistant: <think>"""
+# SYSTEM="""A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer>  \\boxed{{final answer inside}} </answer>. User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag.
+# {prompt}
+# Assistant: <think>"""
+SYSTEM = "{prompt}"
 
 # SYSTEM="""
 # <|im_start|>system\nA conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> \\boxed{{final answer inside}} </answer>.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n<think>
 # """
+
+def reward_func(completions, answer, **kwargs):
+    def reward(s, gt):
+        # add the last boxed tag
+        last_boxed = last_boxed_only_string(s)
+        if last_boxed is not None:
+            s = last_boxed
+        try:
+            is_correct = verify(parse(s), parse(gt))
+            return 1 if is_correct else 0
+        except:
+            return 0  # parsing/verification failed
+    return [reward(c, gt) for c, gt in zip(completions, answer)]
 
 
 def reward_correct_a1_agnostic(completions, answer, **kwargs):
@@ -220,7 +234,7 @@ grpo_config_args = GRPOConfig(
 
 trainer = GRPO_SFT_Trainer(
     model=model_name,
-    reward_funcs=[reward_correct_a1_agnostic],
+    reward_funcs=[reward_func],
     # reward_funcs = [reward_correct_a1_dependent],
     args=grpo_config_args,
     train_dataset=train,
