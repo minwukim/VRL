@@ -45,6 +45,7 @@ def reward_without_format(s, gt):
 # ——————————————
 test_ds = load_dataset("HuggingFaceH4/MATH-500", trust_remote_code=True)["test"]
 base_prompts = [SYSTEM_PROMPT.format(prompt=ex["problem"]) for ex in test_ds]
+print(base_prompts[0])
 ground_truths = [last_boxed_only_string(ex["solution"]) for ex in test_ds]
 
 # Duplicate for each trial
