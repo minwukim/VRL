@@ -50,7 +50,7 @@ test_ds = load_dataset("HuggingFaceH4/MATH-500", trust_remote_code=True)["test"]
 # ——————————————
 model_path = "Qwen/Qwen2.5-3B"
 llm = LLM(model=model_path)
-sampling_params = SamplingParams(temperature=0.9, max_tokens=2560, top_p=1.0)
+sampling_params = SamplingParams(temperature=0.0, max_tokens=2560, top_p=1.0)
 
 # ——————————————
 # Main loop over prompt types
@@ -82,8 +82,8 @@ for prompt_type, SYSTEM_PROMPT in PROMPT_TEMPLATES.items():
 
     # Save to CSV
     df = pd.DataFrame(results)
-    # csv_path = f"qwen_3b_base_eval_{prompt_type}.csv"
-    # df.to_csv(csv_path, index=False)
+    csv_path = f"qwen_3b_base_eval2_{prompt_type}.csv"
+    df.to_csv(csv_path, index=False)
 
     # Print summary stats
     mean_with_format = df["reward_with_format"].mean()
