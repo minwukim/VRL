@@ -50,7 +50,7 @@ test_ds = load_dataset("HuggingFaceH4/MATH-500", trust_remote_code=True)["test"]
 # ——————————————
 model_path = "Qwen/Qwen2.5-3B"
 llm = LLM(model=model_path)
-sampling_params = SamplingParams(temperature=0.0, max_tokens=2560, top_p=1.0)
+sampling_params = SamplingParams(temperature=0.5, max_tokens=2560, top_p=0.9)
 
 # ——————————————
 # Main loop over prompt types
