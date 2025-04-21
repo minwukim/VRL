@@ -10,7 +10,7 @@ from math_verify import verify, parse
 # Config (user-defined)
 # ——————————————
 # model_path = "Qwen/Qwen2.5-Math-1.5B"
-model_path = "./qwen3b-it-SFT-boxed/checkpoint-150"
+model_path = "./qwen3b-it-SFT-boxed/checkpoint-175"
 # model_path = "Qwen/Qwen2.5-3B"
 
 # FOLLOWING THE SOBER PAPER
