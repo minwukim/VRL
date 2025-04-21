@@ -49,8 +49,8 @@ sampling_params = SamplingParams(temperature=0.0, max_tokens=2560, top_p=1.0)
 # ——————————————
 records = []
 for sample in test_ds:
-    question = sample["question"]      # adjust key if your split uses a different field
-    ground_truth = sample["answer"]    # adjust if necessary
+    question = sample["problem"]      # adjust key if your split uses a different field
+    ground_truth = sample["solution"]    # adjust if necessary
 
     # build the full prompt
     prompt = SYSTEM_PROMPT.format(prompt=question)
