@@ -12,7 +12,7 @@ from math_verify import verify, parse
 # model_path = "Qwen/Qwen2.5-Math-1.5B"
 # model_path = "./qwen3b-it-SFT-boxed/checkpoint-250"
 
-model_path = "./0422-qwen3b-question-only-no-format-weighted-sft-cp175/checkpoint-100"
+model_path = "./0422-qwen3b-question-only-no-format-weighted-sft-cp175/checkpoint-125"
 csv_path = "0421-qwen3b-question-only-no-format-online-sft-cp50.csv"
 
 # model_path ="Qwen/Qwen2.5-3B-instruct"
