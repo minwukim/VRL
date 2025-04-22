@@ -11,8 +11,8 @@ from pathlib import Path
 # Config
 # ——————————————
 model_path = "Qwen/Qwen2.5-3B"  # Path to the model
-csv_path = "demo8.csv"
-seed = 8
+csv_path = "demo9.csv"
+seed = 9
 
 num_trials = 256
 batch_size = 100000  # Adjust based on memory capacity
