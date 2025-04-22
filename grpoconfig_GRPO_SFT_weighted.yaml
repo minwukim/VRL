@@ -32,9 +32,10 @@
 # eval_on_start: False 
 
 
-model_name: "Qwen/Qwen2.5-3B"
-output_dir: "0422-qwen3b-question-only-no-format-weighted-sft"
-run_name: "0422-qwen3b-question-only-no-format-weighted-online-sft"
+# model_name: "Qwen/Qwen2.5-3B"
+model_name: "./0421-qwen3b-question-only-no-format/checkpoint-175"
+output_dir: "0422-qwen3b-question-only-no-format-weighted-sft-cp175"
+run_name: "0422-qwen3b-question-only-no-format-weighted-online-sft-cp175"
 scale_rewards: True
 # resume_from_checkpoint: True
 # checkpoint_path: "qwen3b-it-old-prompt/checkpoint-450"
