@@ -13,8 +13,8 @@ from pathlib import Path
 model_path = "Qwen/Qwen2.5-3B"  # Path to the model
 csv_path = "demo.csv"
 
-num_trials = 4
-batch_size = 3000  # Adjust based on memory capacity
+num_trials = 256
+batch_size = 100000  # Adjust based on memory capacity
 temperature = 0.9
 top_p = 1.0
 
