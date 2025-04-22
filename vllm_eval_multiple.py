@@ -11,7 +11,10 @@ from math_verify import verify, parse
 # ——————————————
 # model_path = "Qwen/Qwen2.5-Math-1.5B"
 # model_path = "./qwen3b-it-SFT-boxed/checkpoint-250"
+
 model_path = "./0421-qwen3b-question-only-no-format-online-sft/checkpoint-50"
+csv_path = "0421-qwen3b-question-only-no-format-online-sft-cp50.csv"
+
 # model_path ="Qwen/Qwen2.5-3B-instruct"
 # model_path = "Qwen/Qwen2.5-3B"
 
@@ -103,3 +106,28 @@ print(f"Standard deviation of means (with): {np.std(trial_means_wf):.6f}\n")
 print(f"Means (without format):                {trial_means_wof}")
 print(f"Mean of means (without format):        {np.mean(trial_means_wof):.3f}")
 print(f"Standard deviation of means (without): {np.std(trial_means_wof):.6f}")
+
+# ——————————————
+# Save responses and lengths
+# ——————————————
+responses = [out.outputs[0].text for out in outputs]
+response_lengths = [len(r) for r in responses]
+
+df = pd.DataFrame({
+    "prompt": all_prompts,
+    "ground_truth": all_ground_truths,
+    "response": responses,
+    "response_length": response_lengths
+})
+df.to_csv(csv_path, index=False)
+
+# ——————————————
+# Response length statistics
+# ——————————————
+response_lengths_array = np.array(response_lengths).reshape(num_trials, -1)
+trial_mean_lengths = response_lengths_array.mean(axis=1)
+
+print("\n========== RESPONSE LENGTH SUMMARY ==========")
+print(f"Mean response lengths per trial:       {trial_mean_lengths}")
+print(f"Mean of means (response length):       {np.mean(trial_mean_lengths):.3f}")
+print(f"Standard deviation of mean lengths:    {np.std(trial_mean_lengths):.6f}")
