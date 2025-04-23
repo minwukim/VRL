@@ -32,7 +32,8 @@ from obsolete.custom_MATH_reward import last_boxed_only_string
 from math_verify import verify, parse
 
 # ───────────────────── configuration constants ─────────────────────
-MODEL_PATH      = "Qwen/Qwen2.5-3B"
+# MODEL_PATH      = "Qwen/Qwen2.5-3B"
+MODEL_PATH      = "./0421-qwen3b-question-only-no-format/checkpoint-150"      # 3B model
 TRIALS_PER_GPU  = 32                # 32 × 8 = 256
 TEMPERATURE     = 0.9
 TOP_P           = 1.0
@@ -120,7 +121,7 @@ def main():
         llm=llm,
         problems=train_problems,
         truths=train_truths,
-        csv_path=Path(f"file{gpu_id+1}_train.csv"),
+        csv_path=Path(f"file{gpu_id+1}_train_cp150.csv"),
         gpu_id=gpu_id,
         seed_offset=gpu_id * 10_000             # keep seed spaces disjoint
     )
@@ -129,7 +130,7 @@ def main():
         llm=llm,
         problems=test_problems,
         truths=test_truths,
-        csv_path=Path(f"file{gpu_id+1}_test.csv"),
+        csv_path=Path(f"file{gpu_id+1}_test_cp150.csv"),
         gpu_id=gpu_id,
         seed_offset=1_000_000 + gpu_id * 10_000 # separate seed range for test set
     )
