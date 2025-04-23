@@ -36,7 +36,7 @@ MODEL_PATH      = "Qwen/Qwen2.5-3B"
 TRIALS_PER_GPU  = 32                # 32 × 8 = 256
 TEMPERATURE     = 0.9
 TOP_P           = 1.0
-MAX_TOKENS      = 3_000
+MAX_TOKENS      = 4000
 BASE_SEED       = 11                # distinct seed space per GPU later
 SYSTEM_PROMPT   = "{prompt}"        # no special system prefix for now
 
