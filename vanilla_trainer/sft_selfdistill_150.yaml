@@ -20,7 +20,7 @@ num_generations: 8
 max_prompt_length: 256
 max_completion_length: 32768
 num_train_epochs: 3
-save_steps: 40
+save_steps: 15000
 max_grad_norm: 0.1
 report_to: wandb
 use_vllm: True
