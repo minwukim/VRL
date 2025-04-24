@@ -2,7 +2,7 @@ import re
 import torch
 from datasets import load_dataset, Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from trl.trl import SFTConfig, SFTTrainer, DataCollatorForCompletionOnlyLM
+from trl import SFTConfig, SFTTrainer, DataCollatorForCompletionOnlyLM
 
 from datasets import load_dataset
 from math_verify import verify, parse
@@ -50,7 +50,7 @@ class MyArguments:
     evaluation_strategy: str = None
 
 
-from trl.trl import TrlParser
+from trl import TrlParser
 
 parser = TrlParser(dataclass_types=[MyArguments])
 
@@ -94,7 +94,7 @@ sft_config_args = SFTConfig(
     lr_scheduler_type=training_args.lr_scheduler_type,
     logging_steps=training_args.logging_steps,
     bf16=training_args.bf16,
-    bf16_full_eval=training_args.bf16_full_eval,
+    # bf16_full_eval=training_args.bf16_full_eval,
     per_device_train_batch_size=training_args.per_device_train_batch_size,
     gradient_accumulation_steps=training_args.gradient_accumulation_steps,
     gradient_checkpointing=training_args.gradient_checkpointing,
@@ -104,12 +104,12 @@ sft_config_args = SFTConfig(
     max_grad_norm=training_args.max_grad_norm,
     report_to=training_args.report_to,
     max_steps=training_args.max_steps,
-    eval_strategy=training_args.evaluation_strategy,
-    eval_steps = training_args.eval_steps,
-    eval_on_start=training_args.eval_on_start,
+    eval_strategy="no",
+    # eval_steps = training_args.eval_steps,
+    # eval_on_start=training_args.eval_on_start,
     gradient_checkpointing_kwargs={"use_reentrant": False},
-    per_device_eval_batch_size=training_args.per_device_train_batch_size,
-    eval_accumulation_steps=training_args.gradient_accumulation_steps
+    # per_device_eval_batch_size=training_args.per_device_train_batch_size,
+    # eval_accumulation_steps=training_args.gradient_accumulation_steps
 )
 
 trainer = SFTTrainer(
