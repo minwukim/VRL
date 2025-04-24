@@ -57,7 +57,7 @@ parser = TrlParser(dataclass_types=[MyArguments])
 training_args = parser.parse_args_and_config()[0]
 
 #df = pd.read_csv("qwq_samples.csv")
-df = pd.read_csv("self_distill_base_data_sep.csv")
+df = pd.read_csv("self_distill_150_data_sep.csv")
 # Combine 'question' and 'llm_answer' into a single 'text' column
 df['text'] = df['prompt'] + df['response']
 
