@@ -62,6 +62,8 @@ if tokenizer.pad_token is None:
 model = AutoModelForCausalLM.from_pretrained(training_args.model_name, attn_implementation="flash_attention_2")
 
 def custom_collate(samples):
+    print("Sample keys:", samples[0].keys())
+    print("Sample example:", samples[0])
     input_ids = []
     labels = []
     for s in samples:
