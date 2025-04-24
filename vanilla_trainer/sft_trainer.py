@@ -115,10 +115,11 @@ sft_config_args = SFTConfig(
     eval_accumulation_steps=training_args.gradient_accumulation_steps
 )
 
+train_samples = df[['prompt', 'response']].to_dict(orient='records')
 trainer = SFTTrainer(
     model=model,
     args=sft_config_args,
-    train_dataset=train_dataset,
+    train_dataset=train_samples,
     eval_dataset=None,  # No test set
     data_collator=custom_collate,
 )
