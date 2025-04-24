@@ -18,6 +18,7 @@ num_trials = 16
 batch_size = 100000
 temperature = 0.9
 top_p = 1.0
+tensor_parallel_size=4
 
 SYSTEM_PROMPT = "{prompt}"
 
@@ -40,6 +41,7 @@ def run_evaluation(csv_path, problems, ground_truths, dataset_name):
             temperature=temperature,
             top_p=top_p,
             max_tokens=8000,
+            tensor_parallel_size=tensor_parallel_size,
             n=1,
             seed=seed + trial,
         )
