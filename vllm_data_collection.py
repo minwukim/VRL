@@ -34,11 +34,11 @@ from math_verify import verify, parse
 # ───────────────────── configuration constants ─────────────────────
 # MODEL_PATH      = "Qwen/Qwen2.5-3B"
 MODEL_PATH      = "./0421-qwen3b-question-only-no-format/checkpoint-150"      # 3B model
-TRIALS_PER_GPU  = 32                # 32 × 8 = 256
+TRIALS_PER_GPU  = 5                # 32 × 8 = 256
 TEMPERATURE     = 0.9
 TOP_P           = 1.0
 MAX_TOKENS      = 4000
-BASE_SEED       = 11                # distinct seed space per GPU later
+BASE_SEED       = 22                # distinct seed space per GPU later
 SYSTEM_PROMPT   = "{prompt}"        # no special system prefix for now
 
 # ──────────────────────────── helpers ──────────────────────────────
@@ -123,7 +123,7 @@ def main():
         truths=train_truths,
         csv_path=Path(f"file{gpu_id+1}_train_cp150.csv"),
         gpu_id=gpu_id,
-        seed_offset=gpu_id * 10_000             # keep seed spaces disjoint
+        seed_offset=(gpu_id+1) * 100000             # keep seed spaces disjoint
     )
 
     run_trials(
@@ -132,7 +132,7 @@ def main():
         truths=test_truths,
         csv_path=Path(f"file{gpu_id+1}_test_cp150.csv"),
         gpu_id=gpu_id,
-        seed_offset=1_000_000 + gpu_id * 10_000 # separate seed range for test set
+        seed_offset=100000000 + gpu_id * 10_000 # separate seed range for test set
     )
 
     print(f"[GPU{gpu_id}] all trials finished.")
