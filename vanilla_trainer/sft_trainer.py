@@ -2,7 +2,7 @@ import re
 import torch
 from datasets import load_dataset, Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from trl.trl import SFTConfig, SFTTrainer, DataCollatorForCompletionOnlyLM
+from trl import SFTConfig, SFTTrainer, DataCollatorForCompletionOnlyLM
 
 from datasets import load_dataset
 from math_verify import verify, parse
