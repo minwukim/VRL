@@ -33,7 +33,7 @@ def run_evaluation(csv_path, problems, ground_truths, dataset_name):
     print(f"\n>>> Starting evaluations on {dataset_name} — {total_questions} questions x {num_trials} trials")
 
     first_batch = True
-    llm = LLM(model=model_path, max_model_len=30000)
+    llm = LLM(model=model_path, max_model_len=8000)
 
     for trial in range(num_trials):
         print(f"\n=== Trial {trial + 1}/{num_trials} ===")
