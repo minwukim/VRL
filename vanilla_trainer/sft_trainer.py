@@ -2,7 +2,7 @@ import torch
 import pandas as pd
 from datasets import Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from trl.trl import SFTConfig, SFTTrainer
+from trl import SFTConfig, SFTTrainer
 
 from dataclasses import dataclass
 
