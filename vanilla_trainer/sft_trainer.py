@@ -45,7 +45,7 @@ class MyArguments:
 training_args = MyArguments()
 
 # Load your CSV with 'prompt' and 'response' columns
-df = pd.read_csv("self_distill_base_data.csv.csv")
+df = pd.read_csv("self_distill_base_data.csv")
 print("Number of training examples:", len(df))
 print("Sample row:\n", df.iloc[0])
 
