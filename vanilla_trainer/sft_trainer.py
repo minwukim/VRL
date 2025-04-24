@@ -1,39 +1,47 @@
+import re
 import torch
-import pandas as pd
-from datasets import Dataset
+from datasets import load_dataset, Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from trl.trl import SFTConfig, SFTTrainer
+from trl.trl import SFTConfig, SFTTrainer, DataCollatorForCompletionOnlyLM
+
+from datasets import load_dataset
+from math_verify import verify, parse
+from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
 
 from dataclasses import dataclass
+from typing import Optional
+
+from dataset_loader import load_math, load_countdown, load_kk
+import pandas as pd
 
 @dataclass
 class MyArguments:
-    model_name: str = "Qwen/Qwen2.5-3B"           # Replace with your model
-    output_dir: str = "./sft_output"
-    run_name: str = "sft_run"
-    learning_rate: float = 2e-5
-    beta: float = 1.0
-    adam_beta1: float = 0.9
-    adam_beta2: float = 0.95
-    weight_decay: float = 0.1
-    warmup_steps: int = 100
-    lr_scheduler_type: str = "linear"
-    logging_steps: int = 10
-    bf16: bool = False
-    bf16_full_eval: bool = False
-    per_device_train_batch_size: int = 2
-    gradient_accumulation_steps: int = 1
-    gradient_checkpointing: bool = True
-    num_generations: int = 1
-    max_prompt_length: int = 512
-    max_completion_length: int = 256
-    num_train_epochs: int = 2
-    save_steps: int = 100
-    max_grad_norm: float = 1.0
-    report_to: str = "all"
-    use_vllm: bool = False
-    vllm_max_model_len: int = 2048
-    log_completions: bool = False
+    model_name: str
+    output_dir: str
+    run_name: str
+    learning_rate: float
+    beta: float
+    adam_beta1: float
+    adam_beta2: float
+    weight_decay: float
+    warmup_steps: int
+    lr_scheduler_type: str
+    logging_steps: float
+    bf16: bool
+    bf16_full_eval: bool
+    per_device_train_batch_size: int
+    gradient_accumulation_steps: int
+    gradient_checkpointing: bool
+    num_generations: int
+    max_prompt_length: int
+    max_completion_length: int
+    num_train_epochs: int
+    save_steps: int
+    max_grad_norm: float
+    report_to: str
+    use_vllm: bool
+    vllm_max_model_len: int
+    log_completions: bool
     checkpoint_path: str = None
     resume_from_checkpoint: bool = False
     max_steps: int = -1
@@ -41,46 +49,38 @@ class MyArguments:
     eval_steps: int = None
     evaluation_strategy: str = None
 
-# Instantiating the arguments (could also parse from CLI or YAML)
-training_args = MyArguments()
 
-# Load your CSV with 'prompt' and 'response' columns
-df = pd.read_csv("base_model_self_distillation_shuffled.csv")
-print("Number of training examples:", len(df))
-print("Sample row:\n", df.iloc[0])
+from trl.trl import TrlParser
 
-# Use all data for training
+parser = TrlParser(dataclass_types=[MyArguments])
+
+training_args = parser.parse_args_and_config()[0]
+
+#df = pd.read_csv("qwq_samples.csv")
+df = pd.read_csv("self_distill_base_data_sep.csv")
+# Combine 'question' and 'llm_answer' into a single 'text' column
+df['text'] = df['prompt'] + df['response']
+
+# Randomly sample 500 rows for the test set
+# test_set = df.sample(n=100, random_state=42)
+
+# # Remaining rows for the training set
+# train_set = df.drop(test_set.index)
+
+# Convert to Hugging Face Dataset format
+# test_dataset = Dataset.from_pandas(test_set.reset_index(drop=True))
 train_dataset = Dataset.from_pandas(df.reset_index(drop=True))
 
-tokenizer = AutoTokenizer.from_pretrained(training_args.model_name)
-if tokenizer.pad_token is None:
-    tokenizer.pad_token = tokenizer.eos_token  # For most LLMs
 
-model = AutoModelForCausalLM.from_pretrained(training_args.model_name, attn_implementation="flash_attention_2")
+model_path = training_args.model_name if not training_args.resume_from_checkpoint else training_args.checkpoint_path
+model_name = AutoModelForCausalLM.from_pretrained(model_path, attn_implementation="flash_attention_2")
+tokenizer = AutoTokenizer.from_pretrained(model_path)
+tokenizer.padding_side='left'
 
-def custom_collate(samples):
-    input_ids = []
-    labels = []
-    for s in samples:
-        q_ids = tokenizer.encode(s['prompt'], add_special_tokens=False)
-        a_ids = tokenizer.encode(s['response'], add_special_tokens=False)
-        ids = q_ids + a_ids
-        input_ids.append(ids)
-        label = [-100]*len(q_ids) + a_ids
-        labels.append(label)
-    
-    # Pad to max length in the batch
-    max_len = max(len(ids) for ids in input_ids)
-    input_ids = [ids + [tokenizer.pad_token_id]*(max_len - len(ids)) for ids in input_ids]
-    labels = [lbl + [-100]*(max_len - len(lbl)) for lbl in labels]
-    attention_mask = [[1]*len(ids) + [0]*(max_len - len(ids)) for ids in input_ids]
-    
-    batch = {
-        'input_ids': torch.tensor(input_ids),
-        'labels': torch.tensor(labels),
-        'attention_mask': torch.tensor(attention_mask),
-    }
-    return batch
+collator = DataCollatorForCompletionOnlyLM(
+    response_template=tokenizer.encode(" [SEP] ", add_special_tokens=False),
+    tokenizer=tokenizer,
+)
 
 sft_config_args = SFTConfig(
     output_dir=training_args.output_dir,
@@ -104,18 +104,36 @@ sft_config_args = SFTConfig(
     max_grad_norm=training_args.max_grad_norm,
     report_to=training_args.report_to,
     max_steps=training_args.max_steps,
-    # No eval strategy, eval_steps, eval_on_start, etc.
+    eval_strategy=training_args.evaluation_strategy,
+    eval_steps = training_args.eval_steps,
+    eval_on_start=training_args.eval_on_start,
     gradient_checkpointing_kwargs={"use_reentrant": False},
     per_device_eval_batch_size=training_args.per_device_train_batch_size,
     eval_accumulation_steps=training_args.gradient_accumulation_steps
 )
 
 trainer = SFTTrainer(
-    model=model,
+    model=model_name,
     args=sft_config_args,
     train_dataset=train_dataset,
-    eval_dataset=None,  # No test set
-    data_collator=custom_collate,
+    eval_dataset=None,
+    data_collator=collator
 )
+
+## Get a sample from your dataset
+#sample = train_dataset[0]
+#
+## Process it with your collator
+#batch = collator([tokenizer.encode(sample['text'], truncation=True)])
+#
+## Examine the labels
+#input_ids = batch["input_ids"][0]
+#labels = batch["labels"][0]
+#
+## Print them side by side for comparison
+#for i, (input_id, label) in enumerate(zip(input_ids, labels)):
+#    token = tokenizer.decode([input_id])
+#    print(f"Position {i}: Token '{token}' - Input ID: {input_id}, Label: {label}")
+
 
 trainer.train(resume_from_checkpoint=training_args.checkpoint_path if training_args.resume_from_checkpoint else False)
