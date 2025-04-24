@@ -121,7 +121,7 @@ def main():
         llm=llm,
         problems=train_problems,
         truths=train_truths,
-        csv_path=Path(f"file{gpu_id+1}_train_cp150.csv"),
+        csv_path=Path(f"new_file{gpu_id+1}_train_cp150.csv"),
         gpu_id=gpu_id,
         seed_offset=(gpu_id+1) * 100000             # keep seed spaces disjoint
     )
@@ -130,7 +130,7 @@ def main():
         llm=llm,
         problems=test_problems,
         truths=test_truths,
-        csv_path=Path(f"file{gpu_id+1}_test_cp150.csv"),
+        csv_path=Path(f"new_file{gpu_id+1}_test_cp150.csv"),
         gpu_id=gpu_id,
         seed_offset=100000000 + gpu_id * 10_000 # separate seed range for test set
     )
