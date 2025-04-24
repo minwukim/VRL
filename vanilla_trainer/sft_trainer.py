@@ -62,14 +62,14 @@ df = pd.read_csv("self_distill_base_data_sep.csv")
 df['text'] = df['prompt'] + df['response']
 
 # Randomly sample 500 rows for the test set
-test_set = df.sample(n=100, random_state=42)
+# test_set = df.sample(n=100, random_state=42)
 
-# Remaining rows for the training set
-train_set = df.drop(test_set.index)
+# # Remaining rows for the training set
+# train_set = df.drop(test_set.index)
 
 # Convert to Hugging Face Dataset format
-test_dataset = Dataset.from_pandas(test_set.reset_index(drop=True))
-train_dataset = Dataset.from_pandas(train_set.reset_index(drop=True))
+# test_dataset = Dataset.from_pandas(test_set.reset_index(drop=True))
+train_dataset = Dataset.from_pandas(df.reset_index(drop=True))
 
 
 model_path = training_args.model_name if not training_args.resume_from_checkpoint else training_args.checkpoint_path
@@ -116,7 +116,7 @@ trainer = SFTTrainer(
     model=model_name,
     args=sft_config_args,
     train_dataset=train_dataset,
-    eval_dataset=test_dataset,
+    eval_dataset=None,
     data_collator=collator
 )
 
