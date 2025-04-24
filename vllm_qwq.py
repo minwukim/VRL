@@ -18,7 +18,7 @@ num_trials = 16
 batch_size = 100000
 temperature = 0.9
 top_p = 1.0
-tensor_parallel_size=4
+tensor_parallel_size=2
 
 SYSTEM_PROMPT = "{prompt}"
 
