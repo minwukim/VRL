@@ -50,7 +50,7 @@ class MyArguments:
     evaluation_strategy: str = None
 
 
-from trl.trl import TrlParser
+from trl import TrlParser
 
 parser = TrlParser(dataclass_types=[MyArguments])
 
