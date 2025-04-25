@@ -26,7 +26,7 @@ tensor_parallel_size = 2
 # Prompt template with standardized instruction
 SYSTEM_PROMPT = (
     "{prompt}\n\n"
-    "Please reason step by step, and put your final answer within \\boxed{}.\n"
+    "Please reason step by step, and put your final answer within \\boxed{{}}.\n"
     "<think>\n"
 )
 
