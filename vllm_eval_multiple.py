@@ -21,7 +21,7 @@ model_path = "./vanilla_trainer/0425-base-self-distill/checkpoint-41718"
 # model_path ="Qwen/Qwen2.5-3B-instruct"
 # model_path = "Qwen/Qwen2.5-3B"
 
-# FOLLOWING THE SOBER PAPER
+# FOLLOWING THE SOBER PAPERR
 num_trials = 1              # Number of full runs over the dataset
 temperature = 0.8
 top_p = 0.9
