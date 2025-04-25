@@ -99,11 +99,11 @@ train_truths = [last_boxed_only_string(e["solution"]) for e in ds_train]
 
 run_evaluation(csv_train_path, train_problems, train_truths, dataset_name="Train Set")
 
-# ——————————————
-# Test set: no formatting applied to solution
-# ——————————————
-ds_test = load_dataset("HuggingFaceH4/MATH-500", split="test")
-test_problems = [SYSTEM_PROMPT.format(prompt=e["problem"]) for e in ds_test]
-test_truths = [e["solution"] for e in ds_test]
+# # ——————————————
+# # Test set: no formatting applied to solution
+# # ——————————————
+# ds_test = load_dataset("HuggingFaceH4/MATH-500", split="test")
+# test_problems = [SYSTEM_PROMPT.format(prompt=e["problem"]) for e in ds_test]
+# test_truths = [e["solution"] for e in ds_test]
 
-run_evaluation(csv_test_path, test_problems, test_truths, dataset_name="Test Set")
+# run_evaluation(csv_test_path, test_problems, test_truths, dataset_name="Test Set")
