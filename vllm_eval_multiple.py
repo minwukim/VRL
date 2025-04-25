@@ -12,8 +12,10 @@ from math_verify import verify, parse
 # model_path = "Qwen/Qwen2.5-Math-1.5B"
 # model_path = "./qwen3b-it-SFT-boxed/checkpoint-250"
 
-model_path = "./0421-qwen3b-question-only-no-format/checkpoint-150"
+# model_path = "./0421-qwen3b-question-only-no-format/checkpoint-150"
 # model_path = "./vanilla_trainer/0425-base-self-distill/checkpoint-41718"
+model_path = "./vanilla_trainer/0425-base-self-distill/checkpoint-15000"
+
 # model_path = "./vanilla_trainer/0425-cp150-self-distill/checkpoint-41730"
 
 # csv_path = "0421-qwen3b-question-only-no-format-online-sft-cp50.csv"
@@ -22,7 +24,7 @@ model_path = "./0421-qwen3b-question-only-no-format/checkpoint-150"
 # model_path = "Qwen/Qwen2.5-3B"
 
 # FOLLOWING THE SOBER PAPERR
-num_trials = 1              # Number of full runs over the dataset
+num_trials = 5              # Number of full runs over the dataset
 temperature = 0.8
 top_p = 0.9
 
@@ -57,8 +59,8 @@ def reward_without_format(s, gt):
 # ——————————————
 # Load dataset
 # ——————————————
-# test_ds = load_dataset("HuggingFaceH4/MATH-500", trust_remote_code=True)["test"]
-test_ds = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="train")
+test_ds = load_dataset("HuggingFaceH4/MATH-500", trust_remote_code=True)["test"]
+# test_ds = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="train")
 
 base_prompts = [SYSTEM_PROMPT.format(prompt=ex["problem"]) for ex in test_ds]
 print(base_prompts[0])
