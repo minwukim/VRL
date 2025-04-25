@@ -14,9 +14,11 @@ from math_verify import verify, parse
 
 # model_path = "./0421-qwen3b-question-only-no-format/checkpoint-150"
 # model_path = "./vanilla_trainer/0425-base-self-distill/checkpoint-41718"
-model_path = "./vanilla_trainer/0425-base-self-distill/checkpoint-15000"
+# model_path = "./vanilla_trainer/0425-base-self-distill/checkpoint-15000"
 
 # model_path = "./vanilla_trainer/0425-cp150-self-distill/checkpoint-41730"
+model_path = "./vanilla_trainer/0425-cp150-self-distill/checkpoint-15000"
+
 
 # csv_path = "0421-qwen3b-question-only-no-format-online-sft-cp50.csv"
 
@@ -36,7 +38,7 @@ SYSTEM_PROMPT_2="{prompt}"
 SYSTEM_PROMPT_3="A conversation between User and Assistant. The User asks a question, and the Assistant solves it. The Assistant first thinks about the reasoning process in mind and then provides the User with the answer. The reasoning process is enclosed within <think> </think> and answer is enclosed within <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer>.\nUser: {prompt}\nAssistant: <think>"
 SYSTEM_PROMPT_4="\n<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n\n"
 SYSTEM_PROMPT_5="{prompt} [SEP] "
-SYSTEM_PROMPT = SYSTEM_PROMPT_2
+SYSTEM_PROMPT = SYSTEM_PROMPT_5
 
 # ——————————————
 # Reward functions
