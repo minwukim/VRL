@@ -16,11 +16,19 @@ csv_test_path = "QwQ_test.csv"
 seed = 11
 num_trials = 16
 batch_size = 100000
-temperature = 0.9
-top_p = 1.0
-tensor_parallel_size=2
+temperature = 0.6
+top_p = 0.95
+top_k = 40
+min_p = 0.0
+presence_penalty = 1.0
+tensor_parallel_size = 2
 
-SYSTEM_PROMPT = "{prompt}"
+# Prompt template with standardized instruction
+SYSTEM_PROMPT = (
+    "{prompt}\n\n"
+    "Please reason step by step, and put your final answer within \\boxed{}.\n"
+    "<think>\n"
+)
 
 def reward_without_format(s, gt):
     try:
@@ -35,46 +43,50 @@ def run_evaluation(csv_path, problems, ground_truths, dataset_name):
     first_batch = True
     llm = LLM(model=model_path, max_model_len=10000, tensor_parallel_size=tensor_parallel_size)
 
-    for trial in range(num_trials):
-        print(f"\n=== Trial {trial + 1}/{num_trials} ===")
+    for i in range(0, total_questions, batch_size):
+        batch_indices = range(i, min(i + batch_size, total_questions))
+        batch_prompts = [problems[j] for j in batch_indices]
+        batch_ground_truths = [ground_truths[j] for j in batch_indices]
 
         sampling_params = SamplingParams(
             temperature=temperature,
             top_p=top_p,
+            top_k=top_k,
+            min_p=min_p,
+            presence_penalty=presence_penalty,
             max_tokens=8000,
-            n=1,
-            seed=seed + trial,
+            n=num_trials,
+            seed=seed,
         )
 
-        for i in range(0, total_questions, batch_size):
-            batch_indices = range(i, min(i + batch_size, total_questions))
-            batch_prompts = [problems[j] for j in batch_indices]
-            batch_ground_truths = [ground_truths[j] for j in batch_indices]
-            trial_indices = [trial] * len(batch_prompts)
+        try:
+            outputs = llm.generate(batch_prompts, sampling_params)
+        except Exception as e:
+            print(f"[ERROR] Batch {i}-{i+batch_size} failed: {e}")
+            continue
 
-            try:
-                outputs = llm.generate(batch_prompts, sampling_params)
-            except Exception as e:
-                print(f"[ERROR] Batch {i}-{i+batch_size} failed: {e}")
-                continue
+        rows = []
+        for j, out in enumerate(outputs):  # each question
+            prompt = batch_prompts[j]
+            ground_truth = batch_ground_truths[j]
+            q_idx = batch_indices[j]
+            for trial_idx, o in enumerate(out.outputs):  # each of the 16 samples
+                response = o.text
+                reward = reward_without_format(response, ground_truth)
+                rows.append({
+                    "trial_index": trial_idx,
+                    "question_index": q_idx,
+                    "prompt": prompt,
+                    "ground_truth": ground_truth,
+                    "response": response,
+                    "response_length": len(response),
+                    "reward": reward
+                })
 
-            responses = [out.outputs[0].text for out in outputs]
-            rewards = [reward_without_format(r, gt) for r, gt in zip(responses, batch_ground_truths)]
-            response_lengths = [len(r) for r in responses]
-
-            df = pd.DataFrame({
-                "trial_index": trial_indices,
-                "question_index": list(batch_indices),
-                "prompt": batch_prompts,
-                "ground_truth": batch_ground_truths,
-                "response": responses,
-                "response_length": response_lengths,
-                "reward": rewards
-            })
-
-            df.to_csv(csv_path, mode='a', header=first_batch, index=False)
-            first_batch = False
-            print(f"✓ Saved batch {i}-{i+len(batch_prompts)-1} (trial {trial})")
+        df = pd.DataFrame(rows)
+        df.to_csv(csv_path, mode='a', header=first_batch, index=False)
+        first_batch = False
+        print(f"✓ Saved batch {i}-{i+len(batch_prompts)-1} ({len(rows)} rows)")
 
     print(f"\n✅ Completed all {num_trials} trials for {dataset_name}")
 
