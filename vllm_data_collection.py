@@ -109,15 +109,15 @@ def main():
     train_problems = [SYSTEM_PROMPT.format(prompt=e["problem"])     for e in ds_train]
     train_truths   = [last_boxed_only_string(e["solution"])         for e in ds_train]
 
-    # test set
-    ds_test  = load_dataset("HuggingFaceH4/MATH-500", split="test")
-    test_problems  = [SYSTEM_PROMPT.format(prompt=e["problem"])     for e in ds_test]
-    test_truths    = [e["solution"]                                 for e in ds_test]
+    # # test set
+    # ds_test  = load_dataset("HuggingFaceH4/MATH-500", split="test")
+    # test_problems  = [SYSTEM_PROMPT.format(prompt=e["problem"])     for e in ds_test]
+    # test_truths    = [e["solution"]                                 for e in ds_test]
 
-    # train set
-    ds_train = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="test")
-    train_problems = [SYSTEM_PROMPT.format(prompt=e["problem"])     for e in ds_train]
-    train_truths   = [last_boxed_only_string(e["solution"])         for e in ds_train]
+    # # train set
+    # ds_train = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="test")
+    # train_problems = [SYSTEM_PROMPT.format(prompt=e["problem"])     for e in ds_train]
+    # train_truths   = [last_boxed_only_string(e["solution"])         for e in ds_train]
 
     # ---- model (locked to this GPU) ------------------------------
     llm = LLM(model=MODEL_PATH)
@@ -127,28 +127,28 @@ def main():
         llm=llm,
         problems=train_problems,
         truths=train_truths,
-        csv_path=Path(f"{FILE_PREFIX}_new_file{gpu_id+1}_train.csv"),
+        csv_path=Path(f"{FILE_PREFIX}_file{gpu_id+1}_train.csv"),
         gpu_id=gpu_id,
         seed_offset=(gpu_id+1) * 100000             # keep seed spaces disjoint
     )
 
-    run_trials(
-        llm=llm,
-        problems=test_problems,
-        truths=test_truths,
-        csv_path=Path(f"{FILE_PREFIX}_file{gpu_id+1}_test.csv"),
-        gpu_id=gpu_id,
-        seed_offset=100000000 + gpu_id * 10_000 # separate seed range for test set
-    )
+    # run_trials(
+    #     llm=llm,
+    #     problems=test_problems,
+    #     truths=test_truths,
+    #     csv_path=Path(f"{FILE_PREFIX}_file{gpu_id+1}_test.csv"),
+    #     gpu_id=gpu_id,
+    #     seed_offset=100000000 + gpu_id * 10_000 # separate seed range for test set
+    # )
 
-    run_trials(
-        llm=llm,
-        problems=train_problems,
-        truths=train_truths,
-        csv_path=Path(f"{FILE_PREFIX}_file{gpu_id+1}_test5000.csv"),
-        gpu_id=gpu_id,
-        seed_offset=(gpu_id+1) * 100000             # keep seed spaces disjoint
-    )
+    # run_trials(
+    #     llm=llm,
+    #     problems=train_problems,
+    #     truths=train_truths,
+    #     csv_path=Path(f"{FILE_PREFIX}_file{gpu_id+1}_test5000.csv"),
+    #     gpu_id=gpu_id,
+    #     seed_offset=(gpu_id+1) * 100000             # keep seed spaces disjoint
+    # )
 
     print(f"[GPU{gpu_id}] all trials finished.")
 
