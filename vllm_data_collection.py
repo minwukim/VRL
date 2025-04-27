@@ -33,13 +33,13 @@ from math_verify import verify, parse
 
 # ───────────────────── configuration constants ─────────────────────
 # MODEL_PATH      = "Qwen/Qwen2.5-3B"
-MODEL_PATH      = "./0421-qwen3b-question-only-no-format/checkpoint-50"      # 3B model
+MODEL_PATH      = "./0421-qwen3b-question-only-no-format/checkpoint-200"      # 3B model
 TRIALS_PER_GPU  = 32                # 32 × 8 = 256
 TEMPERATURE     = 0.9
 TOP_P           = 1.0
 MAX_TOKENS      = 4000
-BASE_SEED       = 42                # distinct seed space per GPU later
-FILE_PREFIX      = "cp50"      # prefix for CSV filenames
+BASE_SEED       = 420                # distinct seed space per GPU later
+FILE_PREFIX      = "cp200"      # prefix for CSV filenames
 SYSTEM_PROMPT   = "{prompt}"        # no special system prefix for now
 
 # ──────────────────────────── helpers ──────────────────────────────
@@ -107,14 +107,14 @@ def main():
     print(f"[GPU{gpu_id}] loading datasets…")
 
     # train set
-    ds_train = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="train")
-    train_problems = [SYSTEM_PROMPT.format(prompt=e["problem"])     for e in ds_train]
-    train_truths   = [last_boxed_only_string(e["solution"])         for e in ds_train]
+    # ds_train = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="train")
+    # train_problems = [SYSTEM_PROMPT.format(prompt=e["problem"])     for e in ds_train]
+    # train_truths   = [last_boxed_only_string(e["solution"])         for e in ds_train]
 
-    # test set
-    ds_test  = load_dataset("HuggingFaceH4/MATH-500", split="test")
-    test_problems  = [SYSTEM_PROMPT.format(prompt=e["problem"])     for e in ds_test]
-    test_truths    = [e["solution"]                                 for e in ds_test]
+    # # test set
+    # ds_test  = load_dataset("HuggingFaceH4/MATH-500", split="test")
+    # test_problems  = [SYSTEM_PROMPT.format(prompt=e["problem"])     for e in ds_test]
+    # test_truths    = [e["solution"]                                 for e in ds_test]
 
     # train set
     ds_test_5000 = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="test")
@@ -125,29 +125,29 @@ def main():
     llm = LLM(model=MODEL_PATH)
 
     # ---- run TRAIN first, then TEST ------------------------------
-    run_trials(
-        llm=llm,
-        problems=train_problems,
-        truths=train_truths,
-        csv_path=Path(f"{FILE_PREFIX}_file{gpu_id+1}_train.csv"),
-        gpu_id=gpu_id,
-        seed_offset=(gpu_id+1) * 100000             # keep seed spaces disjoint
-    )
+    # run_trials(
+    #     llm=llm,
+    #     problems=train_problems,
+    #     truths=train_truths,
+    #     csv_path=Path(f"{FILE_PREFIX}_file{gpu_id+1}_train.csv"),
+    #     gpu_id=gpu_id,
+    #     seed_offset=(gpu_id+1) * 100000             # keep seed spaces disjoint
+    # )
 
-    run_trials(
-        llm=llm,
-        problems=test_problems,
-        truths=test_truths,
-        csv_path=Path(f"{FILE_PREFIX}_file{gpu_id+1}_test.csv"),
-        gpu_id=gpu_id,
-        seed_offset=100000000 + gpu_id * 10_000 # separate seed range for test set
-    )
+    # run_trials(
+    #     llm=llm,
+    #     problems=test_problems,
+    #     truths=test_truths,
+    #     csv_path=Path(f"{FILE_PREFIX}_file{gpu_id+1}_test.csv"),
+    #     gpu_id=gpu_id,
+    #     seed_offset=100000000 + gpu_id * 10_000 # separate seed range for test set
+    # )
 
     run_trials(
         llm=llm,
         problems=test_5000_problems,
         truths=test_5000_truths,
-        csv_path=Path(f"{FILE_PREFIX}_file{gpu_id+1}_test5000.csv"),
+        csv_path=Path(f"{FILE_PREFIX}_file{gpu_id+1}_test5000_UPDATE.csv"),
         gpu_id=gpu_id,
         seed_offset=(gpu_id+1) * 100000             # keep seed spaces disjoint
     )
