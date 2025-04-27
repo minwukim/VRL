@@ -33,13 +33,13 @@ from math_verify import verify, parse
 
 # ───────────────────── configuration constants ─────────────────────
 # MODEL_PATH      = "Qwen/Qwen2.5-3B"
-MODEL_PATH      = "./0421-qwen3b-question-only-no-format/checkpoint-200"      # 3B model
+MODEL_PATH      = "./0421-qwen3b-question-only-no-format/checkpoint-50"      # 3B model
 TRIALS_PER_GPU  = 32                # 32 × 8 = 256
 TEMPERATURE     = 0.9
 TOP_P           = 1.0
 MAX_TOKENS      = 4000
 BASE_SEED       = 42                # distinct seed space per GPU later
-FILE_PREFIX      = "cp200"      # prefix for CSV filenames
+FILE_PREFIX      = "cp50"      # prefix for CSV filenames
 SYSTEM_PROMPT   = "{prompt}"        # no special system prefix for now
 
 # ──────────────────────────── helpers ──────────────────────────────
