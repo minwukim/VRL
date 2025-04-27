@@ -87,7 +87,9 @@ def run_trials(
             "reward":          rewards,
             "seed":            seed,
         })
-        df.to_csv(csv_path, mode="a", header=first_write, index=False)
+        df.to_csv(csv_path, mode="a", header=first_write, index=False, quoting=1, escapechar="\\")
+
+        # df.to_csv(csv_path, mode="a", header=first_write, index=False)
         first_write = False
         print(f"[GPU{gpu_id}]   ✓ wrote {n} rows")
 
