@@ -18,14 +18,14 @@ csv_train_path = "ood_test_easy_cp2500.csv"
 
 # csv_test_path = "QwQ_test.csv"
 seed = 11
-num_trials = 256
+num_trials = 1
 batch_size = 150000
 temperature = 0.6
 top_p = 0.95
 top_k = 40
 min_p = 0.0
 presence_penalty = 1.0
-tensor_parallel_size = 2
+tensor_parallel_size = 4
 
 # Prompt template with standardized instruction
 # SYSTEM_PROMPT = (
