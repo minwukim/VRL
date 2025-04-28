@@ -49,7 +49,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
     print(f"\n>>> Starting evaluations on {dataset_name} — {total_questions} questions x {num_trials} trials")
 
     first_batch = True
-    llm = LLM(model=model_path, max_model_len=10000, tensor_parallel_size=tensor_parallel_size)
+    llm = LLM(model=model_path, max_model_len=50000, tensor_parallel_size=tensor_parallel_size)
 
     for i in range(0, total_questions, batch_size):
         batch_indices = range(i, min(i + batch_size, total_questions))
