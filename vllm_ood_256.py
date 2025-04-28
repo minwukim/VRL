@@ -25,7 +25,7 @@ top_p = 0.95
 top_k = 40
 min_p = 0.0
 presence_penalty = 1.0
-tensor_parallel_size = 4
+tensor_parallel_size = 2
 
 # Prompt template with standardized instruction
 # SYSTEM_PROMPT = (
@@ -49,7 +49,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
     print(f"\n>>> Starting evaluations on {dataset_name} — {total_questions} questions x {num_trials} trials")
 
     first_batch = True
-    llm = LLM(model=model_path, max_model_len=32768, tensor_parallel_size=tensor_parallel_size)
+    llm = LLM(model=model_path, max_model_len=32000, tensor_parallel_size=tensor_parallel_size)
 
     for i in range(0, total_questions, batch_size):
         batch_indices = range(i, min(i + batch_size, total_questions))
@@ -63,7 +63,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
             top_k=top_k,
             min_p=min_p,
             presence_penalty=presence_penalty,
-            max_tokens=32768,
+            max_tokens=32000,
             n=num_trials,
             seed=seed,
         )
