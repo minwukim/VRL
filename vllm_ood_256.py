@@ -14,7 +14,7 @@ from pathlib import Path
 # csv_train_path = "QwQ_train.csv"
 
 model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
-csv_train_path = "ood_test_easy_cp2500.csv"
+csv_train_path = "ood_test_easy_cp2500_haha.csv"
 
 # csv_test_path = "QwQ_test.csv"
 seed = 11
