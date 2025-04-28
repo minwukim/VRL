@@ -10,24 +10,32 @@ from pathlib import Path
 # ——————————————
 # Config
 # ——————————————
-model_path = "Qwen/QwQ-32B"
-csv_train_path = "QwQ_train.csv"
-csv_test_path = "QwQ_test.csv"
+# model_path = "Qwen/QwQ-32B"
+# csv_train_path = "QwQ_train.csv"
+model_path = "Qwen/Qwen2.5-32B-Instruct"
+csv_train_path = "Qwen32B.csv"
+# csv_test_path = "QwQ_test.csv"
 seed = 11
-num_trials = 8
-batch_size = 100000
+num_trials = 16
+batch_size = 150000
 temperature = 0.6
 top_p = 0.95
 top_k = 40
 min_p = 0.0
 presence_penalty = 1.0
-tensor_parallel_size = 4
+tensor_parallel_size =2
 
 # Prompt template with standardized instruction
+# SYSTEM_PROMPT = (
+#     "{prompt}"
+# )
+
 SYSTEM_PROMPT = (
-    "{prompt}\n\n"
-    "Please reason step by step, and put your final answer within \\boxed{{}}.\n"
-    "<think>\n"
+    "<|im_start|>system\n"
+    "You are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n"
+    "<|im_start|>user\n"
+    "{prompt}<|im_end|>\n"
+    "<|im_start|>assistant\n"
 )
 
 def reward_without_format(s, gt):
@@ -99,11 +107,3 @@ train_truths = [last_boxed_only_string(e["solution"]) for e in ds_train]
 
 run_evaluation(csv_train_path, train_problems, train_truths, dataset_name="Train Set")
 
-# # ——————————————
-# # Test set: no formatting applied to solution
-# # ——————————————
-# ds_test = load_dataset("HuggingFaceH4/MATH-500", split="test")
-# test_problems = [SYSTEM_PROMPT.format(prompt=e["problem"]) for e in ds_test]
-# test_truths = [e["solution"] for e in ds_test]
-
-# run_evaluation(csv_test_path, test_problems, test_truths, dataset_name="Test Set")
