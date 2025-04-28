@@ -14,10 +14,10 @@ from pathlib import Path
 # csv_train_path = "QwQ_train.csv"
 
 model_path = "./qwq_distill_cps/0428-base-distill-qwq-ext-hard-response/checkpoint-2140"
-csv_train_path = "ood_test_ext_hard_cp2140_second_64.csv"
+csv_train_path = "ood_test_ext_hard_cp2140_first_64.csv"
 
 # csv_test_path = "QwQ_test.csv"
-seed = 13
+seed = 12
 num_trials = 64
 batch_size = 150000
 temperature = 0.6
