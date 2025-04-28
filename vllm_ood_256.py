@@ -14,11 +14,11 @@ from pathlib import Path
 # csv_train_path = "QwQ_train.csv"
 
 model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
-csv_train_path = "ood_test_easy_cp2500_haha.csv"
+csv_train_path = "ood_test_easy_cp2500_first_64.csv"
 
 # csv_test_path = "QwQ_test.csv"
 seed = 11
-num_trials = 1
+num_trials = 64
 batch_size = 150000
 temperature = 0.6
 top_p = 0.95
@@ -49,7 +49,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
     print(f"\n>>> Starting evaluations on {dataset_name} — {total_questions} questions x {num_trials} trials")
 
     first_batch = True
-    llm = LLM(model=model_path, max_model_len=32000, tensor_parallel_size=tensor_parallel_size)
+    llm = LLM(model=model_path, max_model_len=10000, tensor_parallel_size=tensor_parallel_size)
 
     for i in range(0, total_questions, batch_size):
         batch_indices = range(i, min(i + batch_size, total_questions))
