@@ -13,11 +13,11 @@ from pathlib import Path
 # model_path = "Qwen/QwQ-32B"
 # csv_train_path = "QwQ_train.csv"
 
-model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
-csv_train_path = "ood_test_easy_cp2500_second_64.csv"
+model_path = "./qwq_distill_cps/0428-base-distill-qwq-ext-hard-response/checkpoint-2140"
+csv_train_path = "ood_test_ext_hard_cp2140_first_64.csv"
 
 # csv_test_path = "QwQ_test.csv"
-seed = 13
+seed = 12
 num_trials = 64
 batch_size = 150000
 temperature = 0.6
