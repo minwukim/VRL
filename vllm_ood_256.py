@@ -3,38 +3,10 @@ import pandas as pd
 import numpy as np
 from datasets import load_dataset
 from vllm import LLM, SamplingParams
-# from obsolete.custom_MATH_reward import remove_boxed, last_boxed_only_string
+from obsolete.custom_MATH_reward import remove_boxed, last_boxed_only_string
 from math_verify import verify, parse
 from pathlib import Path
 
-def last_boxed_only_string(string):
-    idx = string.rfind("\\boxed")
-    if "\\boxed " in string:
-        return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]
-    if idx < 0:
-        idx = string.rfind("\\fbox")
-        if idx < 0:
-            return None
-
-    i = idx
-    right_brace_idx = None
-    num_left_braces_open = 0
-    while i < len(string):
-        if string[i] == "{":
-            num_left_braces_open += 1
-        if string[i] == "}":
-            num_left_braces_open -= 1
-            if num_left_braces_open == 0:
-                right_brace_idx = i
-                break
-        i += 1
-
-    if right_brace_idx is None:
-        retval = None
-    else:
-        retval = string[idx:right_brace_idx + 1]
-
-    return retval
 
 # ——————————————
 # Config
@@ -43,21 +15,23 @@ def last_boxed_only_string(string):
 # csv_train_path = "QwQ_train.csv"
 
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-ext-hard-response/checkpoint-2140"
-model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
-# csv_train_path = "ood_test_ext_hard_cp2140_first_64.csv"
-csv_train_path = "ood_test_KK_128.csv"
+model_path = "./qwq_distill_cps/checkpoint-2500"
+
+# model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
+csv_train_path = "ood_test_medium_response_cp2500_first_64.csv"
+# csv_train_path = "ood_test_KK_128.csv"
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 12
-num_trials = 128
+seed = 11
+num_trials = 64
 batch_size = 150000
 temperature = 0.6
 top_p = 0.95
 top_k = 40
 min_p = 0.0
 presence_penalty = 1.0
-tensor_parallel_size = 1
+tensor_parallel_size = 2
 
 # Prompt template with standardized instruction
 # SYSTEM_PROMPT = (
@@ -67,17 +41,17 @@ tensor_parallel_size = 1
 #     "{prompt}<|im_end|>\n"
 #     "<|im_start|>assistant\n"
 # )
-# SYSTEM_PROMPT = (
-#     "{prompt} [SEP] "
-# )
-
 SYSTEM_PROMPT = (
-    "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
-    "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
-    "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
-    " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
-    "User: {prompt}/nAssitatnt: <think>"
+    "{prompt} [SEP] "
 )
+
+# SYSTEM_PROMPT = (
+#     "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
+#     "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
+#     "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
+#     " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
+#     "User: {prompt}/nAssitatnt: <think>"
+# )
 def reward_without_format(s, gt):
     try:
         return int(verify(parse(s), parse(gt)))
