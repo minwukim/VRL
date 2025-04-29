@@ -13,7 +13,8 @@ from pathlib import Path
 # model_path = "Qwen/QwQ-32B"
 # csv_train_path = "QwQ_train.csv"
 
-model_path = "./qwq_distill_cps/0428-base-distill-qwq-ext-hard-response/checkpoint-2140"
+# model_path = "./qwq_distill_cps/0428-base-distill-qwq-ext-hard-response/checkpoint-2140"
+model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
 # csv_train_path = "ood_test_ext_hard_cp2140_first_64.csv"
 csv_train_path = "ood_test_KK_128.csv"
 
@@ -37,8 +38,16 @@ tensor_parallel_size = 1
 #     "{prompt}<|im_end|>\n"
 #     "<|im_start|>assistant\n"
 # )
+# SYSTEM_PROMPT = (
+#     "{prompt} [SEP] "
+# )
+
 SYSTEM_PROMPT = (
-    "{prompt} [SEP] "
+    "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
+    "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
+    "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
+    " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
+    "User: {prompt}/nAssitatnt: <think>"
 )
 def reward_without_format(s, gt):
     try:
