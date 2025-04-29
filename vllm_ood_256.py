@@ -25,7 +25,7 @@ csv_train_path = "ood_test_medium_response_cp2500_second_64.csv"
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 12
+seed = 123
 num_trials = 64
 batch_size = 150000
 temperature = 0.6
