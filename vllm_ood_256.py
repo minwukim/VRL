@@ -14,18 +14,20 @@ from pathlib import Path
 # csv_train_path = "QwQ_train.csv"
 
 model_path = "./qwq_distill_cps/0428-base-distill-qwq-ext-hard-response/checkpoint-2140"
-csv_train_path = "ood_test_ext_hard_cp2140_first_64.csv"
+# csv_train_path = "ood_test_ext_hard_cp2140_first_64.csv"
+csv_train_path = "ood_test_KK_128.csv"
+
 
 # csv_test_path = "QwQ_test.csv"
 seed = 12
-num_trials = 64
+num_trials = 128
 batch_size = 150000
 temperature = 0.6
 top_p = 0.95
 top_k = 40
 min_p = 0.0
 presence_penalty = 1.0
-tensor_parallel_size = 2
+tensor_parallel_size = 1
 
 # Prompt template with standardized instruction
 # SYSTEM_PROMPT = (
