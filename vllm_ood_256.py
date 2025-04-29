@@ -18,7 +18,7 @@ from pathlib import Path
 model_path = "./qwq_distill_cps/0428-base-distill-qwq-hard-response/checkpoint-2000"
 
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
-csv_train_path = "ood_test_hard_response_cp2000_second_64.csv"
+csv_train_path = "ood_test_hard_response_cp2000_first_64.csv"
 # csv_train_path = "ood_test_KK_128.csv"
 
 
