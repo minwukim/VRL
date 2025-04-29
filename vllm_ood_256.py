@@ -18,12 +18,12 @@ from pathlib import Path
 model_path = "./qwq_distill_cps/checkpoint-2500"
 
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
-csv_train_path = "ood_test_medium_response_cp2500_first_64.csv"
+csv_train_path = "ood_test_medium_response_cp2500_second_64.csv"
 # csv_train_path = "ood_test_KK_128.csv"
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 11
+seed = 12
 num_trials = 64
 batch_size = 150000
 temperature = 0.6
