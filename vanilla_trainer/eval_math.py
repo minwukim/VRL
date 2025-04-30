@@ -4,7 +4,7 @@ from datasets import load_dataset
 from vllm import LLM, SamplingParams
 from math_verify import verify, parse
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
-
+import torch
 from eval_datasets import get_kk_test_prompts
 
 import argparse
@@ -18,7 +18,7 @@ args = parser.parse_args()
 model_path = args.model # Update with actual model path 
 file_path = args.file
 
-llm = LLM(model=model_path, max_model_len=32000, gpu_memory_utilization=0.7)
+llm = LLM(model=model_path, tensor_parallel_size=torch.cuda.device_count(), max_model_len=8192, gpu_memory_utilization=0.9)
 
 SYSTEM_PROMPT = """
 A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
@@ -114,14 +114,14 @@ def get_aime_prompts():
 def main():
     #prompts, ground_truths, reward_kk = get_kk_test_prompts()
     #prompts, ground_truths = get_ob_test_prompts()
-    prompts, ground_truths = get_aime_prompts()
-    #prompts, ground_truths = get_math_test_prompts()
+    #prompts, ground_truths = get_aime_prompts()
+    prompts, ground_truths = get_math_test_prompts()
     
     prompts, ground_truths = prompts, ground_truths
     sampling_params = SamplingParams(
-        temperature=0, #0.6
-        top_p=1,  #0.95
-        max_tokens=32000
+        temperature=0.7, #0.6
+        top_p=0.95,  #0.95
+        max_tokens=8192
     )
     outputs = llm.generate(prompts, sampling_params)
     

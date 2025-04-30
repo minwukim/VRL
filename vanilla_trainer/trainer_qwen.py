@@ -11,7 +11,7 @@ from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_stri
 from dataclasses import dataclass
 from typing import Optional
 
-from dataset_loader import load_math, load_countdown, load_kk
+from dataset_loader import load_math, load_countdown, load_kk, load_mmlupro
 
 #from custom_grpo_trainer import NewGRPOTrainer
 
@@ -114,6 +114,10 @@ def reward_correct(completions, answer, **kwargs):
 train, test = load_math(SYSTEM, sample=100)
 #train, test, reward_correct = load_kk()
 
+
+# humanities = ["history","law","philosophy"]
+# train, test, reward_correct = load_mmlupro(sample=100, categories=humanities)
+
 model_path = training_args.model_name if not training_args.resume_from_checkpoint else training_args.checkpoint_path
 model_name = AutoModelForCausalLM.from_pretrained(model_path)
 
@@ -146,6 +150,9 @@ grpo_config_args = GRPOConfig(
     log_completions=training_args.log_completions,
     max_steps=training_args.max_steps,
     evaluation_strategy="no",
+    temperature=0.7,
+    top_p=0.95
+    # vllm_gpu_memory_utilization=0.7,
     #evaluation_strategy=training_args.evaluation_strategy,
     #eval_steps = training_args.eval_steps,
     #eval_on_start=training_args.eval_on_start,

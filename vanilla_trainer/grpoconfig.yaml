@@ -1,9 +1,11 @@
-model_name: "Qwen/Qwen2.5-3B"
+#model_name: "Qwen/Qwen2.5-3B"
 #model_name: "../outputs/qwen2.5-3b-sft-pro/checkpoint-1092/" 
-output_dir: "../outputs/qwen2.5-3b-grpo-math-small"
-run_name: "qwen3b-grpo-math100"
-resume_from_checkpoint: True 
-checkpoint_path: "../outputs/qwen2.5-3b-grpo-math-small/checkpoint-125"
+#model_name: "../outputs/qwen2.5-3b-grpo-humanities-mmlu-small/checkpoint-150/" 
+model_name: "../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125"
+output_dir: "../outputs/qwen2.5-3b-sftkkpro-math-small/"
+run_name: "qwen3b-kk-sftpro-math100-small-continue"
+resume_from_checkpoint: True
+checkpoint_path: "../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125"
 learning_rate: 1e-6
 beta: 0
 adam_beta1: 0.9
@@ -19,7 +21,7 @@ gradient_accumulation_steps: 2
 gradient_checkpointing: True
 num_generations: 10
 max_prompt_length: 256
-max_completion_length: 12000 
+max_completion_length: 8192 
 num_train_epochs: 10
 save_steps: 50
 max_grad_norm: 0.1

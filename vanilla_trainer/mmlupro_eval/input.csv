@@ -1,0 +1,15 @@
+select,model,subjects,train_size,notes
+True,"../../outputs/qwen2.5-3b-grpo-humanities-mmlu-small/checkpoint-250/",history|law|philosophy,100,warmup+humanities100
+True,"../../outputs/qwen2.5-3b-grpo-humanities-mmlu-small/checkpoint-250/",math500,1,warmup+humanities100
+True,"../../outputs/qwen2.5-3b-grpo-mmlu100-humanities/checkpoint-250/",history|law|philosophy,100,base+humanities100
+True,"../../outputs/qwen2.5-3b-grpo-mmlu100-humanities/checkpoint-250/",math500,1,base+humanities100
+False,"../../outputs/qwen2.5-3b-grpo-humanities-mmlu-small/checkpoint-300/",history|law|philosophy,100,warmup+humanities100
+False,"../../outputs/qwen2.5-3b-grpo-humanities-mmlu-small/checkpoint-300/",math500,1,warmup+humanities100
+False,"../../outputs/qwen2.5-3b-grpo-mmlu100-humanities/checkpoint-300/",history|law|philosophy,100,base+humanities100
+False,"../../outputs/qwen2.5-3b-grpo-mmlu100-humanities/checkpoint-300/",math500,1,base+humanities100
+False,"../../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-150",math500,1,warmup+math100
+False,"../../outputs/qwen2.5-3b-sftkk-history100/checkpoint-150",math500,1,warmup+history100
+False,"../../outputs/qwen2.5-3b-sftkk-history100/checkpoint-150",history,300,warmup+history100
+False,"../../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125",all,0.5,warmup+math100
+False,"../../outputs/qwen2.5-3b-grpo-math-small/checkpoint-250",all,0.5,base+math100
+False,"../../outputs/qwen2.5-3b-sftkk-history100/checkpoint-200",history,300,warmup+history100

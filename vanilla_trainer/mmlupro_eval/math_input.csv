@@ -1,0 +1,5 @@
+select,model,subjects,train_size,notes
+True,"../../outputs/qwen2.5-3b-sftkkpro-math-small/",all,100,warmup+math100
+False,"../../outputs/qwen2.5-3b-grpo-math-small/",all,100,base+math100
+False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-500/",all,0.5,base+mathall
+False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-400/",all,0.5,base+mathall

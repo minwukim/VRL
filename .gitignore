@@ -4,8 +4,14 @@ test_env/
 newenv/
 wandb/
 outputs/
+.*.s*
 *.swp
 *.out
 *.log
 qwq_samples_more.csv
 processed_qwq_samples.csv
+eval_results/
+ood_distill_kk/
+base_ood_test_questions.csv
+ood_KK_model_first.txt
+ood_KK_model_second.txt

@@ -1,0 +1,32 @@
+timestamp,model,subject,train_size,mean_acc,stdev
+2025-04-25_13-19-21,../../outputs/qwen2.5-3b-sftkk-history100/checkpoint-150,history,300.0,0.3395061728395061,0.008729713347982
+2025-04-28_07-55-12,../../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125,biology,0.5,0.5598885793871866,0.0236358812652884
+2025-04-28_07-58-52,../../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125,business,0.5,0.4367088607594936,0.0125310062488755
+2025-04-28_08-05-20,../../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125,chemistry,0.5,0.3657243816254417,0.0124930526711404
+2025-04-28_08-07-13,../../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125,computer science,0.5,0.3951219512195122,0.0
+2025-04-28_08-09-37,../../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125,economics,0.5,0.514218009478673,0.0033512169724481
+2025-04-28_08-16-53,../../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125,engineering,0.5,0.2525773195876288,0.0102056648831048
+2025-04-28_08-18-45,../../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125,health,0.5,0.382640586797066,0.0155598069209753
+2025-04-28_08-19-51,../../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125,history,0.5,0.2958115183246073,0.0185106487221609
+2025-04-28_08-22-38,../../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125,law,0.5,0.219600725952813,0.0025666307847061
+2025-04-28_08-27-45,../../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125,math,0.5,0.5251479289940828,0.0125521913820097
+2025-04-28_08-30-49,../../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125,other,0.5,0.3777056277056277,0.0168358757425368
+2025-04-28_08-32-49,../../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125,philosophy,0.5,0.36,0.0226274169979695
+2025-04-28_08-39-36,../../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125,physics,0.5,0.3830769230769231,0.0130542790372901
+2025-04-28_08-41-41,../../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125,psychology,0.5,0.4624060150375939,0.0053165923397484
+2025-04-28_08-41-41,../../outputs/qwen2.5-3b-sftkkpro-math-small/checkpoint-125,all,0.5,0.395044887710475,0.0993000114423417
+2025-04-28_09-38-26,../../outputs/qwen2.5-3b-grpo-math-small/checkpoint-250,biology,0.5,0.4540389972144847,0.0039393135442147295
+2025-04-28_09-39-35,../../outputs/qwen2.5-3b-grpo-math-small/checkpoint-250,business,0.5,0.31265822784810127,0.0017901437498393704
+2025-04-28_09-41-27,../../outputs/qwen2.5-3b-grpo-math-small/checkpoint-250,chemistry,0.5,0.2323321554770318,0.033731242212079106
+2025-04-28_09-42-29,../../outputs/qwen2.5-3b-grpo-math-small/checkpoint-250,computer science,0.5,0.3170731707317073,0.02069580822985019
+2025-04-28_09-43-36,../../outputs/qwen2.5-3b-grpo-math-small/checkpoint-250,economics,0.5,0.3838862559241706,0.02680973577958474
+2025-04-28_09-45-22,../../outputs/qwen2.5-3b-grpo-math-small/checkpoint-250,engineering,0.5,0.1938144329896907,0.005831808504631319
+2025-04-28_09-46-36,../../outputs/qwen2.5-3b-grpo-math-small/checkpoint-250,health,0.5,0.30684596577017115,0.022475276663631083
+2025-04-28_09-47-27,../../outputs/qwen2.5-3b-grpo-math-small/checkpoint-250,history,0.5,0.22513089005235604,0.00740425948886436
+2025-04-28_09-49-03,../../outputs/qwen2.5-3b-grpo-math-small/checkpoint-250,law,0.5,0.1996370235934664,0.017966415492943127
+2025-04-28_09-50-50,../../outputs/qwen2.5-3b-grpo-math-small/checkpoint-250,math,0.5,0.32988165680473375,0.0
+2025-04-28_09-51-53,../../outputs/qwen2.5-3b-grpo-math-small/checkpoint-250,other,0.5,0.31385281385281383,0.012244273267299542
+2025-04-28_09-52-55,../../outputs/qwen2.5-3b-grpo-math-small/checkpoint-250,philosophy,0.5,0.27,0.025455844122715694
+2025-04-28_09-54-58,../../outputs/qwen2.5-3b-grpo-math-small/checkpoint-250,physics,0.5,0.2730769230769231,0.009790709277967618
+2025-04-28_09-56-07,../../outputs/qwen2.5-3b-grpo-math-small/checkpoint-250,psychology,0.5,0.4223057644110275,0.005316592339748478
+2025-04-28_09-56-07,../../outputs/qwen2.5-3b-grpo-math-small/checkpoint-250,all,0.5,0.3024667341247627,0.07863210798408338

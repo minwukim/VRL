@@ -1,0 +1,7 @@
+select,model,subjects,train_size,notes
+True,"../../outputs/qwen2.5-3b-grpo-humanities-mmlu-small/",all,100,warmup+humanities100
+True,"../../outputs/qwen2.5-3b-grpo-humanities-mmlu-small/",math500,1,warmup+humanities100
+True,"../../outputs/qwen2.5-3b-grpo-mmlu100-humanities/",all,100,base+humanities100
+True,"../../outputs/qwen2.5-3b-grpo-mmlu100-humanities/",math500,1,base+humanities100
+True,"../../outputs/qwen2.5-3b-grpo-mmlu-full/checkpoint-444",math500,0.75,base+mmlu.75
+True,"../../outputs/qwen2.5-3b-grpo-mmlu-full/checkpoint-444",all,0.75,base+mmlu.75
