@@ -21,12 +21,12 @@ model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
 
 
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
-csv_train_path = "ood_all_4_first_64.csv"
+csv_train_path = "ood_all_4_second_64.csv"
 # csv_train_path = "ood_test_KK_128.csv"
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 12
+seed = 123
 num_trials = 64
 batch_size = 150000
 temperature = 0.6
