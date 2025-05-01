@@ -15,3 +15,6 @@ ood_distill_kk/
 base_ood_test_questions.csv
 ood_KK_model_first.txt
 ood_KK_model_second.txt
+1_to_64_kk_response.txt
+1to64_kk_response.csv
+base_model_1_to_64_test500_questions.csv

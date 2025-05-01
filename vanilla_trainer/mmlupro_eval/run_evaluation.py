@@ -34,17 +34,11 @@ max_model_length = 8192
 max_new_tokens = max_model_length
 
 out_dir = "all_outputs"
-output_file = "math_evals.csv"
+# output_file = None
 
-out_df = pd.DataFrame()
+# out_df = None
 
-if os.path.exists("evals.csv"):
-    out_df = pd.read_csv("evals.csv")
-
-
-        
-
-def load_model(args, model, index):
+def load_model(args, model):
     
     sampling_params = SamplingParams(
             n = args.trials,
@@ -55,15 +49,10 @@ def load_model(args, model, index):
                                               "Assistant:",
                                               "User:"])
 
-    if index == 0:
-        llm = LLM(model=model, gpu_memory_utilization=0.9,
-                tensor_parallel_size=torch.cuda.device_count(),
-                max_model_len=max_model_length,
-                trust_remote_code=True)
-    else:
-        llm = vllm.llm_engine.model_executor.driver_worker.model_runner.model
-        new_model = transformers.AutoModelForCausalLM.from_pretrained(model, torch_dtype=torch.bfloat16).cuda()
-        llm.load_weights(new_model.named_parameters())
+    llm = LLM(model=model, gpu_memory_utilization=0.9,
+            tensor_parallel_size=torch.cuda.device_count(),
+            max_model_len=max_model_length,
+            trust_remote_code=True)
     
     tokenizer = transformers.AutoTokenizer.from_pretrained(model, trust_remote_code=True)
     return llm, sampling_params, tokenizer
@@ -96,8 +85,9 @@ def save_to_file(row_dict):
     out_df[float_cols] = out_df[float_cols].round(3)
     out_df.to_csv(output_file, index=False)
 
-def generate_and_save(model, llm, sampling_params, tokenizer, subjects, train_size, ds_mmlu, ds_math, args):
-    # ds_mmlu.start_evaluation(model, llm, sampling_params, tokenizer, subjects, train_size, args, save_to_file, get_default_dict)
+def generate_and_save(model, subjects, train_size, ds_mmlu, ds_math, args):
+    llm, sampling_params, tokenizer = load_model(args, model)
+    ds_mmlu.start_evaluation(model, llm, sampling_params, tokenizer, subjects, train_size, args, save_to_file, get_default_dict)
     ds_math.start_evaluation(model, llm, sampling_params, tokenizer, ["math500"], 1, args, save_to_file, get_default_dict)
     cleanup_dist_env_and_memory()
 
@@ -105,10 +95,21 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="A simple script to process terminal inputs.")
     parser.add_argument("--input", help="Path to the input CSV file")
     parser.add_argument("--run", help="The command to run")
+    parser.add_argument("--out_file", help="The output file")
     parser.add_argument("--trials", type=int, help="Sample size")
 
     args = parser.parse_args()
+    
+    global out_df, output_file
 
+    output_file = args.out_file
+
+    if os.path.exists(output_file):
+        out_df = pd.read_csv(output_file)
+    else:
+        out_df = pd.DataFrame()
+
+    print("Saving to:", output_file)
     df = pd.read_csv(args.input)
     ds_mmlu = MMLUProLoader("TIGER-Lab/MMLU-Pro", args.trials)
     
@@ -119,11 +120,10 @@ if __name__ == "__main__":
         if not row['select']: continue
 
         models = os.listdir(row['model']) if 'checkpoint-' not in row['model'] else [row['model']]
-        wandb.init(project="tests", name=f"{row['model']}--{row['subjects']}")
+        wandb.init(project="evaluations", name=f"{row['model']}--{row['subjects']}")
         for index, model in enumerate(models):
             if 'checkpoint-' not in row['model']: model = row['model'] + "/" + model
             
-            llm, sampling_params, tokenizer = load_model(args, model, index)
     
             # dataset = ds_mmlu
             subjects = []
@@ -135,7 +135,7 @@ if __name__ == "__main__":
             else:
                 subjects = ds_mmlu.subjects
                
-            generate_and_save(model, llm, sampling_params, tokenizer, subjects, row['train_size'], ds_mmlu, ds_math, args)
+            generate_and_save(model, subjects, row['train_size'], ds_mmlu, ds_math, args)
     
         wandb.finish()
 

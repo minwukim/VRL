@@ -7,6 +7,57 @@ from vllm import LLM, SamplingParams
 from math_verify import verify, parse
 from pathlib import Path
 
+
+# ——————————————
+# Config
+# ——————————————
+# model_path = "Qwen/QwQ-32B"
+# csv_train_path = "QwQ_train.csv"
+
+# model_path = "./qwq_distill_cps/0428-base-distill-qwq-ext-hard-response/checkpoint-2140"
+# model_path = "./qwq_distill_cps/0428-base-distill-qwq-hard-response/checkpoint-2000"
+# model_path = "./qwq_distill_cps/checkpoint-2500"
+# model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
+# model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
+
+
+model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
+# csv_train_path = "ood_all_4_second_64.csv"
+# csv_train_path = "ood_test_KK_128.csv"
+csv_train_path = "1to64_kk_response.csv"
+
+
+# csv_test_path = "QwQ_test.csv"
+seed = 123
+num_trials = 128
+batch_size = 150000
+temperature = 0.6
+top_p = 0.95
+top_k = 40
+min_p = 0.0
+presence_penalty = 1.0
+tensor_parallel_size = 1
+
+# Prompt template with standardized instruction
+# SYSTEM_PROMPT = (
+#     "<|im_start|>system\n"
+#     "You are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n"
+#     "<|im_start|>user\n"
+#     "{prompt}<|im_end|>\n"
+#     "<|im_start|>assistant\n"
+# )
+# SYSTEM_PROMPT = (
+#     "{prompt} [SEP] "
+# )
+
+SYSTEM_PROMPT = (
+    "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
+    "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
+    "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
+    " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
+    "User: {prompt}/nAssitatnt: <think>"
+)
+
 def last_boxed_only_string(string):
     idx = string.rfind("\\boxed")
     if "\\boxed " in string:
@@ -36,48 +87,6 @@ def last_boxed_only_string(string):
 
     return retval
 
-# ——————————————
-# Config
-# ——————————————
-# model_path = "Qwen/QwQ-32B"
-# csv_train_path = "QwQ_train.csv"
-
-# model_path = "./qwq_distill_cps/0428-base-distill-qwq-ext-hard-response/checkpoint-2140"
-model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
-# csv_train_path = "ood_test_ext_hard_cp2140_first_64.csv"
-csv_train_path = "ood_test_KK_128_second.csv"
-
-
-# csv_test_path = "QwQ_test.csv"
-seed = 12
-num_trials = 64
-batch_size = 150000
-temperature = 0.6
-top_p = 0.95
-top_k = 40
-min_p = 0.0
-presence_penalty = 1.0
-tensor_parallel_size = 1
-
-# Prompt template with standardized instruction
-# SYSTEM_PROMPT = (
-#     "<|im_start|>system\n"
-#     "You are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n"
-#     "<|im_start|>user\n"
-#     "{prompt}<|im_end|>\n"
-#     "<|im_start|>assistant\n"
-# )
-# SYSTEM_PROMPT = (
-#     "{prompt} [SEP] "
-# )
-
-SYSTEM_PROMPT = (
-    "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
-    "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
-    "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
-    " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
-    "User: {prompt}/nAssitatnt: <think>"
-)
 def reward_without_format(s, gt):
     try:
         return int(verify(parse(s), parse(gt)))
@@ -142,8 +151,9 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
 # ——————————————
 # Train set: load from CSV instead of HuggingFace dataset
 # ——————————————
-ds_train = pd.read_csv("base_ood_test_questions.csv")
-ds_train = ds_train[ds_train['base_ood'] == 1]
+# ds_train = pd.read_csv("base_ood_test_questions.csv")
+# ds_train = ds_train[ds_train['base_ood'] == 1]
+ds_train = pd.read_csv("base_model_1_to_64_test500_questions.csv")
 
 train_problems = [SYSTEM_PROMPT.format(prompt=p) for p in ds_train['prompt']]
 train_truths = [last_boxed_only_string(gt) for gt in ds_train['ground_truth']]

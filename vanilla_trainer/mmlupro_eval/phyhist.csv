@@ -1,0 +1,7 @@
+select,model,subjects,train_size,notes
+True,"../../outputs/qwen2.5-3b-sftkk-physics100/",all,100,warmup+physics100
+True,"../../outputs/qwen2.5-3b-grpobase-physics100/",all,100,warmup+physics100
+True,"../../outputs/qwen2.5-3b-sftkk-history100/",all,100,warmup+history100
+True,"../../outputs/qwen2.5-3b-grpobase-history100/",all,100,base+history100
+False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-500/",all,0.5,base+mathall
+False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-400/",all,0.5,base+mathall
