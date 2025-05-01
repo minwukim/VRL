@@ -18,6 +18,8 @@ from math_verify import verify, parse
 
 # model_path = "./vanilla_trainer/0425-cp150-self-distill/checkpoint-41730"
 model_path = "./vanilla_trainer/0425-cp150-self-distill/checkpoint-15000"
+model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
+
 
 
 # csv_path = "0421-qwen3b-question-only-no-format-online-sft-cp50.csv"
@@ -61,8 +63,8 @@ def reward_without_format(s, gt):
 # ——————————————
 # Load dataset
 # ——————————————
-# test_ds = load_dataset("HuggingFaceH4/MATH-500", trust_remote_code=True)["test"]
-test_ds = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="train")
+test_ds = load_dataset("HuggingFaceH4/MATH-500", trust_remote_code=True)["test"]
+# test_ds = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="train")
 
 base_prompts = [SYSTEM_PROMPT.format(prompt=ex["problem"]) for ex in test_ds]
 print(base_prompts[0])
@@ -75,11 +77,11 @@ all_ground_truths = ground_truths * num_trials  # Will align index-wise
 # ——————————————
 # Generate responses
 # ——————————————
-llm = LLM(model=model_path)
+llm = LLM(model=model_path, tensor_parallel_size=4)
 sampling_params = SamplingParams(
     temperature=temperature,
     top_p=top_p,
-    max_tokens=3000,
+    max_tokens=50000,
     n=1
 )
 
