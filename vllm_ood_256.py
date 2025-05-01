@@ -18,21 +18,22 @@ from pathlib import Path
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-hard-response/checkpoint-2000"
 # model_path = "./qwq_distill_cps/checkpoint-2500"
 # model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
-# model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
+model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
 
 
-model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
+# model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
 # csv_train_path = "ood_all_4_second_64.csv"
 # csv_train_path = "ood_test_KK_128.csv"
-csv_train_path = "1to64_kk_response.csv"
+# csv_train_path = "1to64_kk_response.csv"
+csv_train_path = "500ood_easy.csv"
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 123
+seed = 12
 num_trials = 128
 batch_size = 150000
-temperature = 0.6
-top_p = 0.95
+temperature = 0.9
+top_p = 1
 top_k = 40
 min_p = 0.0
 presence_penalty = 1.0
@@ -153,7 +154,8 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
 # ——————————————
 # ds_train = pd.read_csv("base_ood_test_questions.csv")
 # ds_train = ds_train[ds_train['base_ood'] == 1]
-ds_train = pd.read_csv("base_model_1_to_64_test500_questions.csv")
+ds_train = pd.read_csv("base_model_test_question_solution_hit.csv")
+ds_train = ds_train[ds_train['hit'] == 0]
 
 train_problems = [SYSTEM_PROMPT.format(prompt=p) for p in ds_train['prompt']]
 train_truths = [last_boxed_only_string(gt) for gt in ds_train['ground_truth']]
