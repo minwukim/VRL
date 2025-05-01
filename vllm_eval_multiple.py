@@ -17,8 +17,8 @@ from math_verify import verify, parse
 # model_path = "./vanilla_trainer/0425-base-self-distill/checkpoint-15000"
 
 # model_path = "./vanilla_trainer/0425-cp150-self-distill/checkpoint-41730"
-model_path = "./vanilla_trainer/0425-cp150-self-distill/checkpoint-15000"
-model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
+# model_path = "./vanilla_trainer/0425-cp150-self-distill/checkpoint-15000"
+# model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
 
 
 
@@ -26,6 +26,8 @@ model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2
 
 # model_path ="Qwen/Qwen2.5-3B-instruct"
 # model_path = "Qwen/Qwen2.5-3B"
+model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
+
 
 # FOLLOWING THE SOBER PAPERR
 num_trials = 1              # Number of full runs over the dataset
@@ -40,7 +42,18 @@ SYSTEM_PROMPT_2="{prompt}"
 SYSTEM_PROMPT_3="A conversation between User and Assistant. The User asks a question, and the Assistant solves it. The Assistant first thinks about the reasoning process in mind and then provides the User with the answer. The reasoning process is enclosed within <think> </think> and answer is enclosed within <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer>.\nUser: {prompt}\nAssistant: <think>"
 SYSTEM_PROMPT_4="\n<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n\n"
 SYSTEM_PROMPT_5="{prompt} [SEP] "
-SYSTEM_PROMPT = SYSTEM_PROMPT_5
+SYSTEM_PROMPT_6 = (
+    "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
+    "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
+    "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
+    " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
+    "User: {prompt}/nAssitatnt: <think>"
+)
+
+
+
+
+SYSTEM_PROMPT = SYSTEM_PROMPT_6
 
 # ——————————————
 # Reward functions
@@ -77,11 +90,11 @@ all_ground_truths = ground_truths * num_trials  # Will align index-wise
 # ——————————————
 # Generate responses
 # ——————————————
-llm = LLM(model=model_path, tensor_parallel_size=4)
+llm = LLM(model=model_path, max_model_len=32000, tensor_parallel_size=4)
 sampling_params = SamplingParams(
     temperature=temperature,
     top_p=top_p,
-    max_tokens=50000,
+    max_tokens=32000,
     n=1
 )
 
