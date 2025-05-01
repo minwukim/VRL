@@ -47,17 +47,17 @@ tensor_parallel_size = 1
 #     "{prompt}<|im_end|>\n"
 #     "<|im_start|>assistant\n"
 # )
-# SYSTEM_PROMPT = (
-#     "{prompt} [SEP] "
-# )
-
 SYSTEM_PROMPT = (
-    "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
-    "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
-    "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
-    " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
-    "User: {prompt}/nAssitatnt: <think>"
+    "{prompt} [SEP] "
 )
+
+# SYSTEM_PROMPT = (
+#     "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
+#     "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
+#     "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
+#     " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
+#     "User: {prompt}/nAssitatnt: <think>"
+# )
 
 def last_boxed_only_string(string):
     idx = string.rfind("\\boxed")
