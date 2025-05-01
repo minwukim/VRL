@@ -15,8 +15,8 @@ from pathlib import Path
 # csv_train_path = "QwQ_train.csv"
 
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-ext-hard-response/checkpoint-2140"
-model_path = "./qwq_distill_cps/0428-base-distill-qwq-hard-response/checkpoint-2000"
-# model_path = "./qwq_distill_cps/checkpoint-2500"
+# model_path = "./qwq_distill_cps/0428-base-distill-qwq-hard-response/checkpoint-2000"
+model_path = "./qwq_distill_cps/checkpoint-2500"
 # model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
 
@@ -25,7 +25,7 @@ model_path = "./qwq_distill_cps/0428-base-distill-qwq-hard-response/checkpoint-2
 # csv_train_path = "ood_all_4_second_64.csv"
 # csv_train_path = "ood_test_KK_128.csv"
 # csv_train_path = "1to64_kk_response.csv"
-csv_train_path = "np128p256_hard.csv"
+csv_train_path = "np128p256_medium.csv"
 
 
 # csv_test_path = "QwQ_test.csv"
