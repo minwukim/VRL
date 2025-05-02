@@ -142,7 +142,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
                     "prompt": prompt,
                     "ground_truth": ground_truth,
                     "response": response,
-                    "response_length": len(tokenizer.encode(response)),
+                    "response_length": len(response),
                     "reward": reward
                 })
 
