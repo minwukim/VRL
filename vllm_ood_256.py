@@ -31,7 +31,7 @@ csv_train_path = "326_hard_response_1.csv"
 
 # csv_test_path = "QwQ_test.csv"
 seed = 1
-num_trials = 128
+num_trials = 32
 batch_size = 150000
 temperature = 0.9
 top_p = 1
