@@ -2,6 +2,8 @@ select,model,subjects,train_size,notes
 False,"../../outputs/qwen2.5-3b-sftkkpro-math-small/",all,100,warmup+math100
 False,"../../outputs/qwen2.5-3b-grpo-math-small/",all,100,base+math100
 False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-500/",all,0.5,base+mathall
-True,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-350/",all,0.5,base+mathall
-True,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-325/",all,0.5,base+mathall
-True,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-300/",all,0.5,base+mathall
+False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-350/",all,0.5,base+mathall
+False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-325/",all,0.5,base+mathall
+False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-300/",all,0.5,base+mathall
+True,"Qwen/Qwen2.5-3B",all,0.5,base+mathall
+True,"../../outputs/qwen2.5-3b-sft-pro/checkpoint-1092/",all,0.5,base+mathall

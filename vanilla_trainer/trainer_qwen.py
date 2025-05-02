@@ -111,12 +111,13 @@ def reward_correct(completions, answer, **kwargs):
 
 
 #train, test = get_dataset()
-train, test = load_math(SYSTEM, sample=100)
+#train, test = load_math(SYSTEM, sample=100)
 #train, test, reward_correct = load_kk()
 
 
 # humanities = ["history","law","philosophy"]
-# train, test, reward_correct = load_mmlupro(sample=100, categories=humanities)
+humanities = ["physics"]
+train, test, reward_correct = load_mmlupro(sample=0.75, categories=humanities)
 
 model_path = training_args.model_name if not training_args.resume_from_checkpoint else training_args.checkpoint_path
 model_name = AutoModelForCausalLM.from_pretrained(model_path)

@@ -18,3 +18,10 @@ ood_KK_model_second.txt
 1_to_64_kk_response.txt
 1to64_kk_response.csv
 base_model_1_to_64_test500_questions.csv
+500_ood/
+500_ood_kk_response.txt
+base_model_nopass128_pass256_76.csv
+base_model_test_question_solution_hit.csv
+kk.eval.txt
+np128p256_kk.csv
+vllm_eval_multiple.py

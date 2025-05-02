@@ -119,10 +119,10 @@ if __name__ == "__main__":
     for index, row in df.iterrows():
         if not row['select']: continue
 
-        models = os.listdir(row['model']) if 'checkpoint-' not in row['model'] else [row['model']]
+        models = os.listdir(row['model']) if row['model'].startswith("../") and 'checkpoint-' not in row['model'] else [row['model']]
         wandb.init(project="evaluations", name=f"{row['model']}--{row['subjects']}")
         for index, model in enumerate(models):
-            if 'checkpoint-' not in row['model']: model = row['model'] + "/" + model
+            if row['model'].startswith("../") and 'checkpoint-' not in row['model']: model = row['model'] + "/" + model
             
     
             # dataset = ds_mmlu
