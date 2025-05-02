@@ -26,11 +26,11 @@ model_path = "./qwq_distill_cps/0428-base-distill-qwq-hard-response/checkpoint-2
 # csv_train_path = "ood_test_KK_128.csv"
 # csv_train_path = "1to64_kk_response.csv"
 # csv_train_path = "np128p256_kk.csv"
-csv_train_path = "326_hard_response_3.csv"
+csv_train_path = "326_hard_response_4.csv"
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 3
+seed = 4
 num_trials = 32
 batch_size = 150000
 temperature = 0.9
