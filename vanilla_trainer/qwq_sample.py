@@ -4,14 +4,15 @@ import pandas as pd
 from datasets import load_dataset
 
 
-from dataset_loader import load_math, load_countdown, load_kk
+from dataset_loader import load_math, load_countdown, load_kk, load_graph_data
 
 
 SYSTEM="""A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> final answer inside \\boxed{{}} tag </answer>. User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag.
 {prompt}
 Assistant: <think>"""
 
-train, test, _ = load_kk()
+# train, test, _ = load_kk()
+train, test, _ = load_graph_data()
 
 gpus=4
 sampling_params = SamplingParams(n=4, temperature=0.6, top_p=0.95, top_k=40, max_tokens=8192, stop=["</answer>", "User:", "Assistant:"])
@@ -35,4 +36,8 @@ for output in outputs:
 
 df['llm_answer'] = process_out
 
-df.to_csv("qwq_samples_more.csv", index=False)
+#df.to_csv("qwq_samples_more.csv", index=False)
+df.to_csv("graph_qwq_samples.csv", index=False)
+
+
+

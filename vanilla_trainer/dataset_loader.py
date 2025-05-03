@@ -1,5 +1,6 @@
 import os
 import re
+import json
 import numpy as np
 import pandas as pd
 from datasets import Dataset, load_dataset, concatenate_datasets
@@ -9,6 +10,24 @@ from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_stri
 
 def extract_boxed_answer(solution):
     return last_boxed_only_string(solution)
+
+def load_graph_data():
+
+    SYSTEM_PROMPT = """A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in the mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think><answer> answer here </answer>. 
+            User: You must put your answer inside <answer> </answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted automatically by the \\boxed{{}} tag.
+            {problem}
+            Assistant: <think>"""
+    
+    data = []
+    with open("./graph_data/full-mix_train_data_gpt.jsonl", "r") as f:
+        for line in f:
+            jsondata = json.loads(line)['messages'][1]['content'][:-3]
+            data.append(SYSTEM_PROMPT.format(problem=jsondata))
+    
+    train = Dataset.from_dict({"prompt": data})
+    return train, None, None
+
+    
 
 def load_math(SYSTEM, sample=None, diff_filter=False):
     train = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="train")

@@ -25,3 +25,7 @@ base_model_test_question_solution_hit.csv
 kk.eval.txt
 np128p256_kk.csv
 vllm_eval_multiple.py
+graph_qwq_samples.csv
+processed_graph_qwq_samples.csv
+s1k_data.csv
+subset_graph_qwq.csv

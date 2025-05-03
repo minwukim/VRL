@@ -57,15 +57,19 @@ parser = TrlParser(dataclass_types=[MyArguments])
 training_args = parser.parse_args_and_config()[0]
 
 #df = pd.read_csv("qwq_samples.csv")
-df = pd.read_csv("process_subset_qwq.csv")
+# df = pd.read_csv("process_subset_qwq.csv")
+df = pd.read_csv("subset_graph_qwq.csv")
 # Combine 'question' and 'llm_answer' into a single 'text' column
 df['text'] = df['question'] + df['llm_answer']
+
+df = pd.read_csv("s1k_data.csv")
 
 # Randomly sample 500 rows for the test set
 test_set = df.sample(n=100, random_state=42)
 
 # Remaining rows for the training set
-train_set = df.drop(test_set.index)
+# train_set = df.drop(test_set.index)
+train_set = df
 
 # Convert to Hugging Face Dataset format
 test_dataset = Dataset.from_pandas(test_set.reset_index(drop=True))
@@ -79,13 +83,13 @@ tokenizer.padding_side='left'
 
 collator = DataCollatorForCompletionOnlyLM(
     response_template=tokenizer.encode(" Assistant: <think>\n", add_special_tokens=False),
+    # response_template=tokenizer.encode(" \n Assistant: <think>\n", add_special_tokens=False),
     tokenizer=tokenizer,
 )
 
 sft_config_args = SFTConfig(
     output_dir=training_args.output_dir,
     run_name=training_args.run_name,
-    learning_rate=training_args.learning_rate,
     resume_from_checkpoint=training_args.resume_from_checkpoint,
     adam_beta1=training_args.adam_beta1,
     adam_beta2=training_args.adam_beta2,
@@ -120,21 +124,23 @@ trainer = SFTTrainer(
     data_collator=collator
 )
 
-## Get a sample from your dataset
-#sample = train_dataset[0]
-#
-## Process it with your collator
-#batch = collator([tokenizer.encode(sample['text'], truncation=True)])
-#
-## Examine the labels
-#input_ids = batch["input_ids"][0]
-#labels = batch["labels"][0]
-#
-## Print them side by side for comparison
-#for i, (input_id, label) in enumerate(zip(input_ids, labels)):
-#    token = tokenizer.decode([input_id])
-#    print(f"Position {i}: Token '{token}' - Input ID: {input_id}, Label: {label}")
-
-
 trainer.train(resume_from_checkpoint=training_args.checkpoint_path if training_args.resume_from_checkpoint else False)
+
+
+# ## Get a sample from your dataset
+# sample = train_dataset[0]
+
+# # Process it with your collator
+# batch = collator([tokenizer.encode(sample['text'], truncation=True)])
+
+# # Examine the labels
+# input_ids = batch["input_ids"][0]
+# labels = batch["labels"][0]
+
+# # Print them side by side for comparison
+# for i, (input_id, label) in enumerate(zip(input_ids, labels)):
+#     token = tokenizer.decode([input_id])
+#     print(f"Position {i}: Token '{token}' - Input ID: {input_id}, Label: {label}")
+
+
 

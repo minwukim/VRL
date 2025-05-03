@@ -5,5 +5,12 @@ False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-500/",all,0.5,base+mathall
 False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-350/",all,0.5,base+mathall
 False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-325/",all,0.5,base+mathall
 False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-300/",all,0.5,base+mathall
-True,"Qwen/Qwen2.5-3B",all,0.5,base+mathall
-True,"../../outputs/qwen2.5-3b-sft-pro/checkpoint-1092/",all,0.5,base+mathall
+False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-100/",all,0.5,base+mathall
+False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-200/",all,0.5,base+mathall
+False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-400/",all,0.5,base+mathall
+False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-425/",all,0.5,base+mathall
+False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-450/",all,0.5,base+mathall
+False,"Qwen/Qwen2.5-3B",all,0.5,base+mathall
+False,"../../outputs/qwen2.5-3b-sft-pro/checkpoint-1092/",all,0.5,base+mathall
+False,"../../outputs/qwen2.5-3b-sft-pro-graph/checkpoint-246",all,0.5,base+mathall
+True,"../../outputs/qwen2.5-3b-sft-pro-s1/checkpoint-249/",all,0.5,base+mathall

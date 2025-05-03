@@ -1,6 +1,6 @@
 model_name: "Qwen/Qwen2.5-3B"
-output_dir: "../outputs/qwen2.5-3b-sft-pro"
-run_name: "qwen3b-kksft-processed"
+output_dir: "../outputs/qwen2.5-3b-sft-pro-s1"
+run_name: "qwen3b-s1-sft-processed"
 resume_from_checkpoint: False
 checkpoint_path: "../outputs/qwen2.5-3b-grpo-test/checkpoint-540"
 learning_rate: 1e-6
@@ -20,11 +20,11 @@ num_generations: 8
 max_prompt_length: 256
 max_completion_length: 32768
 num_train_epochs: 3
-save_steps: 40
+save_steps: 100
 max_grad_norm: 0.1
 report_to: wandb
 use_vllm: True
-vllm_max_model_len: 5000
+vllm_max_model_len: 16000
 max_steps: -1
 log_completions: True
 evaluation_strategy: steps

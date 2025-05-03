@@ -15,7 +15,9 @@ def check_pattern(text):
     if not match: return -2
     return 0
 
-df = pd.read_csv("qwq_samples_more.csv")
+#df = pd.read_csv("qwq_samples_more.csv")
+# df = pd.read_csv("graph_qwq_samples.csv")
+df = pd.read_csv("s1k_data.csv")
 print(df.columns)
 
 df['llm_answer'] = df['llm_answer'] + "</answer>"
@@ -23,4 +25,5 @@ df['pattern'] = [check_pattern(text) for text in df['llm_answer']]
 df['tokens'] = [len(tokenizer(text)['input_ids']) for text in df['llm_answer']]
 
 
-df.to_csv("processed_qwq_samples.csv", index=False)
+#df.to_csv("processed_qwq_samples.csv", index=False)
+df.to_csv("processed_graph_qwq_samples.csv", index=False)
