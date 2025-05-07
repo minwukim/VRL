@@ -19,6 +19,8 @@ from math_verify import verify, parse
 # model_path = "./vanilla_trainer/0425-cp150-self-distill/checkpoint-41730"
 # model_path = "./vanilla_trainer/0425-cp150-self-distill/checkpoint-15000"
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
+model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
+
 
 
 
@@ -26,7 +28,7 @@ from math_verify import verify, parse
 
 # model_path ="Qwen/Qwen2.5-3B-instruct"
 # model_path = "Qwen/Qwen2.5-3B"
-model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
+# model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
 
 
 # FOLLOWING THE SOBER PAPERR
@@ -47,13 +49,13 @@ SYSTEM_PROMPT_6 = (
     "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
     "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
     " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
-    "User: {prompt}/nAssitatnt: <think>"
+    "User: {prompt}/nAssitant: <think>"
 )
 
 
 
 
-SYSTEM_PROMPT = SYSTEM_PROMPT_6
+SYSTEM_PROMPT = SYSTEM_PROMPT_5
 
 def last_boxed_only_string(string):
     idx = string.rfind("\\boxed")
