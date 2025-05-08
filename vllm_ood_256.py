@@ -18,8 +18,8 @@ from pathlib import Path
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-hard-response/checkpoint-2000"
 # model_path = "./qwq_distill_cps/checkpoint-2500"
 # model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
-# model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
-model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
+model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
+# model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
 
 
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
@@ -27,12 +27,22 @@ model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
 # csv_train_path = "ood_test_KK_128.csv"
 # csv_train_path = "1to64_kk_response.csv"
 # csv_train_path = "np128p256_kk.csv"
-csv_train_path = "174_incorrect_response_second.csv"
+# csv_train_path = "174_incorrect_response_second.csv"
+csv_train_path = "final_256_easy_ood.csv"
+
+column_name = 'easy_not_solved'
+
+# easy_not_solved
+# medium_not_solved
+# hard_not_solved
+# ext_hard_not_solved
+# kk_not_solved
+# incorrect_not_solved
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 2
-num_trials = 64
+seed = 98390
+num_trials = 128
 batch_size = 150000
 temperature = 0.9
 top_p = 1
@@ -160,8 +170,9 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
 # ds_train = pd.read_csv("base_ood_test_questions.csv")
 # ds_train = ds_train[ds_train['base_ood'] == 1]
 # ds_train = pd.read_csv("base_model_nopass128_pass256_76.csv")
-ds_train = pd.read_csv("base_model_test_question_solution_hit.csv")
-ds_train = ds_train[ds_train['hit'] <= 64]
+# ds_train = pd.read_csv("base_model_test_question_solution_hit.csv")
+ds_train = pd.read_csv("distilled_models_128_unsolved.csv")
+ds_train = ds_train[ds_train[column_name] == 1]
 
 train_problems = [SYSTEM_PROMPT.format(prompt=p) for p in ds_train['prompt']]
 train_truths = [last_boxed_only_string(gt) for gt in ds_train['ground_truth']]
