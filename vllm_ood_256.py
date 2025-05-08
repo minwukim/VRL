@@ -28,7 +28,7 @@ model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
 # csv_train_path = "1to64_kk_response.csv"
 # csv_train_path = "np128p256_kk.csv"
 # csv_train_path = "174_incorrect_response_second.csv"
-# csv_train_path = "final_256_incorrect_ood.csv"
+csv_train_path = "final_256_kk_ood.csv"
 
 column_name = 'kk_not_solved'
 
