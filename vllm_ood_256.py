@@ -14,12 +14,12 @@ from pathlib import Path
 # model_path = "Qwen/QwQ-32B"
 # csv_train_path = "QwQ_train.csv"
 
-model_path = "./qwq_distill_cps/0428-base-distill-qwq-ext-hard-response/checkpoint-2140"
+# model_path = "./qwq_distill_cps/0428-base-distill-qwq-ext-hard-response/checkpoint-2140"
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-hard-response/checkpoint-2000"
 # model_path = "./qwq_distill_cps/checkpoint-2500"
 # model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
-# model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
+model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
 
 
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
@@ -28,9 +28,9 @@ model_path = "./qwq_distill_cps/0428-base-distill-qwq-ext-hard-response/checkpoi
 # csv_train_path = "1to64_kk_response.csv"
 # csv_train_path = "np128p256_kk.csv"
 # csv_train_path = "174_incorrect_response_second.csv"
-csv_train_path = "final_256_ext_hard_ood.csv"
+csv_train_path = "final_256_incorrect_ood.csv"
 
-column_name = 'ext_hard_not_solved'
+column_name = 'incorrect_not_solved'
 
 # easy_not_solved
 # medium_not_solved
