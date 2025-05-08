@@ -16,9 +16,9 @@ from pathlib import Path
 
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-ext-hard-response/checkpoint-2140"
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-hard-response/checkpoint-2000"
-# model_path = "./qwq_distill_cps/checkpoint-2500"
+model_path = "./qwq_distill_cps/checkpoint-2500"
 # model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
-model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
+# model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
 # model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
 
 
@@ -28,9 +28,9 @@ model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2
 # csv_train_path = "1to64_kk_response.csv"
 # csv_train_path = "np128p256_kk.csv"
 # csv_train_path = "174_incorrect_response_second.csv"
-csv_train_path = "final_256_easy_ood.csv"
+csv_train_path = "final_256_medium_ood.csv"
 
-column_name = 'easy_not_solved'
+column_name = 'medium_not_solved'
 
 # easy_not_solved
 # medium_not_solved
