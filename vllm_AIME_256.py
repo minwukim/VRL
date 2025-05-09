@@ -43,14 +43,14 @@ csv_train_path = "base_AIME25_256.csv"
 
 # csv_test_path = "QwQ_test.csv"
 seed = 2
-num_trials = 246
+num_trials = 256
 batch_size = 150000
 temperature = 0.9
 top_p = 1
 top_k = 40
 min_p = 0.0
 presence_penalty = 1.0
-tensor_parallel_size = 2
+tensor_parallel_size = 1
 
 # Prompt template with standardized instruction
 # SYSTEM_PROMPT = (
