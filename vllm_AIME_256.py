@@ -31,7 +31,9 @@ model_path = "0421-qwen3b-question-only-no-format/checkpoint-150"
 # csv_train_path = "np128p256_kk.csv"
 # csv_train_path = "174_incorrect_response_second.csv"
 # csv_train_path = "4all_last246.csv"
-csv_train_path = "cp150_AIME25_256.csv"
+# csv_train_path = "AIME25_256.csv"
+csv_train_path = "AIME25_base_256.csv"
+
 
 
 # easy_not_solved
