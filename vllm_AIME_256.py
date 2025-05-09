@@ -64,6 +64,11 @@ SYSTEM_PROMPT = (
     "{prompt} [SEP] "
 )
 
+SYSTEM_PROMPT = (
+    "{prompt}"
+)
+
+
 
 # SYSTEM_PROMPT = (
 #     "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
