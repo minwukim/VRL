@@ -20,8 +20,8 @@ from pathlib import Path
 # model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
 # model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
-# model_path = "Qwen/Qwen2.5-3B"
-model_path = "0421-qwen3b-question-only-no-format/checkpoint-150"
+model_path = "Qwen/Qwen2.5-3B"
+# model_path = "0421-qwen3b-question-only-no-format/checkpoint-150"
 
 
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
