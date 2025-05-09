@@ -1,6 +1,6 @@
 model_name: "qwq_distill_cps/1-all-checkpoint/checkpoint-17960"
 output_dir: "0509-1-all"
-run_name: "0509-1-all
+run_name: "0509-1-all"
 scale_rewards: True
 # resume_from_checkpoint: True
 # checkpoint_path: "qwen3b-it-old-prompt/checkpoint-450"
