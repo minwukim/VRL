@@ -30,7 +30,7 @@ model_path = "Qwen/Qwen2.5-3B"
 # csv_train_path = "np128p256_kk.csv"
 # csv_train_path = "174_incorrect_response_second.csv"
 # csv_train_path = "4all_last246.csv"
-csv_train_path = "base_AIME_256.csv"
+csv_train_path = "base_AIME25_256.csv"
 
 
 # easy_not_solved
