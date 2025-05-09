@@ -20,7 +20,8 @@ from pathlib import Path
 # model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
 # model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
-model_path = "Qwen/Qwen2.5-3B"
+# model_path = "Qwen/Qwen2.5-3B"
+model_path = "0421-qwen3b-question-only-no-format/checkpoint-150"
 
 
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
@@ -30,7 +31,7 @@ model_path = "Qwen/Qwen2.5-3B"
 # csv_train_path = "np128p256_kk.csv"
 # csv_train_path = "174_incorrect_response_second.csv"
 # csv_train_path = "4all_last246.csv"
-csv_train_path = "base_AIME25_256.csv"
+csv_train_path = "cp150_AIME25_256.csv"
 
 
 # easy_not_solved
