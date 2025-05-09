@@ -177,7 +177,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
 ds_train= load_dataset("math-ai/aime25", split="test")
 
 train_problems = [SYSTEM_PROMPT.format(prompt=ex['problem']) for ex in ds_train]
-train_truths = [ex['solution'] for ex in ds_train]
+train_truths = [ex['answer'] for ex in ds_train]
 train_question_indices = [ex['id'] for ex in ds_train]  # or use range(len(dataset)) if 'id' is not numeric
 
 run_evaluation(csv_train_path, train_problems, train_truths, train_question_indices, dataset_name="OOD_BASE")
