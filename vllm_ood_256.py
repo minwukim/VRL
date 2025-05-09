@@ -172,7 +172,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
 # ds_train = pd.read_csv("base_model_nopass128_pass256_76.csv")
 # ds_train = pd.read_csv("base_model_test_question_solution_hit.csv")
 ds_train = pd.read_csv("distilled_models_128_unsolved.csv")
-ds_train = ds_train[ds_train[column_name] == 1]
+# ds_train = ds_train[ds_train[column_name] == 1]
 
 train_problems = [SYSTEM_PROMPT.format(prompt=p) for p in ds_train['prompt']]
 train_truths = [last_boxed_only_string(gt) for gt in ds_train['ground_truth']]
