@@ -17,18 +17,18 @@ from pathlib import Path
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-ext-hard-response/checkpoint-2140"
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-hard-response/checkpoint-2000"
 # model_path = "./qwq_distill_cps/checkpoint-2500"
-# model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
+model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
 # model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
 
 
-model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
+# model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
 # csv_train_path = "ood_all_4_second_64.csv"
 # csv_train_path = "ood_test_KK_128.csv"
 # csv_train_path = "1to64_kk_response.csv"
 # csv_train_path = "np128p256_kk.csv"
 # csv_train_path = "174_incorrect_response_second.csv"
-csv_train_path = "final_256_kk_ood.csv"
+csv_train_path = "4all_first10.csv"
 
 column_name = 'kk_not_solved'
 
@@ -41,8 +41,8 @@ column_name = 'kk_not_solved'
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 98390
-num_trials = 128
+seed = 1
+num_trials = 10
 batch_size = 150000
 temperature = 0.9
 top_p = 1
