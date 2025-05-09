@@ -22,7 +22,6 @@ class MyArguments:
     adam_beta1: float
     adam_beta2: float
     weight_decay: float
-    warmup_steps: int
     lr_scheduler_type: str
     logging_steps: float
     bf16: bool
@@ -226,6 +225,7 @@ grpo_config_args = GRPOConfig(
     vllm_max_model_len=training_args.vllm_max_model_len,
     log_completions=training_args.log_completions,
     max_steps=training_args.max_steps,
+    vllm_tensor_parallel_size=2
     #evaluation_strategy=training_args.evaluation_strategy,
     #eval_steps = training_args.eval_steps,
     #eval_on_start=training_args.eval_on_start,

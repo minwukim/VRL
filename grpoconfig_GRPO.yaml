@@ -32,9 +32,9 @@
 # eval_on_start: False 
 
 
-model_name: "Qwen/Qwen2.5-3B"
-output_dir: "0421-qwen3b-question-only-no-format"
-run_name: "0421-qwen3b-question-only-no-format"
+model_name: "qwq_distill_cps/1-all-checkpoint/checkpoint-17960"
+output_dir: "0509-1-all"
+run_name: "0509-1-all
 scale_rewards: True
 # resume_from_checkpoint: True
 # checkpoint_path: "qwen3b-it-old-prompt/checkpoint-450"
@@ -43,8 +43,8 @@ beta: 0.0001
 adam_beta1: 0.9
 adam_beta2: 0.99
 weight_decay: 0.1
-warmup_steps: 20
-lr_scheduler_type: constant_with_warmup
+# warmup_steps: 20
+lr_scheduler_type: constant
 logging_steps: 1
 bf16: True
 bf16_full_eval: True
@@ -53,14 +53,14 @@ gradient_accumulation_steps: 10
 gradient_checkpointing: True
 num_generations: 10
 max_prompt_length: 500
-max_completion_length: 2560
+max_completion_length: 12000
 num_train_epochs: 1
 save_steps: 25
 max_grad_norm: 0.1
 report_to: wandb
 use_vllm: True
-vllm_max_model_len: 3400
-max_steps: 300
+vllm_max_model_len: 12000
+max_steps: 150
 log_completions: True
 evaluation_strategy: steps
 eval_steps: 50
