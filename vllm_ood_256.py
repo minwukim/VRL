@@ -17,8 +17,8 @@ from pathlib import Path
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-ext-hard-response/checkpoint-2140"
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-hard-response/checkpoint-2000"
 # model_path = "./qwq_distill_cps/checkpoint-2500"
-# model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
-model_path = "Qwen/Qwen2.5-3B"
+model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
+# model_path = "Qwen/Qwen2.5-3B"
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
 # model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
 
@@ -30,7 +30,7 @@ model_path = "Qwen/Qwen2.5-3B"
 # csv_train_path = "np128p256_kk.csv"
 # csv_train_path = "174_incorrect_response_second.csv"
 # csv_train_path = "4all_224_second123.csv"
-csv_train_path = "257_512_base_second.csv"
+csv_train_path = "257_512_distilled_first.csv"
 
 column_name = 'kk_not_solved'
 
@@ -178,7 +178,7 @@ ds_train = pd.read_csv("distilled_models_128_unsolved.csv")
 # target_indices = [224, 232, 239, 240, 242, 264, 267, 274, 285, 286, 292, 295, 303, 306, 308, 324, 327, 351, 352, 365, 369, 381, 392, 400, 401, 403, 422, 425, 460, 466, 475, 478, 481, 494, 497]
 base_unsolved = [11, 21, 43, 60, 64, 96, 103, 154, 264, 286, 308, 352, 372, 392, 401, 422, 432, 445, 478, 481, 497]
 distilled_unsolved = [11, 43, 96, 110, 154, 166, 240, 242, 286, 295, 308, 392, 422, 481, 497]
-target_indices = base_unsolved
+target_indices = distilled_unsolved
 
 
 ds_train = ds_train[ds_train['question_index'].isin(target_indices)]
