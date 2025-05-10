@@ -158,7 +158,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
                 })
 
         df = pd.DataFrame(rows)
-        df.to_csv(csv_path, mode='a', header=first_batch, index=False)
+        df.to_csv(csv_path, mode='a', header=first_batch, index=False, quoting=1, escapechar='\\')
         first_batch = False
         print(f"✓ Saved batch {i}-{i+len(batch_prompts)-1} ({len(rows)} rows)")
 
@@ -173,6 +173,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
 # ds_train = pd.read_csv("base_model_test_question_solution_hit.csv")
 ds_train = pd.read_csv("distilled_models_128_unsolved.csv")
 target_indices = [9, 11, 21, 43, 64, 80, 96, 100, 101, 103, 104, 110, 126, 138, 147, 154, 156, 166, 168, 184, 189, 222, 224, 232, 239, 240, 242, 264, 267, 274, 285, 286, 292, 295, 303, 306, 308, 324, 327, 351, 352, 365, 369, 381, 392, 400, 401, 403, 422, 425, 460, 466, 475, 478, 481, 494, 497]
+target_indices = [224, 232, 239, 240, 242, 264, 267, 274, 285, 286, 292, 295, 303, 306, 308, 324, 327, 351, 352, 365, 369, 381, 392, 400, 401, 403, 422, 425, 460, 466, 475, 478, 481, 494, 497]
 ds_train = ds_train[ds_train['question_index'].isin(target_indices)]
 
 # ds_train = ds_train[ds_train[column_name] == 1]
