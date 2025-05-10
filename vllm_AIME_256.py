@@ -25,7 +25,7 @@ from pathlib import Path
 
 model_path = "Qwen/Qwen2.5-Math-1.5B"
 
-model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+# model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 
 
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
@@ -39,7 +39,10 @@ model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 # csv_train_path = "AIME25_base_256.csv"
 # csv_train_path = "AIME25_incorrect_256.csv"
 
-csv_train_path = "AIME25_256_1.5B_MATH_distilled_first.csv"
+# csv_train_path = "AIME25_256_1.5B_MATH_distilled_first.csv"
+
+csv_train_path = "AIME25_256_1.5B_MATH.csv"
+
 
 
 
@@ -53,7 +56,7 @@ csv_train_path = "AIME25_256_1.5B_MATH_distilled_first.csv"
 
 # csv_test_path = "QwQ_test.csv"
 seed = 2
-num_trials = 128
+num_trials = 256
 batch_size = 150000
 temperature = 0.6
 top_p = 1
@@ -80,13 +83,13 @@ SYSTEM_PROMPT = (
 
 
 
-SYSTEM_PROMPT = (
-    "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
-    "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
-    "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
-    " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
-    "User: {prompt}/nAssistant: <think>"
-)
+# SYSTEM_PROMPT = (
+#     "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
+#     "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
+#     "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
+#     " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
+#     "User: {prompt}/nAssistant: <think>"
+# )
 
 def last_boxed_only_string(string):
     idx = string.rfind("\\boxed")
@@ -128,7 +131,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
     print(f"\n>>> Starting evaluations on {dataset_name} — {total_questions} questions x {num_trials} trials")
 
     first_batch = True
-    llm = LLM(model=model_path, max_model_len=15000, tensor_parallel_size=tensor_parallel_size)
+    llm = LLM(model=model_path, max_model_len=4000, tensor_parallel_size=tensor_parallel_size)
     tokenizer = llm.get_tokenizer()
 
 
@@ -144,7 +147,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
             top_k=top_k,
             min_p=min_p,
             presence_penalty=presence_penalty,
-            max_tokens=32000,
+            max_tokens=4000,
             n=num_trials,
             seed=seed,
         )
