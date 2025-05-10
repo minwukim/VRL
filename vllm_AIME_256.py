@@ -39,7 +39,7 @@ model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 # csv_train_path = "AIME25_base_256.csv"
 # csv_train_path = "AIME25_incorrect_256.csv"
 
-csv_train_path = "AIME25_256_1.5B_MATH_distilled_first.csv"
+csv_train_path = "AIME25_256_1.5B_MATH_distilled_second.csv"
 
 # csv_train_path = "AIME25_256_1.5B_MATH.csv"
 
@@ -55,7 +55,7 @@ csv_train_path = "AIME25_256_1.5B_MATH_distilled_first.csv"
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 22324
+seed = 2232412
 num_trials = 128
 batch_size = 150000
 temperature = 0.6
