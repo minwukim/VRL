@@ -55,7 +55,7 @@ csv_train_path = "AIME25_256_1.5B_MATH_distilled_first.csv"
 seed = 2
 num_trials = 128
 batch_size = 150000
-temperature = 0.9
+temperature = 0.6
 top_p = 1
 top_k = 40
 min_p = 0.0
@@ -80,13 +80,13 @@ SYSTEM_PROMPT = (
 
 
 
-# SYSTEM_PROMPT = (
-#     "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
-#     "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
-#     "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
-#     " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
-#     "User: {prompt}/nAssitant: <think>"
-# )
+SYSTEM_PROMPT = (
+    "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
+    "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
+    "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
+    " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
+    "User: {prompt}/nAssistant: <think>"
+)
 
 def last_boxed_only_string(string):
     idx = string.rfind("\\boxed")
@@ -128,7 +128,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
     print(f"\n>>> Starting evaluations on {dataset_name} — {total_questions} questions x {num_trials} trials")
 
     first_batch = True
-    llm = LLM(model=model_path, max_model_len=10000, tensor_parallel_size=tensor_parallel_size)
+    llm = LLM(model=model_path, max_model_len=15000, tensor_parallel_size=tensor_parallel_size)
     tokenizer = llm.get_tokenizer()
 
 
