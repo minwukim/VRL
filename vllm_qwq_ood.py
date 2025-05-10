@@ -34,7 +34,7 @@ column_name = 'kk_not_solved'
 
 # csv_test_path = "QwQ_test.csv"
 seed = 834902
-num_trials = 32
+num_trials = 16
 batch_size = 150000
 temperature = 0.9
 top_p = 1
