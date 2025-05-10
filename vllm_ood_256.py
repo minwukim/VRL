@@ -30,7 +30,7 @@ model_path = "Qwen/Qwen2.5-3B"
 # csv_train_path = "np128p256_kk.csv"
 # csv_train_path = "174_incorrect_response_second.csv"
 # csv_train_path = "4all_224_second123.csv"
-csv_train_path = "257_512_base_second.csv"
+csv_train_path = "257_512_base_first.csv"
 
 column_name = 'kk_not_solved'
 
@@ -61,9 +61,14 @@ tensor_parallel_size = 1
 #     "{prompt}<|im_end|>\n"
 #     "<|im_start|>assistant\n"
 # )
+# SYSTEM_PROMPT = (
+#     "{prompt} [SEP] "
+# )
+
 SYSTEM_PROMPT = (
-    "{prompt} [SEP] "
+    "{prompt}"
 )
+
 
 
 # SYSTEM_PROMPT = (
