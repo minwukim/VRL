@@ -19,9 +19,11 @@ from pathlib import Path
 # model_path = "./qwq_distill_cps/checkpoint-2500"
 # model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
-model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
+# model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
 # model_path = "Qwen/Qwen2.5-3B"
 # model_path = "0421-qwen3b-question-only-no-format/checkpoint-150"
+
+model_path = "Qwen/Qwen2.5-Math-1.5B"
 
 
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
@@ -33,7 +35,11 @@ model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
 # csv_train_path = "4all_last246.csv"
 # csv_train_path = "AIME25_256.csv"
 # csv_train_path = "AIME25_base_256.csv"
-csv_train_path = "AIME25_incorrect_256.csv"
+# csv_train_path = "AIME25_incorrect_256.csv"
+
+csv_train_path = "AIME25_256_1.5B_MATH.csv"
+
+
 
 
 
@@ -55,7 +61,7 @@ top_p = 1
 top_k = 40
 min_p = 0.0
 presence_penalty = 1.0
-tensor_parallel_size = 2
+tensor_parallel_size = 1
 
 # Prompt template with standardized instruction
 # SYSTEM_PROMPT = (
@@ -169,7 +175,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
                 })
 
         df = pd.DataFrame(rows)
-        df.to_csv(csv_path, mode='a', header=first_batch, index=False)
+        df.to_csv(csv_path, mode='a', header=first_batch, index=False, quoting=1, escapechar='\\')
         first_batch = False
         print(f"✓ Saved batch {i}-{i+len(batch_prompts)-1} ({len(rows)} rows)")
 
