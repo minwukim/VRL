@@ -37,7 +37,7 @@ model_path = "Qwen/Qwen2.5-Math-1.5B"
 # csv_train_path = "AIME25_base_256.csv"
 # csv_train_path = "AIME25_incorrect_256.csv"
 
-csv_train_path = "AIME25_256_1.5B_MATH.csv"
+csv_train_path = "AIME25_256_1.5B_MATH_first.csv"
 
 
 
@@ -54,7 +54,7 @@ csv_train_path = "AIME25_256_1.5B_MATH.csv"
 
 # csv_test_path = "QwQ_test.csv"
 seed = 2
-num_trials = 256
+num_trials = 128
 batch_size = 150000
 temperature = 0.9
 top_p = 1
