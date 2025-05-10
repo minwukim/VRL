@@ -28,7 +28,7 @@ model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
 # csv_train_path = "1to64_kk_response.csv"
 # csv_train_path = "np128p256_kk.csv"
 # csv_train_path = "174_incorrect_response_second.csv"
-csv_train_path = "4all_224_first123.csv"
+csv_train_path = "4all_224_second123.csv"
 
 column_name = 'kk_not_solved'
 
@@ -41,7 +41,7 @@ column_name = 'kk_not_solved'
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 2
+seed = 23423
 num_trials = 123
 batch_size = 150000
 temperature = 0.9
