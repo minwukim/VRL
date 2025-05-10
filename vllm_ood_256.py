@@ -76,7 +76,7 @@ SYSTEM_PROMPT = (
 #     "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
 #     "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
 #     " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
-#     "User: {prompt}/nAssitant: <think>"
+#     "User: {prompt}/nAssistant: <think>"
 # )
 
 def last_boxed_only_string(string):
