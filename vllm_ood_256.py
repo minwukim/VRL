@@ -30,7 +30,7 @@ model_path = "Qwen/Qwen2.5-3B"
 # csv_train_path = "np128p256_kk.csv"
 # csv_train_path = "174_incorrect_response_second.csv"
 # csv_train_path = "4all_224_second123.csv"
-csv_train_path = "257_512_base_first.csv"
+csv_train_path = "257_512_base_second.csv"
 
 column_name = 'kk_not_solved'
 
@@ -43,7 +43,7 @@ column_name = 'kk_not_solved'
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 42342323
+seed = 4234232
 num_trials = 128
 batch_size = 150000
 temperature = 0.9
