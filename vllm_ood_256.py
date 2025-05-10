@@ -28,7 +28,7 @@ model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
 # csv_train_path = "1to64_kk_response.csv"
 # csv_train_path = "np128p256_kk.csv"
 # csv_train_path = "174_incorrect_response_second.csv"
-csv_train_path = "4all_last246.csv"
+csv_train_path = "4all_last246_second_half.csv"
 
 column_name = 'kk_not_solved'
 
