@@ -19,12 +19,12 @@ from pathlib import Path
 # model_path = "./qwq_distill_cps/checkpoint-2500"
 # model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
-# model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
+model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
 # model_path = "Qwen/Qwen2.5-3B"
 # model_path = "0421-qwen3b-question-only-no-format/checkpoint-150"
 
 
-model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
+# model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
 # csv_train_path = "ood_all_4_second_64.csv"
 # csv_train_path = "ood_test_KK_128.csv"
 # csv_train_path = "1to64_kk_response.csv"
@@ -33,9 +33,7 @@ model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
 # csv_train_path = "4all_last246.csv"
 # csv_train_path = "AIME25_256.csv"
 # csv_train_path = "AIME25_base_256.csv"
-# csv_train_path = "AIME25_incorrect_256.csv"
-csv_train_path = "AIME25_kk_256.csv"
-
+csv_train_path = "AIME25_incorrect_256.csv"
 
 
 
@@ -67,22 +65,23 @@ tensor_parallel_size = 2
 #     "{prompt}<|im_end|>\n"
 #     "<|im_start|>assistant\n"
 # )
-# SYSTEM_PROMPT = (
-#     "{prompt} [SEP] "
-# )
-
-# SYSTEM_PROMPT = (
-#     "{prompt}"
-# )
-
+SYSTEM_PROMPT = (
+    "{prompt} [SEP] "
+)
 
 SYSTEM_PROMPT = (
-    "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
-    "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
-    "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
-    " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
-    "User: {prompt}/nAssitant: <think>"
+    "{prompt}"
 )
+
+
+
+# SYSTEM_PROMPT = (
+#     "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
+#     "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
+#     "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
+#     " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
+#     "User: {prompt}/nAssitant: <think>"
+# )
 
 def last_boxed_only_string(string):
     idx = string.rfind("\\boxed")
