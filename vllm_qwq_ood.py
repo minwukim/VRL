@@ -12,7 +12,7 @@ from pathlib import Path
 # Config
 # ——————————————
 model_path = "Qwen/QwQ-32B"
-csv_train_path = "QwQ_train_365_32.csv"
+csv_train_path = "QwQ_train_365_16_first.csv"
 
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
 # csv_train_path = "ood_all_4_second_64.csv"
