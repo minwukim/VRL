@@ -51,7 +51,7 @@ top_p = 1
 top_k = 40
 min_p = 0.0
 presence_penalty = 1.0
-tensor_parallel_size = 2
+tensor_parallel_size = 1
 
 # Prompt template with standardized instruction
 # SYSTEM_PROMPT = (
