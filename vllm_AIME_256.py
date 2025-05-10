@@ -54,7 +54,7 @@ csv_train_path = "AIME25_256_1.5B_MATH_first.csv"
 
 # csv_test_path = "QwQ_test.csv"
 seed = 2
-num_trials = 128
+num_trials = 256
 batch_size = 150000
 temperature = 0.9
 top_p = 1
