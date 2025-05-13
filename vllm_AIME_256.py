@@ -25,7 +25,8 @@ from pathlib import Path
 
 # model_path = "Qwen/Qwen2.5-Math-1.5B"
 
-model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+# model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+model_path = "./qwq_distill_cps/1.5B-math-4all/checkpoint-70430"
 
 
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
@@ -39,7 +40,7 @@ model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 # csv_train_path = "AIME25_base_256.csv"
 # csv_train_path = "AIME25_incorrect_256.csv"
 
-csv_train_path = "AIME25_256_1.5B_MATH_distilled_second.csv"
+csv_train_path = "AIME25_256_1.5B_MATH_in_distribution_distilled_first.csv"
 
 # csv_train_path = "AIME25_256_1.5B_MATH.csv"
 
@@ -55,7 +56,7 @@ csv_train_path = "AIME25_256_1.5B_MATH_distilled_second.csv"
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 2232412
+seed = 223
 num_trials = 128
 batch_size = 150000
 temperature = 0.6
@@ -77,19 +78,19 @@ SYSTEM_PROMPT = (
     "{prompt} [SEP] "
 )
 
-SYSTEM_PROMPT = (
-    "{prompt}"
-)
+# SYSTEM_PROMPT = (
+#     "{prompt}"
+# )
 
 
 
-SYSTEM_PROMPT = (
-    "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
-    "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
-    "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
-    " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
-    "User: {prompt}/nAssistant: <think>"
-)
+# SYSTEM_PROMPT = (
+#     "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
+#     "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
+#     "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
+#     " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
+#     "User: {prompt}/nAssistant: <think>"
+# )
 
 def last_boxed_only_string(string):
     idx = string.rfind("\\boxed")
