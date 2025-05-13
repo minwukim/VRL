@@ -40,7 +40,7 @@ model_path = "./qwq_distill_cps/1.5B-math-4all/checkpoint-70430"
 # csv_train_path = "AIME25_base_256.csv"
 # csv_train_path = "AIME25_incorrect_256.csv"
 
-csv_train_path = "AIME25_256_1.5B_MATH_in_distribution_distilled_first.csv"
+csv_train_path = "AIME25_256_1.5B_MATH_in_distribution_distilled_second.csv"
 
 # csv_train_path = "AIME25_256_1.5B_MATH.csv"
 
@@ -56,7 +56,7 @@ csv_train_path = "AIME25_256_1.5B_MATH_in_distribution_distilled_first.csv"
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 223323
+seed = 323323
 num_trials = 128
 batch_size = 150000
 temperature = 0.6
