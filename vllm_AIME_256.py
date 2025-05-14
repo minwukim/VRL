@@ -11,7 +11,7 @@ from pathlib import Path
 # ——————————————
 # Config
 # ——————————————
-# model_path = "Qwen/QwQ-32B"
+model_path = "Qwen/QwQ-32B"
 # csv_train_path = "QwQ_train.csv"
 
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-ext-hard-response/checkpoint-2140"
@@ -26,7 +26,7 @@ from pathlib import Path
 # model_path = "Qwen/Qwen2.5-Math-1.5B"
 
 # model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
-model_path = "./qwq_distill_cps/1.5B-math-4all/checkpoint-70430"
+# model_path = "./qwq_distill_cps/1.5B-math-4all/checkpoint-70430"
 
 
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
@@ -40,7 +40,7 @@ model_path = "./qwq_distill_cps/1.5B-math-4all/checkpoint-70430"
 # csv_train_path = "AIME25_base_256.csv"
 # csv_train_path = "AIME25_incorrect_256.csv"
 
-csv_train_path = "AIME25_256_1.5B_MATH_in_distribution_distilled_second.csv"
+csv_train_path = "AIME25_64_qwq.csv"
 
 # csv_train_path = "AIME25_256_1.5B_MATH.csv"
 
@@ -57,26 +57,26 @@ csv_train_path = "AIME25_256_1.5B_MATH_in_distribution_distilled_second.csv"
 
 # csv_test_path = "QwQ_test.csv"
 seed = 323323
-num_trials = 128
+num_trials = 64
 batch_size = 150000
 temperature = 0.6
 top_p = 1
 top_k = 40
 min_p = 0.0
 presence_penalty = 1.0
-tensor_parallel_size = 2
+tensor_parallel_size = 4
 
 # Prompt template with standardized instruction
-# SYSTEM_PROMPT = (
-#     "<|im_start|>system\n"
-#     "You are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n"
-#     "<|im_start|>user\n"
-#     "{prompt}<|im_end|>\n"
-#     "<|im_start|>assistant\n"
-# )
 SYSTEM_PROMPT = (
-    "{prompt} [SEP] "
+    "<|im_start|>system\n"
+    "You are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n"
+    "<|im_start|>user\n"
+    "{prompt}<|im_end|>\n"
+    "<|im_start|>assistant\n"
 )
+# SYSTEM_PROMPT = (
+#     "{prompt} [SEP] "
+# )
 
 # SYSTEM_PROMPT = (
 #     "{prompt}"
