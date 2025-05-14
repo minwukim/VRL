@@ -132,7 +132,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
     print(f"\n>>> Starting evaluations on {dataset_name} — {total_questions} questions x {num_trials} trials")
 
     first_batch = True
-    llm = LLM(model=model_path, max_model_len=15000, tensor_parallel_size=tensor_parallel_size)
+    llm = LLM(model=model_path, max_model_len=11000, tensor_parallel_size=tensor_parallel_size)
     tokenizer = llm.get_tokenizer()
 
 
@@ -148,7 +148,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
             top_k=top_k,
             min_p=min_p,
             presence_penalty=presence_penalty,
-            max_tokens=15000,
+            max_tokens=11000,
             n=num_trials,
             seed=seed,
         )
