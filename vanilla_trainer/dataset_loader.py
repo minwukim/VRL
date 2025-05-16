@@ -7,6 +7,7 @@ from datasets import Dataset, load_dataset, concatenate_datasets
 
 from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_string
 
+from execution import check_correctness
 
 def extract_boxed_answer(solution):
     return last_boxed_only_string(solution)
@@ -287,4 +288,81 @@ def load_kk():
         })
 
     return ppl_ds, ppl_ds_test, reward_kk
+
+
+
+
+def load_humeval(sample=50):
+
+    SYSTEM="""A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> final code answer inside </answer>. User: Complete the function based on the given docstring. You must put your final answer (full function with all necessary imports) inside <answer> ```python (code) ```</answer> tags, i.e., <answer> answer here </answer>. And your final answer will be extracted from within the <answer>```python (code)``` </answer> tags and executed.
+    {prompt}
+    Assistant: <think>"""
+    train = load_dataset("evalplus/humanevalplus", split="test")
+
+    ds = train.train_test_split(train_size=sample, shuffle=True, seed=42)
+    train = ds['train']
+    test = ds['test']
+
+    def reward_humeval(completions, **kwargs):
+        def extract_code(text):
+            pattern = r"```python(.+?)```"
+            match = re.search(pattern, text, re.DOTALL)
+            if match: 
+                print("1st extract worked")
+                return match.group(1).strip()
+
+            pattern = r"```(.+?)```"
+            match = re.search(pattern, text, re.DOTALL)
+            if match: 
+                print("2nd extract worked")
+                return match.group(1).strip()
+            
+            print("3rd extract")
+            return text.strip()
+
+        def calculate_reward(output, problem):
+            pattern = r".+</think>\s*<answer>(.+)</answer>\s*$"
+            # pattern = r".+</think>\s*<answer>\s*```python\n(.+)```\s*</answer>\s*$"
+            s = output 
+            if not (s.count("</think>") == 1 and s.count("<answer>") == 1 and s.count("</answer>") == 1):
+                # incorrect amount of tokens
+                #print("counts no match")
+                return -2 
+            match = re.search(pattern, s, re.DOTALL)
+            # if answer doesn't match provided format
+            if not match: return -2
+
+            # answer format is correct now
+            #
+            result = check_correctness(problem, extract_code(match.group(1).strip()), timeout=30)    
+            
+            if result['passed']: return 2
+            return -1
+        
+        results = []
+        for index in range(len(completions)):
+            c = completions[index]
+            problem = {
+                        'task_id': kwargs['task_id'][index],
+                        'prompt': kwargs['prompts'][index],
+                        'entry_point': kwargs['entry_point'][index],
+                        'test': kwargs['test'][index]
+                    }
+            results.append(calculate_reward(c, problem))
+        
+        return results
+
+    train = train.map(lambda x: {
+        "prompt": SYSTEM.format(prompt=x["prompt"]),
+        })
+
+    test = test.map(lambda x: {
+        "prompt": SYSTEM.format(prompt=x["prompt"]),
+        })
+    
+    print(train)
+    return train, test, reward_humeval
+
+
+
 

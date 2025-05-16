@@ -22,6 +22,7 @@ from datetime import datetime
 
 from mmlu_loader import MMLUProLoader
 from math_loader import MATH500Loader
+from humaneval_loader import HumanEvalLoader
 
 import vllm
 from vllm.distributed.parallel_state import cleanup_dist_env_and_memory
@@ -30,9 +31,8 @@ import wandb
 
 
 random.seed(42)
-max_model_length = 8192
-max_new_tokens = max_model_length
-
+max_model_length = 4096
+max_new_tokens = 8192
 out_dir = "all_outputs"
 # output_file = None
 
@@ -85,10 +85,12 @@ def save_to_file(row_dict):
     out_df[float_cols] = out_df[float_cols].round(3)
     out_df.to_csv(output_file, index=False)
 
-def generate_and_save(model, subjects, train_size, ds_mmlu, ds_math, args):
+def generate_and_save(model, subjects, train_size, ds_mmlu, ds_math, ds_humeval, args):
     llm, sampling_params, tokenizer = load_model(args, model)
-    ds_mmlu.start_evaluation(model, llm, sampling_params, tokenizer, subjects, train_size, args, save_to_file, get_default_dict)
-    ds_math.start_evaluation(model, llm, sampling_params, tokenizer, ["math500"], 1, args, save_to_file, get_default_dict)
+    if subjects[0] != "human_eval" and subjects[0] != "math500": ds_mmlu.start_evaluation(model, llm, sampling_params, tokenizer, subjects, train_size, args, save_to_file, get_default_dict)
+    else:
+        ds_math.start_evaluation(model, llm, sampling_params, tokenizer, ["math500"], 1, args, save_to_file, get_default_dict)
+        ds_humeval.start_evaluation(model, llm, sampling_params, tokenizer, ["human_eval"], train_size, args, save_to_file, get_default_dict)
     cleanup_dist_env_and_memory()
 
 if __name__ == "__main__":
@@ -114,7 +116,8 @@ if __name__ == "__main__":
     ds_mmlu = MMLUProLoader("TIGER-Lab/MMLU-Pro", args.trials)
     
     ds_math = MATH500Loader("HuggingFaceH4/MATH-500", args.trials)
-
+    
+    ds_humeval = HumanEvalLoader("evalplus/humanevalplus", args.trials, simple_prompt=False)
     
     for index, row in df.iterrows():
         if not row['select']: continue
@@ -134,8 +137,9 @@ if __name__ == "__main__":
                 subjects = sorted(row['subjects'].split('|'))
             else:
                 subjects = ds_mmlu.subjects
-               
-            generate_and_save(model, subjects, row['train_size'], ds_mmlu, ds_math, args)
+            
+            if row['train_size'] > 1: row['train_size'] = int(row['train_size'])
+            generate_and_save(model, subjects, row['train_size'], ds_mmlu, ds_math, ds_humeval, args)
     
         wandb.finish()
 

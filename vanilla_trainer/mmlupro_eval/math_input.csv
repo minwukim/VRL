@@ -13,4 +13,6 @@ False,"../../outputs/qwen2.5-3b-grpo-large/checkpoint-450/",all,0.5,base+mathall
 False,"Qwen/Qwen2.5-3B",all,0.5,base+mathall
 False,"../../outputs/qwen2.5-3b-sft-pro/checkpoint-1092/",all,0.5,base+mathall
 False,"../../outputs/qwen2.5-3b-sft-pro-graph/checkpoint-246",all,0.5,base+mathall
-True,"../../outputs/qwen2.5-3b-sft-pro-s1/checkpoint-249/",all,0.5,base+mathall
+False,"../../outputs/qwen2.5-3b-sft-pro-s1/checkpoint-249/",all,0.5,base+mathall
+True,"../../outputs/llama-3b-sft-pro-kk/checkpoint-1119/",math500,1,base+mathall
+True,"meta-llama/Llama-3.2-3B",math500,1,base+mathall

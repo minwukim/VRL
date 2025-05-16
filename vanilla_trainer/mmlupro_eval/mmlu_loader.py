@@ -75,14 +75,15 @@ class MMLUProLoader():
                 options += "{}. {}\n".format(self.choices[i], opt)
 
             prompt = f"""A conversation between User and Assistant. The user asks a question, and the Assistant solves it. The assistant first thinks about the reasoning process in the mind and then provides the user with the answer. The reasoning process and answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., <think> reasoning process here </think><answer> answer here </answer>. 
-                User: The following are multiple choice questions (with answers) about {example['category']}. Think step by step and then finish your answer with <answer> \\boxed{{X}} </answer> where X is the correct letter choice.
+                User: The following is a multiple choice question about {example['category']}. Think step by step and then finish your answer with <answer> \\boxed{{X}} </answer> where X is the correct letter choice.
                 {example['question']}
                 Options:
                 {options}
                 Assistant: <think>"""
 
-            #prompt = f"""{example['question']} The final answer should be in \\boxed{{X}} where X is the correct letter choice.
-            #"""
+            # prompt = f"""{example['question']}
+            # Options: {options} The final answer should be in \\boxed{{X}} where X is the correct letter choice.
+            # """
             return prompt
         
         final_prompt = ""
@@ -220,14 +221,17 @@ class MMLUProLoader():
         
             mean_res =statistics.mean(tokens.values())
             stdev_res = statistics.stdev(tokens.values())
-        return mean_acc, stdev_acc, mean_res, stdev_res
+        return mean_acc, stdev_acc, mean_res, stdev_res, results, tokens, res
 
     def start_evaluation(self, model, llm, sampling_params, tokenizer, subjects, train_size, args, save_to_file, get_default_dict):
         subject_res = []
         subject_toks = []
+        all_results_acc = {}
+        all_results_tok = {}
+        all_res = []
         for subject in subjects:       
             sub_ds = self.select_by_category(subject, train_size) 
-            mean, stdev, tokmean, tokstd = self.evaluate(sub_ds, llm, sampling_params, tokenizer) 
+            mean, stdev, tokmean, tokstd, results_dict, tokens_dict, responses = self.evaluate(sub_ds, llm, sampling_params, tokenizer) 
             print(subject)
             print("=========")
             print(mean, stdev)
@@ -241,11 +245,31 @@ class MMLUProLoader():
             subject_res.append(mean)
             subject_toks.append(tokmean)
             save_to_file(result_dict)
+            all_res.extend(responses)
+            all_results_acc[subject] = results_dict.values()
+            all_results_tok[subject] = tokens_dict.values()
+        
+        df = pd.DataFrame(all_res)
+        fname = "--".join([model.replace(".", "").replace("/", "--"), "|".join(subjects), str(train_size)])
+        if not os.path.exists("files"): os.mkdir("./files")
+        df.to_csv(f"files/{fname}.csv", index=False)
+
+        all_accs = zip(*all_results_acc.values())
+        all_toks = zip(*all_results_tok.values())
+        macro_accs = []
+        macro_toks = []
+        for acc in all_accs:
+            acc = list(acc)
+            macro_accs.append(statistics.mean(acc))
+        
+        for tok in all_toks:
+            tok = list(tok)
+            macro_toks.append(statistics.mean(tok))
 
         if len(subjects) > 1:
             result_dict = get_default_dict(model=model, subject="all", train_size=train_size,
-                             mean_acc=statistics.mean(subject_res),
-                             stdev=statistics.stdev(subject_res),
-                            mean_tok=statistics.mean(subject_toks),
-                            stdev_tok=statistics.mean(subject_toks))
+                             mean_acc=statistics.mean(macro_accs),
+                             stdev=statistics.stdev(macro_accs),
+                            mean_tok=statistics.mean(macro_toks),
+                            stdev_tok=statistics.stdev(macro_toks))
             save_to_file(result_dict)

@@ -35,6 +35,9 @@ And your final answer will be extracted automatically by the \\boxed{{}} tag.
 Assistant: <think>
 """
 
+# SYSTEM_PROMPT = """{prompt}
+# """
+
 def build_prompt(problem: str) -> str:
     return SYSTEM_PROMPT.format(prompt=problem)
 

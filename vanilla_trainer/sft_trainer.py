@@ -57,18 +57,21 @@ parser = TrlParser(dataclass_types=[MyArguments])
 training_args = parser.parse_args_and_config()[0]
 
 #df = pd.read_csv("qwq_samples.csv")
-# df = pd.read_csv("process_subset_qwq.csv")
-df = pd.read_csv("subset_graph_qwq.csv")
+df = pd.read_csv("process_subset_qwq.csv")
+# df = pd.read_csv("subset_graph_qwq.csv")
+# df = pd.read_csv("rs_format_correct_qwen32kk.csv")
+
 # Combine 'question' and 'llm_answer' into a single 'text' column
 df['text'] = df['question'] + df['llm_answer']
 
+# for s1 distillation
 df = pd.read_csv("s1k_data.csv")
 
 # Randomly sample 500 rows for the test set
 test_set = df.sample(n=100, random_state=42)
 
 # Remaining rows for the training set
-# train_set = df.drop(test_set.index)
+#train_set = df.drop(test_set.index)
 train_set = df
 
 # Convert to Hugging Face Dataset format
@@ -81,6 +84,8 @@ model_name = AutoModelForCausalLM.from_pretrained(model_path, attn_implementatio
 tokenizer = AutoTokenizer.from_pretrained(model_path)
 tokenizer.padding_side='left'
 
+if tokenizer.pad_token is None: tokenizer.pad_token = tokenizer.eos_token
+
 collator = DataCollatorForCompletionOnlyLM(
     response_template=tokenizer.encode(" Assistant: <think>\n", add_special_tokens=False),
     # response_template=tokenizer.encode(" \n Assistant: <think>\n", add_special_tokens=False),
@@ -90,6 +95,7 @@ collator = DataCollatorForCompletionOnlyLM(
 sft_config_args = SFTConfig(
     output_dir=training_args.output_dir,
     run_name=training_args.run_name,
+    learning_rate=training_args.learning_rate,
     resume_from_checkpoint=training_args.resume_from_checkpoint,
     adam_beta1=training_args.adam_beta1,
     adam_beta2=training_args.adam_beta2,
@@ -127,7 +133,7 @@ trainer = SFTTrainer(
 trainer.train(resume_from_checkpoint=training_args.checkpoint_path if training_args.resume_from_checkpoint else False)
 
 
-# ## Get a sample from your dataset
+# # ## Get a sample from your dataset
 # sample = train_dataset[0]
 
 # # Process it with your collator

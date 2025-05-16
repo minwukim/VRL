@@ -19,17 +19,29 @@ from pathlib import Path
 # model_path = "./qwq_distill_cps/checkpoint-2500"
 # model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
+# model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
 
 
 model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
 # csv_train_path = "ood_all_4_second_64.csv"
 # csv_train_path = "ood_test_KK_128.csv"
 # csv_train_path = "1to64_kk_response.csv"
-csv_train_path = "np128p256_kk.csv"
+# csv_train_path = "np128p256_kk.csv"
+# csv_train_path = "174_incorrect_response_second.csv"
+csv_train_path = "final_256_kk_ood.csv"
+
+column_name = 'kk_not_solved'
+
+# easy_not_solved
+# medium_not_solved
+# hard_not_solved
+# ext_hard_not_solved
+# kk_not_solved
+# incorrect_not_solved
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 12
+seed = 98390
 num_trials = 128
 batch_size = 150000
 temperature = 0.9
@@ -37,7 +49,7 @@ top_p = 1
 top_k = 40
 min_p = 0.0
 presence_penalty = 1.0
-tensor_parallel_size = 1
+tensor_parallel_size = 2
 
 # Prompt template with standardized instruction
 # SYSTEM_PROMPT = (
@@ -47,16 +59,17 @@ tensor_parallel_size = 1
 #     "{prompt}<|im_end|>\n"
 #     "<|im_start|>assistant\n"
 # )
-# SYSTEM_PROMPT = (
-#     "{prompt} [SEP] "
-# )
+SYSTEM_PROMPT = (
+    "{prompt} [SEP] "
+)
+
 
 SYSTEM_PROMPT = (
-    "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
-    "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
-    "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
-    " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
-    "User: {prompt}/nAssitatnt: <think>"
+     "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
+     "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
+     "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
+     " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
+     "User: {prompt}/nAssistant: <think>"
 )
 
 def last_boxed_only_string(string):
@@ -100,6 +113,8 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
 
     first_batch = True
     llm = LLM(model=model_path, max_model_len=10000, tensor_parallel_size=tensor_parallel_size)
+    tokenizer = llm.get_tokenizer()
+
 
     for i in range(0, total_questions, batch_size):
         batch_indices = range(i, min(i + batch_size, total_questions))
@@ -154,8 +169,10 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
 # ——————————————
 # ds_train = pd.read_csv("base_ood_test_questions.csv")
 # ds_train = ds_train[ds_train['base_ood'] == 1]
-ds_train = pd.read_csv("base_model_nopass128_pass256_76.csv")
-# ds_train = ds_train[ds_train['hit'] == 0]
+# ds_train = pd.read_csv("base_model_nopass128_pass256_76.csv")
+# ds_train = pd.read_csv("base_model_test_question_solution_hit.csv")
+ds_train = pd.read_csv("distilled_models_128_unsolved.csv")
+ds_train = ds_train[ds_train[column_name] == 1]
 
 train_problems = [SYSTEM_PROMPT.format(prompt=p) for p in ds_train['prompt']]
 train_truths = [last_boxed_only_string(gt) for gt in ds_train['ground_truth']]

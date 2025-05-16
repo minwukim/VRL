@@ -11,7 +11,8 @@ from custom_MATH_reward import compute_score, remove_boxed, last_boxed_only_stri
 from dataclasses import dataclass
 from typing import Optional
 
-from dataset_loader import load_math, load_countdown, load_kk, load_mmlupro
+from dataset_loader import load_math, load_countdown, load_kk, load_mmlupro, load_humeval
+
 
 #from custom_grpo_trainer import NewGRPOTrainer
 
@@ -100,8 +101,9 @@ def reward_correct(completions, answer, **kwargs):
 
         # answer format is correct now
         # look for boxed tag
-        ext_string = last_boxed_only_string(match.group(1))
-        if ext_string is None: return -1   #No boxed tag found
+        # ext_string = last_boxed_only_string(match.group(1))
+        # if ext_string is None: return -1   #No boxed tag found
+        ext_string = match.group(1)
         
         # if correct, then reward 2
         if verify(parse(ext_string), parse(gt)): return 2
@@ -111,13 +113,15 @@ def reward_correct(completions, answer, **kwargs):
 
 
 #train, test = get_dataset()
-#train, test = load_math(SYSTEM, sample=100)
+train, test = load_math(SYSTEM, sample=100)
 #train, test, reward_correct = load_kk()
 
 
 # humanities = ["history","law","philosophy"]
-humanities = ["physics"]
-train, test, reward_correct = load_mmlupro(sample=0.75, categories=humanities)
+# humanities = ["physics"]
+# train, test, reward_correct = load_mmlupro(sample=0.75, categories=humanities)
+
+# train, test, reward_correct = load_humeval(sample=50)
 
 model_path = training_args.model_name if not training_args.resume_from_checkpoint else training_args.checkpoint_path
 model_name = AutoModelForCausalLM.from_pretrained(model_path)

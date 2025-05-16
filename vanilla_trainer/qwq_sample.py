@@ -11,12 +11,12 @@ SYSTEM="""A conversation between User and Assistant. The user asks a question, a
 {prompt}
 Assistant: <think>"""
 
-# train, test, _ = load_kk()
-train, test, _ = load_graph_data()
+train, test, _ = load_kk()
+#train, test, _ = load_graph_data()
 
 gpus=4
 sampling_params = SamplingParams(n=4, temperature=0.6, top_p=0.95, top_k=40, max_tokens=8192, stop=["</answer>", "User:", "Assistant:"])
-llm = LLM(model="Qwen/QwQ-32B", max_model_len=9000, gpu_memory_utilization=0.9, tensor_parallel_size=gpus)
+llm = LLM(model="Qwen/Qwen2.5-32B", max_model_len=9000, gpu_memory_utilization=0.9, tensor_parallel_size=gpus)
 
 process_in = train['prompt']
 
@@ -37,7 +37,8 @@ for output in outputs:
 df['llm_answer'] = process_out
 
 #df.to_csv("qwq_samples_more.csv", index=False)
-df.to_csv("graph_qwq_samples.csv", index=False)
+# df.to_csv("graph_qwq_samples.csv", index=False)
+df.to_csv("kk_qwen32_samples.csv", index=False)
 
 
 

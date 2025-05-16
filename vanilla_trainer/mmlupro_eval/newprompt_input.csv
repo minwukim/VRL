@@ -1,0 +1,5 @@
+select,model,subjects,train_size,notes
+True,"Qwen/Qwen2.5-3B",all,0.5,base+mathall
+True,"../../outputs/qwen2.5-3b-sft-pro/checkpoint-1092/",all,0.5,base+mathall
+True,"../../outputs/qwen2.5-3b-sft-pro-graph/checkpoint-246",all,0.5,base+mathall
+True,"../../outputs/qwen2.5-3b-sft-pro-s1/checkpoint-249/",all,0.5,base+mathall

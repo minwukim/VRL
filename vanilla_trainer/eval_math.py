@@ -18,7 +18,7 @@ args = parser.parse_args()
 model_path = args.model # Update with actual model path 
 file_path = args.file
 
-llm = LLM(model=model_path, tensor_parallel_size=torch.cuda.device_count(), max_model_len=8192, gpu_memory_utilization=0.9)
+llm = LLM(model=model_path, tensor_parallel_size=torch.cuda.device_count(), max_model_len=4096, gpu_memory_utilization=0.9)
 
 SYSTEM_PROMPT = """
 A conversation between User and Assistant. The user asks a question, and the Assistant solves it.
