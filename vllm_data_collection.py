@@ -47,7 +47,7 @@ BASE_SEED        = 420                # distinct seed space per GPU later
 FILE_PREFIX      = "15b_math_oat"      # prefix for CSV filenames
 SYSTEM_PROMPT    = "{prompt}"        # no special system prefix for now
 SYSTEM_PROMPT = (
-    "<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
+    "<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
 )
 
 
