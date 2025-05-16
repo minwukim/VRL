@@ -23,8 +23,8 @@ from pathlib import Path
 # model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
 
-# model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
-model_path = "./qwq_distill_cps/1.5B-math-4all/checkpoint-70430"
+model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+# model_path = "./qwq_distill_cps/1.5B-math-4all/checkpoint-70430"
 
 
 # csv_train_path = "ood_all_4_second_64.csv"
@@ -35,7 +35,9 @@ model_path = "./qwq_distill_cps/1.5B-math-4all/checkpoint-70430"
 # csv_train_path = "4all_224_second123.csv"
 # csv_train_path = "257_512_base_second.csv"
 
-csv_train_path = "15B_MATH_ID_DISTILLED_FIRST_20.csv"
+# csv_train_path = "15B_MATH_ID_DISTILLED_FIRST_20.csv"
+csv_train_path = "15B_MATH_DS_DISTILLED_FIRST_20.csv"
+
 
 
 
@@ -53,7 +55,7 @@ column_name = 'kk_not_solved'
 seed = 1
 num_trials = 20
 batch_size = 150000
-temperature = 0.9
+temperature = 0.6
 top_p = 1
 top_k = 40
 min_p = 0.0
@@ -84,6 +86,15 @@ SYSTEM_PROMPT = (
 #     " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
 #     "User: {prompt}/nAssistant: <think>"
 # )
+
+
+SYSTEM_PROMPT = (
+    "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
+    "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
+    "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
+    " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
+    "User: {prompt}/nAssistant: <think>"
+)
 
 def last_boxed_only_string(string):
     idx = string.rfind("\\boxed")
