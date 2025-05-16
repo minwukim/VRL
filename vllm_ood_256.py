@@ -18,19 +18,26 @@ from pathlib import Path
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-hard-response/checkpoint-2000"
 # model_path = "./qwq_distill_cps/checkpoint-2500"
 # model_path = "./qwq_distill_cps/4-all-checkpoint/4-all-checkpoint"
-model_path = "Qwen/Qwen2.5-3B"
+# model_path = "Qwen/Qwen2.5-3B"
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
 # model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
-
-
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
+
+# model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+model_path = "./qwq_distill_cps/1.5B-math-4all/checkpoint-70430"
+
+
 # csv_train_path = "ood_all_4_second_64.csv"
 # csv_train_path = "ood_test_KK_128.csv"
 # csv_train_path = "1to64_kk_response.csv"
 # csv_train_path = "np128p256_kk.csv"
 # csv_train_path = "174_incorrect_response_second.csv"
 # csv_train_path = "4all_224_second123.csv"
-csv_train_path = "257_512_base_second.csv"
+# csv_train_path = "257_512_base_second.csv"
+
+csv_train_path = "15B_MATH_ID_DISTILLED_FIRST_20.csv"
+
+
 
 column_name = 'kk_not_solved'
 
@@ -43,15 +50,15 @@ column_name = 'kk_not_solved'
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 4234232
-num_trials = 128
+seed = 1
+num_trials = 20
 batch_size = 150000
 temperature = 0.9
 top_p = 1
 top_k = 40
 min_p = 0.0
 presence_penalty = 1.0
-tensor_parallel_size = 1
+tensor_parallel_size = 2
 
 # Prompt template with standardized instruction
 # SYSTEM_PROMPT = (
@@ -61,19 +68,18 @@ tensor_parallel_size = 1
 #     "{prompt}<|im_end|>\n"
 #     "<|im_start|>assistant\n"
 # )
-# SYSTEM_PROMPT = (
-#     "{prompt} [SEP] "
-# )
 
 SYSTEM_PROMPT = (
-    "{prompt}"
+    "{prompt} [SEP] "
 )
 
-
+# SYSTEM_PROMPT = (
+#     "{prompt}"
+# )
 
 # SYSTEM_PROMPT = (
 #     "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
-#     "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
+#     "The Assistant first thinks about the reasoning process in the mind and then provides the User with the answer."
 #     "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
 #     " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
 #     "User: {prompt}/nAssistant: <think>"
@@ -119,7 +125,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
     print(f"\n>>> Starting evaluations on {dataset_name} — {total_questions} questions x {num_trials} trials")
 
     first_batch = True
-    llm = LLM(model=model_path, max_model_len=10000, tensor_parallel_size=tensor_parallel_size)
+    llm = LLM(model=model_path, max_model_len=12000, tensor_parallel_size=tensor_parallel_size)
     tokenizer = llm.get_tokenizer()
 
 
@@ -135,7 +141,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
             top_k=top_k,
             min_p=min_p,
             presence_penalty=presence_penalty,
-            max_tokens=32000,
+            max_tokens=12000,
             n=num_trials,
             seed=seed,
         )
@@ -179,14 +185,10 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
 # ds_train = pd.read_csv("base_model_nopass128_pass256_76.csv")
 # ds_train = pd.read_csv("base_model_test_question_solution_hit.csv")
 ds_train = pd.read_csv("distilled_models_128_unsolved.csv")
-# target_indices = [9, 11, 21, 43, 64, 80, 96, 100, 101, 103, 104, 110, 126, 138, 147, 154, 156, 166, 168, 184, 189, 222, 224, 232, 239, 240, 242, 264, 267, 274, 285, 286, 292, 295, 303, 306, 308, 324, 327, 351, 352, 365, 369, 381, 392, 400, 401, 403, 422, 425, 460, 466, 475, 478, 481, 494, 497]
-# target_indices = [224, 232, 239, 240, 242, 264, 267, 274, 285, 286, 292, 295, 303, 306, 308, 324, 327, 351, 352, 365, 369, 381, 392, 400, 401, 403, 422, 425, 460, 466, 475, 478, 481, 494, 497]
-base_unsolved = [11, 21, 43, 60, 64, 96, 103, 154, 264, 286, 308, 352, 372, 392, 401, 422, 432, 445, 478, 481, 497]
-distilled_unsolved = [11, 43, 96, 110, 154, 166, 240, 242, 286, 295, 308, 392, 422, 481, 497]
-target_indices = base_unsolved
-
-
-ds_train = ds_train[ds_train['question_index'].isin(target_indices)]
+# base_unsolved = [11, 21, 43, 60, 64, 96, 103, 154, 264, 286, 308, 352, 372, 392, 401, 422, 432, 445, 478, 481, 497]
+# distilled_unsolved = [11, 43, 96, 110, 154, 166, 240, 242, 286, 295, 308, 392, 422, 481, 497]
+# target_indices = base_unsolved
+# ds_train = ds_train[ds_train['question_index'].isin(target_indices)]
 
 # ds_train = ds_train[ds_train[column_name] == 1]
 
