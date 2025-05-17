@@ -35,7 +35,6 @@ from math_verify import verify, parse
 # MODEL_PATH      = "Qwen/Qwen2.5-3B"
 # MODEL_PATH      = "./0421-qwen3b-question-only-no-format/checkpoint-200"      # 3B model
 MODEL_PATH     = "Qwen/Qwen2.5-Math-1.5B"  # 3B model
-# MODEL_PATH = "sail/Qwen2.5-Math-1.5B-Oat-Zero"
 TRIALS_PER_GPU   = 32                # 32 × 8 = 256
 TEMPERATURE      = 0.9
 TOP_P            = 1.0
@@ -44,13 +43,8 @@ min_p            = 0.0
 presence_penalty = 1.0
 MAX_TOKENS       = 4000
 BASE_SEED        = 420                # distinct seed space per GPU later
-FILE_PREFIX      = "15b_math"      # prefix for CSV filenames
+FILE_PREFIX      = "15bmath"      # prefix for CSV filenames
 SYSTEM_PROMPT    = "{prompt}"        # no special system prefix for now
-# SYSTEM_PROMPT = (
-#     "<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
-# )
-
-
 
 # ──────────────────────────── helpers ──────────────────────────────
 def reward_without_format(pred: str, truth: str) -> int:
@@ -59,36 +53,35 @@ def reward_without_format(pred: str, truth: str) -> int:
         return int(verify(parse(pred), parse(truth)))
     except Exception:
         return 0
+
 def run_trials(
     *, llm: LLM, problems: list[str], truths: list[str],
     csv_path: Path, gpu_id: int, seed_offset: int
 ):
     """
-    Run TRIALS_PER_GPU trials on `problems` in a single batch using `n=TRIALS_PER_GPU`.
-    Append results to `csv_path`.
+    Run TRIALS_PER_GPU trials on `problems` and append to `csv_path`.
+    seed_offset distinguishes train vs. test seeds.
     """
     first_write = not csv_path.exists()
     n = len(problems)
 
-    seed = BASE_SEED + seed_offset
-    sp = SamplingParams(
-        temperature=TEMPERATURE,
-        top_p=TOP_P,
-        max_tokens=MAX_TOKENS,
-        top_k=TOP_K,
-        min_p=min_p,
-        presence_penalty=presence_penalty,
-        n=TRIALS_PER_GPU,
-        seed=seed,
-    )
-    print(f"[GPU{gpu_id}] {csv_path.stem}: generating {TRIALS_PER_GPU} trials (seed base={seed})")
-
-    outs = llm.generate(problems, sp)
-
-    all_rows = []
     for t in range(TRIALS_PER_GPU):
-        responses = [o.outputs[t].text for o in outs]
-        rewards = [reward_without_format(r, gt) for r, gt in zip(responses, truths)]
+        seed = BASE_SEED + seed_offset + t
+        sp = SamplingParams(
+            temperature=TEMPERATURE,
+            top_p=TOP_P,
+            max_tokens=MAX_TOKENS,
+            top_k=TOP_K,
+            min_p=min_p,
+            presence_penalty=presence_penalty,
+            n=1,
+            seed=seed,
+        )
+        print(f"[GPU{gpu_id}] {csv_path.stem}: trial {t+1}/{TRIALS_PER_GPU}  (seed={seed})")
+
+        outs = llm.generate(problems, sp)
+        responses = [o.outputs[0].text for o in outs]
+        rewards   = [reward_without_format(r, gt) for r, gt in zip(responses, truths)]
 
         df = pd.DataFrame({
             "gpu_id":          gpu_id,
@@ -99,14 +92,13 @@ def run_trials(
             "response":        responses,
             "response_length": [len(r) for r in responses],
             "reward":          rewards,
-            "seed":            seed + t,
+            "seed":            seed,
         })
-        all_rows.append(df)
+        df.to_csv(csv_path, mode="a", header=first_write, index=False, quoting=1, escapechar="\\")
 
-    final_df = pd.concat(all_rows, ignore_index=True)
-    final_df.to_csv(csv_path, mode="a", header=first_write, index=False, quoting=1, escapechar="\\")
-    print(f"[GPU{gpu_id}]   ✓ wrote {TRIALS_PER_GPU * n} rows")
-
+        # df.to_csv(csv_path, mode="a", header=first_write, index=False)
+        first_write = False
+        print(f"[GPU{gpu_id}]   ✓ wrote {n} rows")
 
 
 # ──────────────────────────── main ─────────────────────────────────
@@ -140,14 +132,6 @@ def main():
     llm = LLM(model=MODEL_PATH)
 
     # ---- run TRAIN first, then TEST ------------------------------
-    run_trials(
-        llm=llm,
-        problems=train_problems,
-        truths=train_truths,
-        csv_path=Path(f"{FILE_PREFIX}_file{gpu_id+1}_train.csv"),
-        gpu_id=gpu_id,
-        seed_offset=(gpu_id+1) * 10000            # keep seed spaces disjoint
-    )
 
     run_trials(
         llm=llm,
@@ -155,8 +139,18 @@ def main():
         truths=test_truths,
         csv_path=Path(f"{FILE_PREFIX}_file{gpu_id+1}_test.csv"),
         gpu_id=gpu_id,
-        seed_offset=1000 + gpu_id * 10_000 # separate seed range for test set
+        seed_offset=100000000 + gpu_id * 10_000 # separate seed range for test set
     )
+
+    run_trials(
+        llm=llm,
+        problems=train_problems,
+        truths=train_truths,
+        csv_path=Path(f"{FILE_PREFIX}_file{gpu_id+1}_train.csv"),
+        gpu_id=gpu_id,
+        seed_offset=(gpu_id+1) * 100000             # keep seed spaces disjoint
+    )
+
 
     # run_trials(
     #     llm=llm,
