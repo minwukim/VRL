@@ -151,7 +151,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
             top_k=top_k,
             min_p=min_p,
             presence_penalty=presence_penalty,
-            max_tokens=11000,
+            max_tokens=4000,
             n=num_trials,
             seed=seed,
         )
