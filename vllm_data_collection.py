@@ -34,8 +34,8 @@ from math_verify import verify, parse
 # ───────────────────── configuration constants ─────────────────────
 # MODEL_PATH      = "Qwen/Qwen2.5-3B"
 # MODEL_PATH      = "./0421-qwen3b-question-only-no-format/checkpoint-200"      # 3B model
-# MODEL_PATH     = "Qwen/Qwen2.5-Math-1.5B"  # 3B model
-MODEL_PATH = "sail/Qwen2.5-Math-1.5B-Oat-Zero"
+MODEL_PATH     = "Qwen/Qwen2.5-Math-1.5B"  # 3B model
+# MODEL_PATH = "sail/Qwen2.5-Math-1.5B-Oat-Zero"
 TRIALS_PER_GPU   = 32                # 32 × 8 = 256
 TEMPERATURE      = 0.9
 TOP_P            = 1.0
@@ -44,11 +44,11 @@ min_p            = 0.0
 presence_penalty = 1.0
 MAX_TOKENS       = 4000
 BASE_SEED        = 420                # distinct seed space per GPU later
-FILE_PREFIX      = "15b_math_oat"      # prefix for CSV filenames
+FILE_PREFIX      = "15b_math"      # prefix for CSV filenames
 SYSTEM_PROMPT    = "{prompt}"        # no special system prefix for now
-SYSTEM_PROMPT = (
-    "<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
-)
+# SYSTEM_PROMPT = (
+#     "<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
+# )
 
 
 
