@@ -37,6 +37,8 @@ model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 
 # csv_train_path = "15B_MATH_ID_DISTILLED_FIRST_20.csv"
 csv_train_path = "15B_MATH_DS_DISTILLED_FIRST_20.csv"
+csv_train_path = "15B_MATH_DS_DISTILLED_LAST_236.csv"
+
 
 
 
@@ -52,8 +54,8 @@ column_name = 'kk_not_solved'
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 1
-num_trials = 20
+seed = 12
+num_trials = 236
 batch_size = 150000
 temperature = 0.6
 top_p = 1
@@ -196,10 +198,11 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
 # ds_train = pd.read_csv("base_model_nopass128_pass256_76.csv")
 # ds_train = pd.read_csv("base_model_test_question_solution_hit.csv")
 ds_train = pd.read_csv("distilled_models_128_unsolved.csv")
-# base_unsolved = [11, 21, 43, 60, 64, 96, 103, 154, 264, 286, 308, 352, 372, 392, 401, 422, 432, 445, 478, 481, 497]
-# distilled_unsolved = [11, 43, 96, 110, 154, 166, 240, 242, 286, 295, 308, 392, 422, 481, 497]
-# target_indices = base_unsolved
-# ds_train = ds_train[ds_train['question_index'].isin(target_indices)]
+deepseek_unsolved = [20, 67, 96, 101, 103, 110, 138, 154, 240, 264, 285, 286, 308, 358, 392, 400, 422, 478]
+ID_unsolved = [9, 11, 26, 43, 60, 64, 71, 80, 94, 100, 101, 103, 104, 110, 120, 126, 129, 138, 154, 156, 166, 168, 189, 219, 224, 232, 239, 240, 242, 264, 267, 274, 286, 296, 301, 303, 306, 308, 327, 340, 352, 369, 392, 400, 401, 408, 412, 422, 425, 432, 444, 445, 460, 475, 478, 481, 494, 497]
+
+target_indices = deepseek_unsolved
+ds_train = ds_train[ds_train['question_index'].isin(target_indices)]
 
 # ds_train = ds_train[ds_train[column_name] == 1]
 
