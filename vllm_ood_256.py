@@ -36,8 +36,8 @@ model_path = "./qwq_distill_cps/1.5B-math-4all/checkpoint-70430"
 # csv_train_path = "257_512_base_second.csv"
 
 # csv_train_path = "15B_MATH_ID_DISTILLED_FIRST_20.csv"
-csv_train_path = "15B_MATH_ID_DISTILLED_middle_first22.csv"
-# csv_train_path = "15B_MATH_ID_DISTILLED_middle_second22.csv"
+# csv_train_path = "15B_MATH_ID_DISTILLED_middle_first22.csv"
+csv_train_path = "15B_MATH_ID_DISTILLED_middle_second22.csv"
 
 
 # csv_train_path = "15B_MATH_DS_DISTILLED_FIRST_20.csv"
@@ -58,7 +58,7 @@ column_name = 'kk_not_solved'
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 123
+seed = 1234
 num_trials = 22
 batch_size = 150000
 temperature = 0.9
