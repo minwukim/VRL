@@ -42,7 +42,7 @@ model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 
 # csv_train_path = "15B_MATH_DS_DISTILLED_FIRST_20.csv"
 # csv_train_path = "15B_MATH_DS_DISTILLED_LAST_236.csv"
-csv_train_path = "15B_MATH_DS_DISTILLED_middle_first22.csv"
+csv_train_path = "15B_MATH_DS_DISTILLED_middle_second22.csv"
 
 
 
@@ -57,7 +57,7 @@ column_name = 'kk_not_solved'
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 9123
+seed = 91234
 num_trials = 22
 batch_size = 150000
 temperature = 0.6
