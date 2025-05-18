@@ -23,8 +23,8 @@ from pathlib import Path
 # model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
 
-# model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
-model_path = "./qwq_distill_cps/1.5B-math-4all/checkpoint-70430"
+model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+# model_path = "./qwq_distill_cps/1.5B-math-4all/checkpoint-70430"
 
 
 # csv_train_path = "ood_all_4_second_64.csv"
@@ -37,13 +37,12 @@ model_path = "./qwq_distill_cps/1.5B-math-4all/checkpoint-70430"
 
 # csv_train_path = "15B_MATH_ID_DISTILLED_FIRST_20.csv"
 # csv_train_path = "15B_MATH_ID_DISTILLED_middle_first22.csv"
-csv_train_path = "15B_MATH_ID_DISTILLED_middle_second22.csv"
+# csv_train_path = "15B_MATH_ID_DISTILLED_middle_second22.csv"
 
 
 # csv_train_path = "15B_MATH_DS_DISTILLED_FIRST_20.csv"
 # csv_train_path = "15B_MATH_DS_DISTILLED_LAST_236.csv"
-
-
+csv_train_path = "15B_MATH_DS_DISTILLED_middle_first22.csv"
 
 
 
@@ -58,10 +57,10 @@ column_name = 'kk_not_solved'
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 1234
+seed = 9123
 num_trials = 22
 batch_size = 150000
-temperature = 0.9
+temperature = 0.6
 top_p = 1
 top_k = 40
 min_p = 0.0
@@ -94,13 +93,13 @@ SYSTEM_PROMPT = (
 # )
 
 
-# SYSTEM_PROMPT = (
-#     "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
-#     "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
-#     "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tages, respectively,"
-#     " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
-#     "User: {prompt}/nAssistant: <think>"
-# )
+SYSTEM_PROMPT = (
+    "A conversation between User and Assistant. The User asks a question, and the Assistant solves it."
+    "The Assistant  first thinks about the reasoning process in the mind and then provides the User with the answer."
+    "The reasoning process is enclosed within <think> </think> and answer is enclosed with in <answer> </answer> tags, respectively,"
+    " i.e., <think> reasoning process here </think> <answer> answer here </answer>./n"
+    "User: {prompt}/nAssistant: <think>"
+)
 
 def last_boxed_only_string(string):
     idx = string.rfind("\\boxed")
@@ -205,7 +204,7 @@ ds_train = pd.read_csv("distilled_models_128_unsolved.csv")
 deepseek_unsolved = [20, 67, 96, 101, 103, 110, 138, 154, 240, 264, 285, 286, 308, 358, 392, 400, 422, 478]
 ID_unsolved = [9, 11, 26, 43, 60, 64, 71, 80, 94, 100, 101, 103, 104, 110, 120, 126, 129, 138, 154, 156, 166, 168, 189, 219, 224, 232, 239, 240, 242, 264, 267, 274, 286, 296, 301, 303, 306, 308, 327, 340, 352, 369, 392, 400, 401, 408, 412, 422, 425, 432, 444, 445, 460, 475, 478, 481, 494, 497]
 
-target_indices = ID_unsolved
+target_indices = deepseek_unsolved
 ds_train = ds_train[~ds_train['question_index'].isin(target_indices)]
 
 # ds_train = ds_train[ds_train[column_name] == 1]
