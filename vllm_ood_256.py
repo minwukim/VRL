@@ -36,8 +36,8 @@ model_path = "./qwq_distill_cps/1.5B-math-4all/checkpoint-70430"
 # csv_train_path = "257_512_base_second.csv"
 
 # csv_train_path = "15B_MATH_ID_DISTILLED_FIRST_20.csv"
-# csv_train_path = "15B_MATH_ID_DISTILLED_middle_first22.csv"
-csv_train_path = "15B_MATH_ID_DISTILLED_middle_second22.csv"
+csv_train_path = "15B_MATH_ID_DISTILLED_middle_first22.csv"
+# csv_train_path = "15B_MATH_ID_DISTILLED_middle_second22.csv"
 
 
 # csv_train_path = "15B_MATH_DS_DISTILLED_FIRST_20.csv"
@@ -58,7 +58,7 @@ column_name = 'kk_not_solved'
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 1234
+seed = 123
 num_trials = 22
 batch_size = 150000
 temperature = 0.9
@@ -66,7 +66,7 @@ top_p = 1
 top_k = 40
 min_p = 0.0
 presence_penalty = 1.0
-tensor_parallel_size = 1
+tensor_parallel_size = 2
 
 # Prompt template with standardized instruction
 # SYSTEM_PROMPT = (
