@@ -36,7 +36,7 @@ model_path = "./qwq_distill_cps/1.5B-math-4all/checkpoint-70430"
 # csv_train_path = "257_512_base_second.csv"
 
 # csv_train_path = "15B_MATH_ID_DISTILLED_FIRST_20.csv"
-csv_train_path = "15B_MATH_ID_DISTILLED_LAST_236.csv"
+csv_train_path = "15B_MATH_ID_DISTILLED_middle_first22.csv"
 
 # csv_train_path = "15B_MATH_DS_DISTILLED_FIRST_20.csv"
 # csv_train_path = "15B_MATH_DS_DISTILLED_LAST_236.csv"
@@ -56,15 +56,15 @@ column_name = 'kk_not_solved'
 
 
 # csv_test_path = "QwQ_test.csv"
-seed = 12
-num_trials = 236
+seed = 123
+num_trials = 22
 batch_size = 150000
 temperature = 0.6
 top_p = 1
 top_k = 40
 min_p = 0.0
 presence_penalty = 1.0
-tensor_parallel_size = 2
+tensor_parallel_size = 1
 
 # Prompt template with standardized instruction
 # SYSTEM_PROMPT = (
@@ -204,7 +204,7 @@ deepseek_unsolved = [20, 67, 96, 101, 103, 110, 138, 154, 240, 264, 285, 286, 30
 ID_unsolved = [9, 11, 26, 43, 60, 64, 71, 80, 94, 100, 101, 103, 104, 110, 120, 126, 129, 138, 154, 156, 166, 168, 189, 219, 224, 232, 239, 240, 242, 264, 267, 274, 286, 296, 301, 303, 306, 308, 327, 340, 352, 369, 392, 400, 401, 408, 412, 422, 425, 432, 444, 445, 460, 475, 478, 481, 494, 497]
 
 target_indices = ID_unsolved
-ds_train = ds_train[ds_train['question_index'].isin(target_indices)]
+ds_train = ds_train[~ds_train['question_index'].isin(target_indices)]
 
 # ds_train = ds_train[ds_train[column_name] == 1]
 
