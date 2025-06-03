@@ -12,15 +12,15 @@ from math_verify import verify, parse
 # model_path = "Qwen/Qwen2.5-Math-1.5B"
 # model_path = "./qwen3b-it-SFT-boxed/checkpoint-250"
 
-# model_path = "./0421-qwen3b-question-only-no-format/checkpoint-150"
+model_path = "./0421-qwen3b-question-only-no-format/checkpoint-150"
 # model_path = "./vanilla_trainer/0425-base-self-distill/checkpoint-41718"
 # model_path = "./vanilla_trainer/0425-base-self-distill/checkpoint-15000"
 
 # model_path = "./vanilla_trainer/0425-cp150-self-distill/checkpoint-41730"
 # model_path = "./vanilla_trainer/0425-cp150-self-distill/checkpoint-15000"
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-easy-response/checkpoint-2500"
-model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
-
+# model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
+ 
 
 
 
@@ -55,7 +55,7 @@ SYSTEM_PROMPT_6 = (
 
 
 
-SYSTEM_PROMPT = SYSTEM_PROMPT_5
+SYSTEM_PROMPT = SYSTEM_PROMPT_2
 
 def last_boxed_only_string(string):
     idx = string.rfind("\\boxed")
@@ -121,11 +121,11 @@ all_ground_truths = ground_truths * num_trials  # Will align index-wise
 # ——————————————
 # Generate responses
 # ——————————————
-llm = LLM(model=model_path, max_model_len=32000, tensor_parallel_size=1)
+llm = LLM(model=model_path, max_model_len=4000, tensor_parallel_size=1)
 sampling_params = SamplingParams(
     temperature=temperature,
     top_p=top_p,
-    max_tokens=32000,
+    max_tokens=4000,
     n=1
 )
 
