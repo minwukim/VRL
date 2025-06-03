@@ -34,7 +34,7 @@ model_path = "./0421-qwen3b-question-only-no-format/checkpoint-150"
 # FOLLOWING THE SOBER PAPERR
 num_trials = 1              # Number of full runs over the dataset
 temperature = 0.8
-top_p = 1.0
+top_p = 0.95
 
 # ——————————————
 # Prompt Template
