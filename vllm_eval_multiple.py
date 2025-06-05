@@ -28,6 +28,8 @@ model_path = "./0421-qwen3b-question-only-no-format/checkpoint-150"
 
 # model_path ="Qwen/Qwen2.5-3B-instruct"
 model_path = "Qwen/Qwen2.5-3B"
+model_path = "Qwen/Qwen2.5-1.5B"
+
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
 
 
