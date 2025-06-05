@@ -35,8 +35,8 @@ model_path = "Qwen/Qwen2.5-1.5B"
 
 # FOLLOWING THE SOBER PAPERR
 num_trials = 1              # Number of full runs over the dataset
-temperature = 0.8
-top_p = 0.9
+temperature = 0.9
+top_p = 1
 
 # ——————————————
 # Prompt Template
