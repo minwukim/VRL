@@ -27,14 +27,14 @@ model_path = "./0421-qwen3b-question-only-no-format/checkpoint-150"
 # csv_path = "0421-qwen3b-question-only-no-format-online-sft-cp50.csv"
 
 # model_path ="Qwen/Qwen2.5-3B-instruct"
-# model_path = "Qwen/Qwen2.5-3B"
+model_path = "Qwen/Qwen2.5-3B"
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
 
 
 # FOLLOWING THE SOBER PAPERR
 num_trials = 1              # Number of full runs over the dataset
 temperature = 0.8
-top_p = 0.95
+top_p = 0.9
 
 # ——————————————
 # Prompt Template
@@ -55,7 +55,7 @@ SYSTEM_PROMPT_6 = (
 
 
 
-SYSTEM_PROMPT = SYSTEM_PROMPT_2
+SYSTEM_PROMPT = SYSTEM_PROMPT_4
 
 def last_boxed_only_string(string):
     idx = string.rfind("\\boxed")
