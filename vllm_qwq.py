@@ -10,10 +10,10 @@ from pathlib import Path
 # ——————————————
 # Config
 # ——————————————
-# model_path = "Qwen/QwQ-32B"
+model_path = "Qwen/QwQ-32B"
 # csv_train_path = "QwQ_train.csv"
-model_path = "Qwen/Qwen2.5-32B-Instruct"
-csv_train_path = "Qwen32B.csv"
+# model_path = "Qwen/Qwen2.5-32B-Instruct"
+csv_train_path = "QwQ_model_4.csv"
 # csv_test_path = "QwQ_test.csv"
 seed = 11
 num_trials = 16
@@ -49,7 +49,7 @@ def run_evaluation(csv_path, problems, ground_truths, dataset_name):
     print(f"\n>>> Starting evaluations on {dataset_name} — {total_questions} questions x {num_trials} trials")
 
     first_batch = True
-    llm = LLM(model=model_path, max_model_len=10000, tensor_parallel_size=tensor_parallel_size)
+    llm = LLM(model=model_path, max_model_len=12000, tensor_parallel_size=tensor_parallel_size)
 
     for i in range(0, total_questions, batch_size):
         batch_indices = range(i, min(i + batch_size, total_questions))
@@ -62,7 +62,7 @@ def run_evaluation(csv_path, problems, ground_truths, dataset_name):
             top_k=top_k,
             min_p=min_p,
             presence_penalty=presence_penalty,
-            max_tokens=8000,
+            max_tokens=12000,
             n=num_trials,
             seed=seed,
         )
@@ -92,7 +92,8 @@ def run_evaluation(csv_path, problems, ground_truths, dataset_name):
                 })
 
         df = pd.DataFrame(rows)
-        df.to_csv(csv_path, mode='a', header=first_batch, index=False)
+        # df.to_csv(csv_path, mode='a', header=first_batch, index=False)
+        df.to_csv(csv_path, mode='a', header=first_batch, index=False, quoting=1, escapechar='\\')
         first_batch = False
         print(f"✓ Saved batch {i}-{i+len(batch_prompts)-1} ({len(rows)} rows)")
 
@@ -101,9 +102,19 @@ def run_evaluation(csv_path, problems, ground_truths, dataset_name):
 # ——————————————
 # Train set: apply last_boxed_only_string
 # ——————————————
-ds_train = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="train")
-train_problems = [SYSTEM_PROMPT.format(prompt=e["problem"]) for e in ds_train]
-train_truths = [last_boxed_only_string(e["solution"]) for e in ds_train]
+# ds_train = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="train")
+# train_problems = [SYSTEM_PROMPT.format(prompt=e["problem"]) for e in ds_train]
+# train_truths = [last_boxed_only_string(e["solution"]) for e in ds_train]
+
+ds_train = pd.read_csv("MODEL4_data.csv")
+ds_train = ds_train[
+    (ds_train['3b_zero_hit'] == 1) |
+    (ds_train['1.5b_zero_hit'] == 1) |
+    (ds_train['qwq_below_4'] == 1)
+]
+
+train_problems = [SYSTEM_PROMPT.format(prompt=e["prompt"]) for e in ds_train]
+train_truths = [last_boxed_only_string(e["ground_truth"]) for e in ds_train]
 
 run_evaluation(csv_train_path, train_problems, train_truths, dataset_name="Train Set")
 
