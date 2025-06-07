@@ -113,8 +113,8 @@ ds_train = ds_train[
     (ds_train['qwq_below_4'] == 1)
 ]
 
-train_problems = [SYSTEM_PROMPT.format(prompt=e["prompt"]) for e in ds_train]
-train_truths = [last_boxed_only_string(e["ground_truth"]) for e in ds_train]
+train_problems = [SYSTEM_PROMPT.format(prompt=e) for e in ds_train['prompt']]
+train_truths = [last_boxed_only_string(e) for e in ds_train['ground_truth']]
 
 run_evaluation(csv_train_path, train_problems, train_truths, dataset_name="Train Set")
 
