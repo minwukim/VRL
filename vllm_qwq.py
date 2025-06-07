@@ -13,9 +13,9 @@ from pathlib import Path
 model_path = "Qwen/QwQ-32B"
 # csv_train_path = "QwQ_train.csv"
 # model_path = "Qwen/Qwen2.5-32B-Instruct"
-csv_train_path = "QwQ_model_4_second16.csv"
+csv_train_path = "QwQ_model_4_first16.csv"
 # csv_test_path = "QwQ_test.csv"
-seed = 78902323
+seed = 6781239
 num_trials = 16
 batch_size = 150000
 temperature = 0.6
