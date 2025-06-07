@@ -16,7 +16,7 @@ model_path = "Qwen/QwQ-32B"
 csv_train_path = "QwQ_model_4.csv"
 # csv_test_path = "QwQ_test.csv"
 seed = 789023
-num_trials = 64
+num_trials = 16
 batch_size = 150000
 temperature = 0.6
 top_p = 0.95
@@ -49,7 +49,7 @@ def run_evaluation(csv_path, problems, ground_truths, dataset_name):
     print(f"\n>>> Starting evaluations on {dataset_name} — {total_questions} questions x {num_trials} trials")
 
     first_batch = True
-    llm = LLM(model=model_path, max_model_len=12000, tensor_parallel_size=tensor_parallel_size)
+    llm = LLM(model=model_path, max_model_len=10000, tensor_parallel_size=tensor_parallel_size)
 
     for i in range(0, total_questions, batch_size):
         batch_indices = range(i, min(i + batch_size, total_questions))
@@ -62,7 +62,7 @@ def run_evaluation(csv_path, problems, ground_truths, dataset_name):
             top_k=top_k,
             min_p=min_p,
             presence_penalty=presence_penalty,
-            max_tokens=12000,
+            max_tokens=10000,
             n=num_trials,
             seed=seed,
         )
