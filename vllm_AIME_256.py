@@ -41,7 +41,7 @@ model_path = "./qwq_distill_cps/model4_1dot5b/checkpoint-30000"
 # csv_train_path = "AIME25_64_qwq.csv"
 # csv_train_path = "AIME25_oat_256.csv"
 # csv_train_path = "AIME25_256_1.5B_MATH.csv"
-csv_train_path = "AIME25_15B_MATH_model4_first128.csv"
+csv_train_path = "AIME25_15B_MATH_model4_256.csv"
 
 
 
