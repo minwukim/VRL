@@ -12,9 +12,8 @@ from pathlib import Path
 # Config
 # ——————————————
 # model_path = "Qwen/QwQ-32B"
-model_path = "sail/Qwen2.5-Math-1.5B-Oat-Zero"
+# model_path = "sail/Qwen2.5-Math-1.5B-Oat-Zero"
 # csv_train_path = "QwQ_train.csv"
-
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-ext-hard-response/checkpoint-2140"
 # model_path = "./qwq_distill_cps/0428-base-distill-qwq-hard-response/checkpoint-2000"
 # model_path = "./qwq_distill_cps/checkpoint-2500"
@@ -23,11 +22,10 @@ model_path = "sail/Qwen2.5-Math-1.5B-Oat-Zero"
 # model_path = "./qwq_distill_cps/qwq_wrong/checkpoint-2500"
 # model_path = "Qwen/Qwen2.5-3B"
 # model_path = "0421-qwen3b-question-only-no-format/checkpoint-150"
-
 # model_path = "Qwen/Qwen2.5-Math-1.5B"
-
 # model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 # model_path = "./qwq_distill_cps/1.5B-math-4all/checkpoint-70430"
+model_path = "./qwq_distill_cps/model4_1dot5b/checkpoint-30000"
 
 
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
@@ -40,12 +38,10 @@ model_path = "sail/Qwen2.5-Math-1.5B-Oat-Zero"
 # csv_train_path = "AIME25_256.csv"
 # csv_train_path = "AIME25_base_256.csv"
 # csv_train_path = "AIME25_incorrect_256.csv"
-
 # csv_train_path = "AIME25_64_qwq.csv"
-csv_train_path = "AIME25_oat_256.csv"
-
+# csv_train_path = "AIME25_oat_256.csv"
 # csv_train_path = "AIME25_256_1.5B_MATH.csv"
-
+csv_train_path = "AIME25_15B_MATH_model4_first128.csv"
 
 
 
@@ -69,21 +65,21 @@ presence_penalty = 1.0
 tensor_parallel_size = 1
 
 # Prompt template with standardized instruction
-SYSTEM_PROMPT = (
-    "<|im_start|>system\n"
-    "You are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n"
-    "<|im_start|>user\n"
-    "{prompt}<|im_end|>\n"
-    "<|im_start|>assistant\n"
-)
 # SYSTEM_PROMPT = (
-#     "{prompt} [SEP] "
+#     "<|im_start|>system\n"
+#     "You are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n"
+#     "<|im_start|>user\n"
+#     "{prompt}<|im_end|>\n"
+#     "<|im_start|>assistant\n"
 # )
+SYSTEM_PROMPT = (
+    "{prompt} [SEP] "
+)
 
 # SYSTEM_PROMPT = (
 #     "{prompt}"
 # )
-SYSTEM_PROMPT = "<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
+# SYSTEM_PROMPT = "<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
 
 
 
@@ -151,7 +147,7 @@ def run_evaluation(csv_path, problems, ground_truths, question_indices, dataset_
             top_k=top_k,
             min_p=min_p,
             presence_penalty=presence_penalty,
-            max_tokens=4000,
+            max_tokens=11000,
             n=num_trials,
             seed=seed,
         )
