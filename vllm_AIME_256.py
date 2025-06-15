@@ -25,7 +25,7 @@ from pathlib import Path
 # model_path = "Qwen/Qwen2.5-Math-1.5B"
 # model_path = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 # model_path = "./qwq_distill_cps/1.5B-math-4all/checkpoint-70430"
-model_path = "./qwq_distill_cps/model4_1dot5b/checkpoint-30000"
+model_path = "./qwq_distill_cps/model4_3b/checkpoint-30000"
 
 
 # model_path = "./outputs/qwen2.5-3b-sft-pro/checkpoint-1092"
@@ -41,7 +41,7 @@ model_path = "./qwq_distill_cps/model4_1dot5b/checkpoint-30000"
 # csv_train_path = "AIME25_64_qwq.csv"
 # csv_train_path = "AIME25_oat_256.csv"
 # csv_train_path = "AIME25_256_1.5B_MATH.csv"
-csv_train_path = "AIME25_15B_MATH_model4_256.csv"
+csv_train_path = "AIME25_3B_model4_256.csv"
 
 
 
