@@ -1,4 +1,4 @@
-model_name: "Qwen/Qwen-2.5-3B
+model_name: "Qwen/Qwen-2.5-3B"
 output_dir: "0618-3b"
 run_name: "0618-3b"
 scale_rewards: True
