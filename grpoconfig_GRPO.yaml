@@ -1,6 +1,6 @@
-model_name: "qwq_distill_cps/1-all-checkpoint/checkpoint-17960"
-output_dir: "0509-1-all"
-run_name: "0509-1-all"
+model_name: "Qwen/Qwen-2.5-3B
+output_dir: "0618-3b"
+run_name: "0618-3b"
 scale_rewards: True
 # resume_from_checkpoint: True
 # checkpoint_path: "qwen3b-it-old-prompt/checkpoint-450"
@@ -19,7 +19,7 @@ gradient_accumulation_steps: 5
 gradient_checkpointing: True
 num_generations: 10
 max_prompt_length: 500
-max_completion_length: 12000
+max_completion_length: 4000
 num_train_epochs: 1
 save_steps: 25
 max_grad_norm: 0.1
