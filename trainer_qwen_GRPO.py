@@ -241,4 +241,5 @@ trainer = GRPOTrainer(
     eval_dataset=test,
 )
 # trainer.train(resume_from_checkpoint=training_args.checkpoint_path if training_args.resume_from_checkpoint else False)
-trainer.train(resume_from_checkpoint=training_args.checkpoint_path if training_args.resume_from_checkpoint else None)
+# trainer.train(resume_from_checkpoint=training_args.checkpoint_path if training_args.resume_from_checkpoint else None)
+trainer.train()
