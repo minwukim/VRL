@@ -13,9 +13,9 @@ logging_steps: 1
 bf16: True
 bf16_full_eval: True
 per_device_train_batch_size: 4
-gradient_accumulation_steps: 5
+gradient_accumulation_steps: 10
 gradient_checkpointing: True
-num_generations: 10
+num_generations: 28
 max_prompt_length: 500
 max_completion_length: 8000
 save_steps: 25
