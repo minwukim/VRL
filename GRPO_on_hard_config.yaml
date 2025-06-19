@@ -1,0 +1,41 @@
+model_name: "Qwen/Qwen2.5-Math-1.5B"
+output_dir: "0619-math-1.5b-all-400"
+run_name: "0619-math-1.5b-all-400"
+resume_from_checkpoint: False
+scale_rewards: True
+learning_rate: 1e-6
+beta: 0
+adam_beta1: 0.9
+adam_beta2: 0.99
+weight_decay: 0.1
+lr_scheduler_type: constant
+logging_steps: 1
+bf16: True
+bf16_full_eval: True
+per_device_train_batch_size: 4
+gradient_accumulation_steps: 5
+gradient_checkpointing: True
+num_generations: 10
+max_prompt_length: 500
+max_completion_length: 8000
+save_steps: 25
+max_grad_norm: 0.1
+report_to: wandb
+use_vllm: True
+vllm_max_model_len: 8500
+max_steps: 150
+log_completions: True
+evaluation_strategy: steps
+eval_steps: 50
+eval_on_start: False 
+
+epsilon: 0.2
+epsilon_high: 0.28
+mask_truncated_completions: True
+loss_type: "bnpo"
+nsr_enabled: True
+num_iterations: 2
+
+
+
+
