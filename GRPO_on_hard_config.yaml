@@ -24,7 +24,7 @@ max_grad_norm: 0.1
 report_to: wandb
 use_vllm: True
 vllm_max_model_len: 8500
-max_steps: 250
+max_steps: 200
 log_completions: True
 evaluation_strategy: steps
 eval_steps: 50
