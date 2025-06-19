@@ -16,7 +16,7 @@ per_device_train_batch_size: 4
 per_device_eval_batch_size: 4
 gradient_accumulation_steps: 10
 gradient_checkpointing: True
-num_generations: 24
+num_generations: 20
 max_prompt_length: 500
 max_completion_length: 8000
 save_steps: 25
@@ -35,6 +35,7 @@ mask_truncated_completions: True
 loss_type: "bnpo"
 nsr_enabled: True
 num_iterations: 2
+all_400: True
 
 
 
