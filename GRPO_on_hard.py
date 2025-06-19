@@ -24,6 +24,7 @@ class MyArguments:
     bf16: bool
     bf16_full_eval: bool
     per_device_train_batch_size: int
+    per_device_eval_batch_size: int
     gradient_accumulation_steps: int
     gradient_checkpointing: bool
     num_generations: int
@@ -133,6 +134,7 @@ grpo_config_args = GRPOConfig(
     bf16=training_args.bf16,
     bf16_full_eval=training_args.bf16_full_eval,
     per_device_train_batch_size=training_args.per_device_train_batch_size,
+    per_device_eval_batch_size=training_args.per_device_eval_batch_size,
     gradient_accumulation_steps=training_args.gradient_accumulation_steps,
     gradient_checkpointing=training_args.gradient_checkpointing,
     num_generations=training_args.num_generations,
