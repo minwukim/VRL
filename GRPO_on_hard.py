@@ -122,7 +122,7 @@ grpo_config_args = GRPOConfig(
     vllm_max_model_len=training_args.vllm_max_model_len,
     log_completions=training_args.log_completions,
     max_steps=training_args.max_steps,
-    evaluation_strategy=training_args.evaluation_strategy,
+    eval_strategy=training_args.evaluation_strategy,
     eval_steps = training_args.eval_steps,
     eval_on_start=training_args.eval_on_start,
     epsilon=training_args.epsilon,
@@ -142,8 +142,8 @@ trainer = GRPOTrainer(
     eval_dataset=test,
 )
 # trainer.train(resume_from_checkpoint=training_args.checkpoint_path if training_args.resume_from_checkpoint else False)
-# trainer.train(resume_from_checkpoint=training_args.checkpoint_path if training_args.resume_from_checkpoint else None)
-trainer.train()
+trainer.train(resume_from_checkpoint=training_args.checkpoint_path if training_args.resume_from_checkpoint else None)
+# trainer.train()
 
 
     
