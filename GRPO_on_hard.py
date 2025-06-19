@@ -1,12 +1,9 @@
-import re
-import torch
 from datasets import load_dataset, Dataset
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoModelForCausalLM
 from trl import GRPOConfig, GRPOTrainer, TrlParser
 from math_verify import verify, parse
 from obsolete.custom_MATH_reward import last_boxed_only_string
 import pandas as pd
-import ast
 
 
 from dataclasses import dataclass
