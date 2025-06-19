@@ -227,9 +227,9 @@ grpo_config_args = GRPOConfig(
     max_steps=training_args.max_steps,
     # vllm_mode="colocate",
     # vllm_tensor_parallel_size=2,
-    #evaluation_strategy=training_args.evaluation_strategy,
-    #eval_steps = training_args.eval_steps,
-    #eval_on_start=training_args.eval_on_start,
+    evaluation_strategy=training_args.evaluation_strategy,
+    eval_steps = training_args.eval_steps,
+    eval_on_start=training_args.eval_on_start,
 )
 
 trainer = GRPOTrainer(
