@@ -94,8 +94,6 @@ def get_dataset(all_400=True):
 
 train, test = get_dataset(training_args.all_400)
 
-train, test = get_dataset()
-
 model_path = training_args.model_name if not training_args.resume_from_checkpoint else training_args.checkpoint_path
 model_name = AutoModelForCausalLM.from_pretrained(model_path)
 
