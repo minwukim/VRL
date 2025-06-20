@@ -76,6 +76,7 @@ def get_dataset(all_400=True):
         df = df[df["hit"] <= 4]
     else:
         df = df[df['question_index'] == 2464]
+        df = pd.concat([df] * 100, ignore_index=True)
     df = df[["prompt", "solution"]].copy()
     df["answer"] = df["solution"].apply(last_boxed_only_string)
     df = df.drop(columns=["solution"])
