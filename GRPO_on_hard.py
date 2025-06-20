@@ -69,30 +69,53 @@ def reward_func(completions, answer, **kwargs):
     return [reward(c, gt) for c, gt in zip(completions, answer)]
 
 
-def get_dataset(all_400=True):
+# def get_dataset(all_400=True):
 
-    df = pd.read_csv("1.5B_math_train_hit.csv")
-    if all_400:
-        df = df[df["hit"] <= 4]
-    else:
-        df = df[df['question_index'] == 2464]
-    df = df[["prompt", "solution"]].copy()
-    df["answer"] = df["solution"].apply(last_boxed_only_string)
-    df = df.drop(columns=["solution"])
-    train = Dataset.from_pandas(df, preserve_index=False)
+#     df = pd.read_csv("1.5B_math_train_hit.csv")
+#     if all_400:
+#         df = df[df["hit"] <= 4]
+#     else:
+#         df = df[df['question_index'] == 2464]
+#     df = df[["prompt", "solution"]].copy()
+#     df["answer"] = df["solution"].apply(last_boxed_only_string)
+#     df = df.drop(columns=["solution"])
+#     train = Dataset.from_pandas(df, preserve_index=False)
 
+#     test = load_dataset("HuggingFaceH4/MATH-500", split="test")
+#     test = test.map(lambda x: {
+#         "prompt": x["problem"],
+#         "answer": x["answer"],
+#         "level": x["level"]
+#     })
+#     test = test.remove_columns(["problem", "solution", "subject", "unique_id"])
+
+#     return train, test
+
+
+# train, test = get_dataset(training_args.all_400)
+
+def get_dataset():
+    train = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="train")
     test = load_dataset("HuggingFaceH4/MATH-500", split="test")
+    
+    train = train.map(lambda x: {
+        "prompt": x["problem"],
+        "answer": last_boxed_only_string(x["solution"]),
+        "level": x["level"]
+        })
+
+    
     test = test.map(lambda x: {
         "prompt": x["problem"],
         "answer": x["answer"],
         "level": x["level"]
-    })
+        })
+    
+    train = train.remove_columns(["problem", "solution", "type"])
     test = test.remove_columns(["problem", "solution", "subject", "unique_id"])
-
     return train, test
 
-
-train, test = get_dataset(training_args.all_400)
+train, test = get_dataset()
 
 model_path = training_args.model_name if not training_args.resume_from_checkpoint else training_args.checkpoint_path
 model_name = AutoModelForCausalLM.from_pretrained(model_path)
