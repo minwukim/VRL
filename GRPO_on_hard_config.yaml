@@ -27,7 +27,7 @@ vllm_max_model_len: 8500
 max_steps: 200
 log_completions: True
 evaluation_strategy: steps
-eval_steps: 50
+eval_steps: 600
 eval_on_start: False 
 epsilon: 0.2
 epsilon_high: 0.28
