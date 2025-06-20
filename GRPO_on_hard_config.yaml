@@ -1,6 +1,6 @@
 model_name: "Qwen/Qwen2.5-Math-1.5B"
-output_dir: "0619-math-1.5b-1q-16/256"
-run_name: "0619-math-1.5b-1q-16/256"
+output_dir: "0619-math-1.5b-1q-16-256"
+run_name: "0619-math-1.5b-1q-16-256"
 resume_from_checkpoint: False
 scale_rewards: True
 learning_rate: 1e-6
