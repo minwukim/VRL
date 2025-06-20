@@ -36,7 +36,9 @@ loss_type: "bnpo"
 nsr_enabled: True
 num_iterations: 2
 all_400: False
-question_index: 2464
+# question_index: 2464
+question_index: 2683
+
 
 
 
