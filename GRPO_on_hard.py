@@ -48,6 +48,7 @@ class MyArguments:
     nsr_enabled: bool
     all_400: bool
     num_iterations: int
+    question_index: int
     checkpoint_path: str = None
     resume_from_checkpoint: bool = False
 
@@ -75,7 +76,7 @@ def get_dataset(all_400=True):
     if all_400:
         df = df[df["hit"] <= 4]
     else:
-        df = df[df['question_index'] == 2464]
+        df = df[df['question_index'] == training_args.question_index]
         df = pd.concat([df] * 100, ignore_index=True)
     df = df[["prompt", "solution"]].copy()
     df["answer"] = df["solution"].apply(last_boxed_only_string)
