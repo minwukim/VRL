@@ -92,7 +92,7 @@ def get_dataset(all_400=True):
     return train, test
 
 
-train, test = get_dataset(training_args.all_400)
+train, test = get_dataset()
 
 # def get_dataset():
 #     train = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="train")
