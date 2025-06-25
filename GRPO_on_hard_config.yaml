@@ -1,6 +1,6 @@
 model_name: "Qwen/Qwen2.5-Math-1.5B"
-output_dir: "0619-math-1.5b-1q-128(2730)"
-run_name: "0619-math-1.5b-1q-128(2730)"
+output_dir: "0625-math-1.5b-1q-32(2114)"
+run_name: "0625-math-1.5b-1q-32(2114)"
 resume_from_checkpoint: False
 scale_rewards: True
 learning_rate: 1e-6
@@ -33,14 +33,14 @@ epsilon: 0.2
 epsilon_high: 0.4
 mask_truncated_completions: True
 loss_type: "bnpo"
-nsr_enabled: True
+nsr_enabled: False
 num_iterations: 2
 all_400: False
 # question_index: 2464 (1/256)
 # question_index: 2154 (1/256) actually correct
 # question_index: 2683 (16/256)
 # question_index: 2730 (128/256)
-question_index: 2730
+question_index: 2114
 
 
 
