@@ -16,7 +16,7 @@ per_device_train_batch_size: 5
 per_device_eval_batch_size: 5
 gradient_accumulation_steps: 10
 gradient_checkpointing: True
-num_generations: 25
+num_generations: 30
 max_prompt_length: 500
 max_completion_length: 8000
 save_steps: 25
@@ -40,7 +40,7 @@ all_400: False
 # question_index: 2154 (1/256) actually correct
 # question_index: 2683 (16/256)
 # question_index: 2730 (128/256)
-question_index: 2683
+question_index: 3047
 
 
 
