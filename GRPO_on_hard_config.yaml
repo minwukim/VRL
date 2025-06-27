@@ -1,6 +1,6 @@
 model_name: "Qwen/Qwen2.5-3B"
-output_dir: "0625-3B-7500-24-gen"
-run_name: "0625-3B-7500-24-gen"
+output_dir: "0627-3B-7500-24-gen"
+run_name: "0627-3B-7500-24-gen"
 resume_from_checkpoint: False
 scale_rewards: True
 learning_rate: 1e-6
