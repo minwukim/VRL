@@ -23,7 +23,7 @@ save_steps: 25
 max_grad_norm: 0.1
 report_to: wandb
 use_vllm: True
-vllm_max_model_len: 400
+vllm_max_model_len: 4600
 max_steps: 300
 log_completions: True
 evaluation_strategy: steps
