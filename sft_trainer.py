@@ -1,6 +1,6 @@
 import re
 import torch
-# from datasets import load_dataset, Dataset
+from datasets import load_dataset, Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from trl import SFTConfig, SFTTrainer, DataCollatorForCompletionOnlyLM
 
