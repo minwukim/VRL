@@ -1,4 +1,4 @@
-model_name: "Qwen/Qwen2.5-7B"
+model_name: "Qwen/Qwen2.5-Math-7B"
 output_dir: "0628-7B-qwq-distill"
 run_name: "0628-7B-qwq-distill"
 resume_from_checkpoint: False
