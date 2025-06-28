@@ -76,7 +76,7 @@ tokenizer.padding_side='left'
 if tokenizer.pad_token is None: tokenizer.pad_token = tokenizer.eos_token
 
 collator = DataCollatorForCompletionOnlyLM(
-    response_template=tokenizer.encode("[SEP]", add_special_tokens=False),
+    response_template=tokenizer.encode(" [SEP]", add_special_tokens=False),
     tokenizer=tokenizer,
 )
 
