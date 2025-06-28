@@ -2,7 +2,7 @@ import re
 import torch
 from datasets import load_dataset, Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from trl.trl import SFTConfig, SFTTrainer, DataCollatorForCompletionOnlyLM
+from trl import SFTConfig, SFTTrainer, DataCollatorForCompletionOnlyLM
 
 from datasets import load_dataset
 from math_verify import verify, parse
@@ -46,7 +46,7 @@ class MyArguments:
     evaluation_strategy: str = None
 
 
-from trl.trl import TrlParser
+from trl import TrlParser
 
 parser = TrlParser(dataclass_types=[MyArguments])
 
