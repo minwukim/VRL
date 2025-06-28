@@ -119,5 +119,7 @@ trainer = SFTTrainer(
 )
 
 # trainer.train(resume_from_checkpoint=training_args.checkpoint_path if training_args.resume_from_checkpoint else False)
-trainer.train(resume_from_checkpoint="/home/trl/VRL/0628-7B-qwq-distil/checkpoint-1000")
+# trainer.train(resume_from_checkpoint="/home/trl/VRL/0628-7B-qwq-distil/checkpoint-1000")
+trainer.train(resume_from_checkpoint=True)
+
 
