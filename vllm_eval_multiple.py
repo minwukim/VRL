@@ -113,7 +113,8 @@ sampling_params = SamplingParams(
     temperature=temperature,
     top_p=top_p,
     max_tokens=5000,
-    n=1
+    n=1,
+    tensor_parallel_size=2,
 )
 
 print(f"Generating {len(all_prompts)} completions ({num_trials} trials × {len(base_prompts)} prompts)...")
