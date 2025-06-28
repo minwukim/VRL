@@ -118,5 +118,6 @@ trainer = SFTTrainer(
     data_collator=collator
 )
 
-trainer.train(resume_from_checkpoint=training_args.checkpoint_path if training_args.resume_from_checkpoint else False)
+# trainer.train(resume_from_checkpoint=training_args.checkpoint_path if training_args.resume_from_checkpoint else False)
+trainer.train(resume_from_checkpoint=True)
 
