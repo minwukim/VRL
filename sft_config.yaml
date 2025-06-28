@@ -2,7 +2,7 @@ model_name: "Qwen/Qwen2.5-Math-7B"
 output_dir: "0628-7B-qwq-distill"
 run_name: "0628-7B-qwq-distill"
 resume_from_checkpoint: False
-# checkpoint_path: "/home/trl/VRL/0628-7B-qwq-distil/checkpoint-1000"
+# checkpoint_path: "/home/trl/VRL/0628-7B-qwq-distill/checkpoint-1000"
 learning_rate: 1e-6
 adam_beta1: 0.9
 adam_beta2: 0.95

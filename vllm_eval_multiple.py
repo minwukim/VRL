@@ -16,7 +16,9 @@ from math_verify import verify, parse
 # model_path = "Qwen/Qwen2.5-3B"
 # model_path = "Qwen/Qwen2.5-Math-1.5B"
 # model_path = "./0627-3B-7500-24-gen/checkpoint-75"
-model_path = "Qwen/Qwen2.5-7B"
+# model_path = "Qwen/Qwen2.5-7B"
+model_path = "./0628-7B-qwq-distill/checkpoint-1000"
+
 
 
 # FOLLOWING THE SOBER PAPERR
@@ -40,7 +42,7 @@ SYSTEM_PROMPT_6 = (
     "User: {prompt}/nAssitant: <think>"
 )
 
-SYSTEM_PROMPT = SYSTEM_PROMPT_2
+SYSTEM_PROMPT = SYSTEM_PROMPT_5
 
 def last_boxed_only_string(string):
     idx = string.rfind("\\boxed")
