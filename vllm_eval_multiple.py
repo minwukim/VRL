@@ -42,7 +42,7 @@ SYSTEM_PROMPT_6 = (
     "User: {prompt}/nAssitant: <think>"
 )
 
-SYSTEM_PROMPT = SYSTEM_PROMPT_5
+SYSTEM_PROMPT = SYSTEM_PROMPT_2
 
 def last_boxed_only_string(string):
     idx = string.rfind("\\boxed")
