@@ -17,12 +17,12 @@ from math_verify import verify, parse
 # model_path = "Qwen/Qwen2.5-Math-1.5B"
 # model_path = "./0627-3B-7500-24-gen/checkpoint-75"
 # model_path = "Qwen/Qwen2.5-7B"
-model_path = "./0628-7B-qwq-distill/checkpoint-2500"
+model_path = "./0421-qwen3b-question-only-no-format/checkpoint-150"
 
 
 
 # FOLLOWING THE SOBER PAPERR
-num_trials = 1              # Number of full runs over the dataset
+num_trials = 10              # Number of full runs over the dataset
 temperature = 0.9
 top_p = 0.85
 
