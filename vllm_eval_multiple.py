@@ -109,11 +109,11 @@ all_ground_truths = ground_truths * num_trials  # Will align index-wise
 # ——————————————
 # Generate responses
 # ——————————————
-llm = LLM(model=model_path, max_model_len=32000, tensor_parallel_size=1)
+llm = LLM(model=model_path, max_model_len=5000, tensor_parallel_size=1)
 sampling_params = SamplingParams(
     temperature=temperature,
     top_p=top_p,
-    max_tokens=32000,
+    max_tokens=5000,
     n=1,
 )
 
