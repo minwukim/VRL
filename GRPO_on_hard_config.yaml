@@ -34,7 +34,7 @@ epsilon_high: 0.4
 mask_truncated_completions: True
 loss_type: "bnpo"
 nsr_enabled: False
-num_iterations: 1
+num_iterations: 2
 all_400: True
 # question_index: 2464 (1/256)
 # question_index: 2154 (1/256) actually correct
