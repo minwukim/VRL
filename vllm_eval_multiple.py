@@ -28,6 +28,7 @@ num_trials = 1              # Number of full runs over the dataset
 # top_p = 0.85
 temperature = 0.9
 top_p = 1
+top_k = 50
 
 
 # ——————————————
@@ -116,7 +117,8 @@ llm = LLM(model=model_path, max_model_len=5000, tensor_parallel_size=1)
 sampling_params = SamplingParams(
     temperature=temperature,
     top_p=top_p,
-    max_tokens=4000,
+    top_k=top_k,
+    max_tokens=4096,
     n=1,
 )
 
