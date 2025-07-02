@@ -116,7 +116,7 @@ llm = LLM(model=model_path, max_model_len=5000, tensor_parallel_size=1)
 sampling_params = SamplingParams(
     temperature=temperature,
     top_p=top_p,
-    max_tokens=5000,
+    max_tokens=4000,
     n=1,
 )
 
