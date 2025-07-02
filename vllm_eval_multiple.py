@@ -23,9 +23,12 @@ model_path = "./0627-3B-7500-24-gen/checkpoint-175"  # Path to the model
 
 
 # FOLLOWING THE SOBER PAPERR
-num_trials = 2              # Number of full runs over the dataset
+num_trials = 1              # Number of full runs over the dataset
+# temperature = 0.9
+# top_p = 0.85
 temperature = 0.9
-top_p = 0.85
+top_p = 1
+
 
 # ——————————————
 # Prompt Template
