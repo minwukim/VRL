@@ -8,7 +8,7 @@ from math_verify import verify, parse
 # Config
 # ——————————————
 csv_path = "math_base_model_test_question_solution_hit.csv"  
-save_path = "1-64-cp0.csv"
+save_path = "1p5Bmath-MATH500-cp0.csv"
 # model_path = "./0702-1.5B-1to64/checkpoint-325"
 model_path = "Qwen/Qwen2.5-Math-1.5B"  # Path to the model
 temperature = 0.9
@@ -93,22 +93,29 @@ out_df = pd.DataFrame({
 })
 
 # ——————————————
-# Accuracy Statistics
+# Accuracy Statistics (with percentage and fraction)
 # ——————————————
-def accuracy_on_hit_range(df, max_hit):
-    subset = df[df['hit'] <= max_hit]
-    return subset['reward'].mean() if not subset.empty else 0.0
+def accuracy_stats(df, max_hit=None):
+    if max_hit is not None:
+        subset = df[df['hit'] <= max_hit]
+    else:
+        subset = df
+    total = len(subset)
+    correct = subset['reward'].sum()
+    percentage = (correct / total * 100) if total > 0 else 0.0
+    return correct, total, percentage
 
-overall_accuracy = np.mean(rewards)
-acc_0_16 = accuracy_on_hit_range(out_df, 16)
-acc_0_32 = accuracy_on_hit_range(out_df, 32)
-acc_0_64 = accuracy_on_hit_range(out_df, 64)
+overall_correct, overall_total, overall_pct = accuracy_stats(out_df)
+acc16_correct, acc16_total, acc16_pct = accuracy_stats(out_df, 16)
+acc32_correct, acc32_total, acc32_pct = accuracy_stats(out_df, 32)
+acc64_correct, acc64_total, acc64_pct = accuracy_stats(out_df, 64)
 
 print("\n========== ACCURACY SUMMARY ==========")
-print(f"Overall accuracy:        {overall_accuracy:.3f}")
-print(f"Accuracy (hit ≤ 16):     {acc_0_16:.3f}")
-print(f"Accuracy (hit ≤ 32):     {acc_0_32:.3f}")
-print(f"Accuracy (hit ≤ 64):     {acc_0_64:.3f}")
+print(f"Overall accuracy:        {overall_correct}/{overall_total} ({overall_pct:.1f}%)")
+print(f"Accuracy (hit ≤ 16):     {acc16_correct}/{acc16_total} ({acc16_pct:.1f}%)")
+print(f"Accuracy (hit ≤ 32):     {acc32_correct}/{acc32_total} ({acc32_pct:.1f}%)")
+print(f"Accuracy (hit ≤ 64):     {acc64_correct}/{acc64_total} ({acc64_pct:.1f}%)")
+
 
 # ——————————————
 # Save output
