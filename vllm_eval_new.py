@@ -14,7 +14,7 @@ model_path = "Qwen/Qwen2.5-Math-1.5B"  # Path to the model
 temperature = 0.9
 top_p = 1
 top_k = 50
-num_trials = 2  # No duplication needed unless >1 trial
+num_trials = 15  # No duplication needed unless >1 trial
 
 # ——————————————
 # Helper: last boxed string extractor
