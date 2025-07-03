@@ -1,0 +1,118 @@
+import re
+import pandas as pd
+import numpy as np
+from vllm import LLM, SamplingParams
+from math_verify import verify, parse
+
+# ——————————————
+# Config
+# ——————————————
+csv_path = "math_base_model_test_question_solution_hit.csv"  
+save_path = "1-64-cp0.csv"
+# model_path = "./0702-1.5B-1to64/checkpoint-325"
+model_path = "Qwen/Qwen2.5-Math-1.5B"  # Path to the model
+temperature = 0.9
+top_p = 1
+top_k = 50
+num_trials = 2  # No duplication needed unless >1 trial
+
+# ——————————————
+# Helper: last boxed string extractor
+# ——————————————
+def last_boxed_only_string(string):
+    idx = string.rfind("\\boxed")
+    if "\\boxed " in string:
+        return "\\boxed " + string.split("\\boxed ")[-1].split("$")[0]
+    if idx < 0:
+        idx = string.rfind("\\fbox")
+        if idx < 0:
+            return None
+    i = idx
+    right_brace_idx = None
+    num_left_braces_open = 0
+    while i < len(string):
+        if string[i] == "{":
+            num_left_braces_open += 1
+        if string[i] == "}":
+            num_left_braces_open -= 1
+            if num_left_braces_open == 0:
+                right_brace_idx = i
+                break
+        i += 1
+    return string[idx:right_brace_idx + 1] if right_brace_idx else None
+
+# ——————————————
+# Reward function (no format)
+# ——————————————
+def reward_without_format(s, gt):
+    try:
+        return int(verify(parse(s), parse(gt)))
+    except:
+        return 0
+
+# ——————————————
+# Load CSV
+# ——————————————
+df = pd.read_csv(csv_path)
+base_prompts = df["prompt"].tolist()
+ground_truths = [last_boxed_only_string(gt) for gt in df["ground_truth"].tolist()]
+question_indices = df["question_index"].tolist()
+hits = df["hit"].tolist()
+
+# ——————————————
+# Generate responses
+# ——————————————
+llm = LLM(model=model_path, max_model_len=4000, tensor_parallel_size=1)
+sampling_params = SamplingParams(
+    temperature=temperature,
+    top_p=top_p,
+    top_k=top_k,
+    max_tokens=4000,
+    n=1,
+)
+
+print(f"Generating {len(base_prompts)} completions...")
+outputs = llm.generate(base_prompts, sampling_params)
+responses = [out.outputs[0].text for out in outputs]
+
+# ——————————————
+# Evaluate rewards
+# ——————————————
+rewards = [reward_without_format(r, gt) for r, gt in zip(responses, ground_truths)]
+
+# ——————————————
+# make dataframe for output
+# ——————————————
+out_df = pd.DataFrame({
+    "question_index": question_indices,
+    "prompt": base_prompts,
+    "ground_truth": ground_truths,
+    "response": responses,
+    "reward": rewards,
+    "hit": hits
+})
+
+# ——————————————
+# Accuracy Statistics
+# ——————————————
+def accuracy_on_hit_range(df, max_hit):
+    subset = df[df['hit'] <= max_hit]
+    return subset['reward'].mean() if not subset.empty else 0.0
+
+overall_accuracy = np.mean(rewards)
+acc_0_16 = accuracy_on_hit_range(out_df, 16)
+acc_0_32 = accuracy_on_hit_range(out_df, 32)
+acc_0_64 = accuracy_on_hit_range(out_df, 64)
+
+print("\n========== ACCURACY SUMMARY ==========")
+print(f"Overall accuracy:        {overall_accuracy:.3f}")
+print(f"Accuracy (hit ≤ 16):     {acc_0_16:.3f}")
+print(f"Accuracy (hit ≤ 32):     {acc_0_32:.3f}")
+print(f"Accuracy (hit ≤ 64):     {acc_0_64:.3f}")
+
+# ——————————————
+# Save output
+# ——————————————
+
+out_df.to_csv(save_path, index=False)
+print(f"\nSaved results to: {save_path}")
