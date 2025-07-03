@@ -122,15 +122,37 @@ def accuracy_stats(bucket_rewards, bucket_hits, min_hit=None, max_hit=None):
 sample0_rewards = rewards_matrix[0]
 hits_array = np.array(hits)
 
-print("\n========== FIRST SAMPLE BUCKET ACCURACY ==========")
-for name, min_hit, max_hit in [
+# ———————————————————
+# Accuracy by bucket for all trials
+# ———————————————————
+def accuracy_stats(reward_matrix, hit_array, min_hit=None, max_hit=None):
+    trial_accuracies = []
+    for i in range(reward_matrix.shape[0]):
+        rewards = reward_matrix[i]
+        mask = np.ones_like(hit_array, dtype=bool)
+        if min_hit is not None:
+            mask &= hit_array > min_hit
+        if max_hit is not None:
+            mask &= hit_array <= max_hit
+        filtered = rewards[mask]
+        acc = filtered.mean() if len(filtered) > 0 else 0.0
+        trial_accuracies.append(acc)
+    trial_accuracies = np.array(trial_accuracies)
+    return trial_accuracies, trial_accuracies.mean(), trial_accuracies.std()
+
+bucket_configs = [
     ("hit ≤ 16", None, 16),
     ("hit ≤ 32", None, 32),
     ("hit ≤ 64", None, 64),
     ("hit > 64", 64, None),
-]:
-    correct, total, pct = accuracy_stats(sample0_rewards, hits_array, min_hit, max_hit)
-    print(f"{name.ljust(20)} {correct}/{total} ({pct:.1f}%)")
+]
+
+print("\n========== BUCKETED ACCURACY PER TRIAL ==========")
+for name, min_hit, max_hit in bucket_configs:
+    accs, mean_acc, std_acc = accuracy_stats(rewards_matrix, np.array(hits), min_hit, max_hit)
+    accs_str = ", ".join(f"{a:.3f}" for a in accs)
+    print(f"{name.ljust(20)} Mean: {mean_acc:.3f}  Std: {std_acc:.4f}  → Per-trial: [{accs_str}]")
+
 
 # ———————————————————
 # Save all responses in long-form
