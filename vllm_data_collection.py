@@ -36,18 +36,19 @@ from math_verify import verify, parse
 # MODEL_PATH      = "./0421-qwen3b-question-only-no-format/checkpoint-200"      # 3B model
 # MODEL_PATH       = "Qwen/Qwen2.5-Math-1.5B"  # 3B model
 # MODEL_PATH       = "Qwen/Qwen2.5-3B"  # 3B model
-MODEL_PATH       = "sail/Qwen2.5-Math-1.5B-Oat-Zero"
+# MODEL_PATH       = "sail/Qwen2.5-Math-1.5B-Oat-Zero"
+MODEL_PATH       = "./0702-1.5B-1to64/checkpoint-400"
 TRIALS_PER_GPU   = 32                # 32 × 8 = 256
 TEMPERATURE      = 0.9
 TOP_P            = 1.0
-TOP_K            = 40
+TOP_K            = 50
 min_p            = 0.0
-presence_penalty = 1.0
+# presence_penalty = 1.0
 MAX_TOKENS       = 4000
-BASE_SEED        = 420                # distinct seed space per GPU later
-FILE_PREFIX      = "15bmath_oat"      # prefix for CSV filenames
+BASE_SEED        = 2            # distinct seed space per GPU later
+FILE_PREFIX      = "cp400"      # prefix for CSV filenames
 SYSTEM_PROMPT    = "{prompt}"        # no special system prefix for now
-SYSTEM_PROMPT    = "<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
+# SYSTEM_PROMPT    = "<|im_start|>system\nPlease reason step by step, and put your final answer within \\boxed{{}}.<|im_end|>\n<|im_start|>user\n{prompt}<|im_end|>\n<|im_start|>assistant\n"
 
 
 
@@ -78,7 +79,7 @@ def run_trials(
             max_tokens=MAX_TOKENS,
             top_k=TOP_K,
             min_p=min_p,
-            presence_penalty=presence_penalty,
+            # presence_penalty=presence_penalty,
             n=1,
             seed=seed,
         )
@@ -118,10 +119,10 @@ def main():
     # ---- load both datasets *once* -------------------------------
     print(f"[GPU{gpu_id}] loading datasets…")
 
-    # train set
-    ds_train = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="train")
-    train_problems = [SYSTEM_PROMPT.format(prompt=e["problem"])     for e in ds_train]
-    train_truths   = [last_boxed_only_string(e["solution"])         for e in ds_train]
+    # # train set
+    # ds_train = load_dataset("DigitalLearningGmbH/MATH-lighteval", split="train")
+    # train_problems = [SYSTEM_PROMPT.format(prompt=e["problem"])     for e in ds_train]
+    # train_truths   = [last_boxed_only_string(e["solution"])         for e in ds_train]
 
     # test set
     ds_test  = load_dataset("HuggingFaceH4/MATH-500", split="test")
@@ -144,17 +145,17 @@ def main():
         truths=test_truths,
         csv_path=Path(f"{FILE_PREFIX}_file{gpu_id+1}_test.csv"),
         gpu_id=gpu_id,
-        seed_offset=100000000 + gpu_id * 10_000 # separate seed range for test set
+        seed_offset=100 + gpu_id * 10_000 # separate seed range for test set
     )
 
-    run_trials(
-        llm=llm,
-        problems=train_problems,
-        truths=train_truths,
-        csv_path=Path(f"{FILE_PREFIX}_file{gpu_id+1}_train.csv"),
-        gpu_id=gpu_id,
-        seed_offset=(gpu_id+1) * 100000             # keep seed spaces disjoint
-    )
+    # run_trials(
+    #     llm=llm,
+    #     problems=train_problems,
+    #     truths=train_truths,
+    #     csv_path=Path(f"{FILE_PREFIX}_file{gpu_id+1}_train.csv"),
+    #     gpu_id=gpu_id,
+    #     seed_offset=(gpu_id+1) * 100000             # keep seed spaces disjoint
+    # )
 
 
     # run_trials(
