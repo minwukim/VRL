@@ -5,26 +5,28 @@ import argparse
 from vllm import LLM, SamplingParams
 from math_verify import verify, parse
 
-# ——————————————
-# Parse command-line arguments
-# ——————————————
+# ———————————————————
+# Argument Parsing
+# ———————————————————
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_path", type=str, required=True)
 parser.add_argument("--save_path", type=str, required=True)
 parser.add_argument("--csv_path", type=str, default="math_base_model_test_question_solution_hit.csv")
+parser.add_argument("--n", type=int, default=15, help="Number of samples per prompt")
 args = parser.parse_args()
 
 model_path = args.model_path
 save_path = args.save_path
 csv_path = args.csv_path
+n = args.n
 
 temperature = 0.9
 top_p = 1
 top_k = 50
 
-# ——————————————
-# Helper: last boxed string extractor
-# ——————————————
+# ———————————————————
+# Helper: Extract \boxed{} expression
+# ———————————————————
 def last_boxed_only_string(string):
     idx = string.rfind("\\boxed")
     if "\\boxed " in string:
@@ -47,88 +49,105 @@ def last_boxed_only_string(string):
         i += 1
     return string[idx:right_brace_idx + 1] if right_brace_idx else None
 
-# ——————————————
-# Reward function (no format)
-# ——————————————
+# ———————————————————
+# Reward (no formatting constraint)
+# ———————————————————
 def reward_without_format(s, gt):
     try:
         return int(verify(parse(s), parse(gt)))
     except:
         return 0
 
-# ——————————————
-# Load CSV
-# ——————————————
+# ———————————————————
+# Load dataset
+# ———————————————————
 df = pd.read_csv(csv_path)
-base_prompts = df["prompt"].tolist()
+prompts = df["prompt"].tolist()
 ground_truths = [last_boxed_only_string(gt) for gt in df["ground_truth"].tolist()]
 question_indices = df["question_index"].tolist()
 hits = df["hit"].tolist()
+num_questions = len(prompts)
 
-# ——————————————
-# Generate responses
-# ——————————————
-print(f"[INFO] Starting generation using model: {model_path}")
+# ———————————————————
+# Run LLM inference
+# ———————————————————
+print(f"[INFO] Sampling {n} completions for {num_questions} prompts ({n * num_questions} total generations)...")
 llm = LLM(model=model_path, max_model_len=4000, tensor_parallel_size=1)
 sampling_params = SamplingParams(
     temperature=temperature,
     top_p=top_p,
     top_k=top_k,
     max_tokens=4000,
-    n=1,
+    n=n,
 )
 
-print(f"[INFO] Generating {len(base_prompts)} completions...")
-outputs = llm.generate(base_prompts, sampling_params)
-responses = [out.outputs[0].text for out in outputs]
+outputs = llm.generate(prompts, sampling_params)
 
-# ——————————————
-# Evaluate rewards
-# ——————————————
-print("[INFO] Evaluating rewards...")
-rewards = [reward_without_format(r, gt) for r, gt in zip(responses, ground_truths)]
+# ———————————————————
+# Process outputs into [n, num_questions]
+# ———————————————————
+responses_matrix = np.empty((n, num_questions), dtype=object)
+rewards_matrix = np.zeros((n, num_questions), dtype=int)
 
-# ——————————————
-# Make output DataFrame
-# ——————————————
-out_df = pd.DataFrame({
-    "question_index": question_indices,
-    "prompt": base_prompts,
-    "ground_truth": ground_truths,
-    "response": responses,
-    "reward": rewards,
-    "hit": hits
-})
+for i, (gt, out) in enumerate(zip(ground_truths, outputs)):
+    for j in range(n):
+        resp = out.outputs[j].text
+        responses_matrix[j, i] = resp
+        rewards_matrix[j, i] = reward_without_format(resp, gt)
 
-# ——————————————
-# Accuracy Statistics
-# ——————————————
-def accuracy_stats(df, min_hit=None, max_hit=None):
-    subset = df
+# ———————————————————
+# Accuracy Stats
+# ———————————————————
+trial_means = rewards_matrix.mean(axis=1)
+mean_accuracy = trial_means.mean()
+std_accuracy = trial_means.std()
+
+print("\n========== OVERALL ACCURACY ==========")
+print(f"Trial accuracies:            {trial_means}")
+print(f"Mean of accuracies:          {mean_accuracy:.4f}")
+print(f"Std dev of accuracies:       {std_accuracy:.6f}")
+
+# Accuracy by hit bucket for sample 0
+def accuracy_stats(bucket_rewards, bucket_hits, min_hit=None, max_hit=None):
+    mask = np.ones(len(bucket_hits), dtype=bool)
     if min_hit is not None:
-        subset = subset[subset['hit'] > min_hit]
+        mask &= bucket_hits > min_hit
     if max_hit is not None:
-        subset = subset[subset['hit'] <= max_hit]
-    total = len(subset)
-    correct = subset['reward'].sum()
-    percentage = (correct / total * 100) if total > 0 else 0.0
-    return correct, total, percentage
+        mask &= bucket_hits <= max_hit
+    total = mask.sum()
+    correct = bucket_rewards[mask].sum()
+    percent = (correct / total * 100) if total > 0 else 0.0
+    return correct, total, percent
 
-overall_correct, overall_total, overall_pct = accuracy_stats(out_df)
-acc16_correct, acc16_total, acc16_pct = accuracy_stats(out_df, max_hit=16)
-acc32_correct, acc32_total, acc32_pct = accuracy_stats(out_df, max_hit=32)
-acc64_correct, acc64_total, acc64_pct = accuracy_stats(out_df, max_hit=64)
-acc65_correct, acc65_total, acc65_pct = accuracy_stats(out_df, min_hit=64)
+sample0_rewards = rewards_matrix[0]
+hits_array = np.array(hits)
 
-print("\n========== ACCURACY SUMMARY ==========")
-print(f"Overall accuracy:          {overall_correct}/{overall_total} ({overall_pct:.1f}%)")
-print(f"Accuracy (hit ≤ 16):       {acc16_correct}/{acc16_total} ({acc16_pct:.1f}%)")
-print(f"Accuracy (hit ≤ 32):       {acc32_correct}/{acc32_total} ({acc32_pct:.1f}%)")
-print(f"Accuracy (hit ≤ 64):       {acc64_correct}/{acc64_total} ({acc64_pct:.1f}%)")
-print(f"Accuracy (hit > 64):       {acc65_correct}/{acc65_total} ({acc65_pct:.1f}%)")
+print("\n========== FIRST SAMPLE BUCKET ACCURACY ==========")
+for name, min_hit, max_hit in [
+    ("hit ≤ 16", None, 16),
+    ("hit ≤ 32", None, 32),
+    ("hit ≤ 64", None, 64),
+    ("hit > 64", 64, None),
+]:
+    correct, total, pct = accuracy_stats(sample0_rewards, hits_array, min_hit, max_hit)
+    print(f"{name.ljust(20)} {correct}/{total} ({pct:.1f}%)")
 
-# ——————————————
-# Save output
-# ——————————————
-out_df.to_csv(save_path, index=False)
-print(f"\n[INFO] Results saved to: {save_path}")
+# ———————————————————
+# Save all responses in long-form
+# ———————————————————
+records = []
+for i in range(n):
+    for j in range(num_questions):
+        records.append({
+            "trial_index": i,
+            "question_index": question_indices[j],
+            "hit": hits[j],
+            "prompt": prompts[j],
+            "ground_truth": ground_truths[j],
+            "response": responses_matrix[i, j],
+            "reward": rewards_matrix[i, j]
+        })
+
+df_out = pd.DataFrame(records)
+df_out.to_csv(save_path, index=False)
+print(f"\n[INFO] Saved all {n}×{num_questions} completions to {save_path}")
