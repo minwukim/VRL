@@ -1,20 +1,26 @@
 import re
 import pandas as pd
 import numpy as np
+import argparse
 from vllm import LLM, SamplingParams
 from math_verify import verify, parse
 
 # ——————————————
-# Config
+# Parse command-line arguments
 # ——————————————
-csv_path = "math_base_model_test_question_solution_hit.csv"  
-save_path = "1p5Bmath-MATH500-cp0.csv"
-# model_path = "./0702-1.5B-1to64/checkpoint-325"
-model_path = "Qwen/Qwen2.5-Math-1.5B"  # Path to the model
+parser = argparse.ArgumentParser()
+parser.add_argument("--model_path", type=str, required=True)
+parser.add_argument("--save_path", type=str, required=True)
+parser.add_argument("--csv_path", type=str, default="math_base_model_test_question_solution_hit.csv")
+args = parser.parse_args()
+
+model_path = args.model_path
+save_path = args.save_path
+csv_path = args.csv_path
+
 temperature = 0.9
 top_p = 1
 top_k = 50
-num_trials = 15  # No duplication needed unless >1 trial
 
 # ——————————————
 # Helper: last boxed string extractor
@@ -62,6 +68,7 @@ hits = df["hit"].tolist()
 # ——————————————
 # Generate responses
 # ——————————————
+print(f"[INFO] Starting generation using model: {model_path}")
 llm = LLM(model=model_path, max_model_len=4000, tensor_parallel_size=1)
 sampling_params = SamplingParams(
     temperature=temperature,
@@ -71,17 +78,18 @@ sampling_params = SamplingParams(
     n=1,
 )
 
-print(f"Generating {len(base_prompts)} completions...")
+print(f"[INFO] Generating {len(base_prompts)} completions...")
 outputs = llm.generate(base_prompts, sampling_params)
 responses = [out.outputs[0].text for out in outputs]
 
 # ——————————————
 # Evaluate rewards
 # ——————————————
+print("[INFO] Evaluating rewards...")
 rewards = [reward_without_format(r, gt) for r, gt in zip(responses, ground_truths)]
 
 # ——————————————
-# make dataframe for output
+# Make output DataFrame
 # ——————————————
 out_df = pd.DataFrame({
     "question_index": question_indices,
@@ -93,7 +101,7 @@ out_df = pd.DataFrame({
 })
 
 # ——————————————
-# Accuracy Statistics (with percentage and fraction)
+# Accuracy Statistics
 # ——————————————
 def accuracy_stats(df, min_hit=None, max_hit=None):
     subset = df
@@ -106,7 +114,6 @@ def accuracy_stats(df, min_hit=None, max_hit=None):
     percentage = (correct / total * 100) if total > 0 else 0.0
     return correct, total, percentage
 
-# Stats for different hit ranges
 overall_correct, overall_total, overall_pct = accuracy_stats(out_df)
 acc16_correct, acc16_total, acc16_pct = accuracy_stats(out_df, max_hit=16)
 acc32_correct, acc32_total, acc32_pct = accuracy_stats(out_df, max_hit=32)
@@ -120,11 +127,8 @@ print(f"Accuracy (hit ≤ 32):       {acc32_correct}/{acc32_total} ({acc32_pct:.
 print(f"Accuracy (hit ≤ 64):       {acc64_correct}/{acc64_total} ({acc64_pct:.1f}%)")
 print(f"Accuracy (hit > 64):       {acc65_correct}/{acc65_total} ({acc65_pct:.1f}%)")
 
-
-
 # ——————————————
 # Save output
 # ——————————————
-
 out_df.to_csv(save_path, index=False)
-print(f"\nSaved results to: {save_path}")
+print(f"\n[INFO] Results saved to: {save_path}")
