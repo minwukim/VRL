@@ -27,7 +27,7 @@ for i in "${!models[@]}"; do
     python vllm_eval_new.py \
         --model_path "$model_path" \
         --save_path "$save_path" \
-        --n 15 \
+        --n 2 \
     > "$log_file" 2>&1 &
 
     echo "  → Logging to: $log_file"
