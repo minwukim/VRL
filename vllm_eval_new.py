@@ -95,26 +95,31 @@ out_df = pd.DataFrame({
 # ——————————————
 # Accuracy Statistics (with percentage and fraction)
 # ——————————————
-def accuracy_stats(df, max_hit=None):
+def accuracy_stats(df, min_hit=None, max_hit=None):
+    subset = df
+    if min_hit is not None:
+        subset = subset[subset['hit'] > min_hit]
     if max_hit is not None:
-        subset = df[df['hit'] <= max_hit]
-    else:
-        subset = df
+        subset = subset[subset['hit'] <= max_hit]
     total = len(subset)
     correct = subset['reward'].sum()
     percentage = (correct / total * 100) if total > 0 else 0.0
     return correct, total, percentage
 
+# Stats for different hit ranges
 overall_correct, overall_total, overall_pct = accuracy_stats(out_df)
-acc16_correct, acc16_total, acc16_pct = accuracy_stats(out_df, 16)
-acc32_correct, acc32_total, acc32_pct = accuracy_stats(out_df, 32)
-acc64_correct, acc64_total, acc64_pct = accuracy_stats(out_df, 64)
+acc16_correct, acc16_total, acc16_pct = accuracy_stats(out_df, max_hit=16)
+acc32_correct, acc32_total, acc32_pct = accuracy_stats(out_df, max_hit=32)
+acc64_correct, acc64_total, acc64_pct = accuracy_stats(out_df, max_hit=64)
+acc65_correct, acc65_total, acc65_pct = accuracy_stats(out_df, min_hit=64)
 
 print("\n========== ACCURACY SUMMARY ==========")
-print(f"Overall accuracy:        {overall_correct}/{overall_total} ({overall_pct:.1f}%)")
-print(f"Accuracy (hit ≤ 16):     {acc16_correct}/{acc16_total} ({acc16_pct:.1f}%)")
-print(f"Accuracy (hit ≤ 32):     {acc32_correct}/{acc32_total} ({acc32_pct:.1f}%)")
-print(f"Accuracy (hit ≤ 64):     {acc64_correct}/{acc64_total} ({acc64_pct:.1f}%)")
+print(f"Overall accuracy:          {overall_correct}/{overall_total} ({overall_pct:.1f}%)")
+print(f"Accuracy (hit ≤ 16):       {acc16_correct}/{acc16_total} ({acc16_pct:.1f}%)")
+print(f"Accuracy (hit ≤ 32):       {acc32_correct}/{acc32_total} ({acc32_pct:.1f}%)")
+print(f"Accuracy (hit ≤ 64):       {acc64_correct}/{acc64_total} ({acc64_pct:.1f}%)")
+print(f"Accuracy (hit > 64):       {acc65_correct}/{acc65_total} ({acc65_pct:.1f}%)")
+
 
 
 # ——————————————
