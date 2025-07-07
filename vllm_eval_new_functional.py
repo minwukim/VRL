@@ -65,10 +65,10 @@ num_questions = len(df)
 
 # Prepare variants: (prompt, ground_truth)
 variants = {
-    "modified": {
-        "prompts": df["problem"].tolist(),
-        "ground_truths": [last_boxed_only_string(s) for s in df["solution"].tolist()],
-    },
+    # "modified": {
+    #     "prompts": df["problem"].tolist(),
+    #     "ground_truths": [last_boxed_only_string(s) for s in df["solution"].tolist()],
+    # },
     "original": {
         "prompts": df["original_problem"].tolist(),
         "ground_truths": [last_boxed_only_string(s) for s in df["original_solution"].tolist()],
