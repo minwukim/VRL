@@ -57,21 +57,25 @@ def reward_without_format(s, gt):
         return int(verify(parse(s), parse(gt)))
     except:
         return 0
-
 # ———————————————————
 # Load dataset
 # ———————————————————
 df = pd.read_csv(csv_path)
 num_questions = len(df)
 
-# Collect prompts and ground truths for both variants
+# Prepare variants: (prompt, ground_truth)
 variants = {
-    "modified": df["problem"].tolist(),
-    "original": df["original_problem"].tolist()
+    "modified": {
+        "prompts": df["problem"].tolist(),
+        "ground_truths": [last_boxed_only_string(s) for s in df["solution"].tolist()],
+    },
+    "original": {
+        "prompts": df["original_problem"].tolist(),
+        "ground_truths": [last_boxed_only_string(s) for s in df["original_solution"].tolist()],
+    }
 }
-ground_truths = [last_boxed_only_string(s) for s in df["solution"].tolist()]
 question_indices = df["question_index"].tolist()
-hits = df["Unnamed: 0"].tolist()  # or use `hit` if available
+hits = df["Unnamed: 0"].tolist()  # replace with df["hit"].tolist() if needed
 
 # ———————————————————
 # Run LLM inference for each variant
@@ -85,8 +89,10 @@ sampling_params = SamplingParams(
     n=n,
 )
 
-all_outputs = {}
-for variant, prompts in variants.items():
+for variant, data in variants.items():
+    prompts = data["prompts"]
+    ground_truths = data["ground_truths"]
+
     print(f"[INFO] Sampling {n} completions for {variant} ({n * num_questions} generations)...")
     outputs = llm.generate(prompts, sampling_params)
 
@@ -99,11 +105,6 @@ for variant, prompts in variants.items():
             responses_matrix[j, i] = resp
             rewards_matrix[j, i] = reward_without_format(resp, gt)
 
-    all_outputs[variant] = {
-        "responses": responses_matrix,
-        "rewards": rewards_matrix
-    }
-
     # Accuracy stats
     trial_means = rewards_matrix.mean(axis=1)
     mean_accuracy = trial_means.mean()
@@ -114,7 +115,7 @@ for variant, prompts in variants.items():
     print(f"Mean of accuracies:    {mean_accuracy:.4f}")
     print(f"Std dev of accuracies: {std_accuracy:.6f}")
 
-    # Save long-form records
+    # Save long-form results
     records = []
     for i in range(n):
         for j in range(num_questions):
