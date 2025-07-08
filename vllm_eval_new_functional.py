@@ -84,7 +84,8 @@ variants = {
     }
     
 }
-question_indices = df["question_index"].tolist()
+# question_indices = df["question_index"].tolist()
+question_indices = df["problem_id"].tolist()  
 hits = df["Unnamed: 0"].tolist()  # replace with df["hit"].tolist() if needed
 
 # ———————————————————
