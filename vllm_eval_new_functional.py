@@ -11,7 +11,8 @@ from math_verify import verify, parse
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_path", type=str, required=True)
 parser.add_argument("--save_path", type=str, required=True)
-parser.add_argument("--csv_path", type=str, default="MATH_functional.csv")
+# parser.add_argument("--csv_path", type=str, default="MATH_functional.csv")
+parser.add_argument("--csv_path", type=str, default="MATH_perturb.csv")
 parser.add_argument("--n", type=int, default=15, help="Number of samples per prompt")
 args = parser.parse_args()
 
@@ -69,10 +70,19 @@ variants = {
     #     "prompts": df["problem"].tolist(),
     #     "ground_truths": [last_boxed_only_string(s) for s in df["solution"].tolist()],
     # },
-    "original": {
-        "prompts": df["original_problem"].tolist(),
-        "ground_truths": [last_boxed_only_string(s) for s in df["original_solution"].tolist()],
+    # "original": {
+    #     "prompts": df["original_problem"].tolist(),
+    #     "ground_truths": [last_boxed_only_string(s) for s in df["original_solution"].tolist()],
+    # }
+    "simple": {
+        "prompts": df["problem_simple"].tolist(),
+        "ground_truths": [last_boxed_only_string(s) for s in df["answer_simple"].tolist()],
+    },
+    "hard": {
+        "prompts": df["problem_hard"].tolist(),
+        "ground_truths": [last_boxed_only_string(s) for s in df["answer_hard"].tolist()],
     }
+    
 }
 question_indices = df["question_index"].tolist()
 hits = df["Unnamed: 0"].tolist()  # replace with df["hit"].tolist() if needed

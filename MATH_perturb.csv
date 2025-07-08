@@ -1,0 +1,326 @@
+problem_id,problem_simple,answer_simple,problem_hard,answer_hard
+1,"Below is a portion of the graph of a function, $y=h(x)$:
+
+[asy]
+import graph; size(8cm); real lsf=0.5; pen dps=linewidth(0.7)+fontsize(10); defaultpen(dps); pen ds=black; real xmin=-0.75,xmax=8.25,ymin=-1.25,ymax=10.25;
+
+pen cqcqcq=rgb(0.75,0.75,0.75);
+
+/*grid*/ pen gs=linewidth(0.7)+cqcqcq+linetype(""2 2""); real gx=1,gy=1;
+for(real i=ceil(xmin/gx)*gx;i<=floor(xmax/gx)*gx;i+=gx) draw((i,ymin)--(i,ymax),gs); for(real i=ceil(ymin/gy)*gy;i<=floor(ymax/gy)*gy;i+=gy) draw((xmin,i)--(xmax,i),gs);
+
+Label laxis; laxis.p=fontsize(10);
+
+xaxis("""",xmin,xmax,Ticks(laxis,Step=1.0,Size=2,NoZero),Arrows(6),above=true); yaxis("""",ymin,ymax,Ticks(laxis,Step=1.0,Size=2,NoZero),Arrows(6),above=true);
+real f1(real x){return (x-0.5)*(x-2.5)*(x-6.5)*(x-7.5)/16+x;}
+draw(graph(f1,-0.25,8.25),linewidth(1));
+clip((xmin,ymin)--(xmin,ymax)--(xmax,ymax)--(xmax,ymin)--cycle);
+label(""$y=h(x)$"",(8.5,8),E);
+[/asy]
+
+What is the sum of all integers $x$ in the interval shown ($0\le x\le 8$) such that $h(x)<x$ ?",\boxed{10},"Below is a portion of the graph of a function, $y=h(x)$:
+
+[asy]
+import graph; size(8cm); real lsf=0.5; pen dps=linewidth(0.7)+fontsize(10); defaultpen(dps); pen ds=black; real xmin=-0.75,xmax=8.25,ymin=-1.25,ymax=10.25;
+
+pen cqcqcq=rgb(0.75,0.75,0.75);
+
+/*grid*/ pen gs=linewidth(0.7)+cqcqcq+linetype(""2 2""); real gx=1,gy=1;
+for(real i=ceil(xmin/gx)*gx;i<=floor(xmax/gx)*gx;i+=gx) draw((i,ymin)--(i,ymax),gs); for(real i=ceil(ymin/gy)*gy;i<=floor(ymax/gy)*gy;i+=gy) draw((xmin,i)--(xmax,i),gs);
+
+Label laxis; laxis.p=fontsize(10);
+
+xaxis("""",xmin,xmax,Ticks(laxis,Step=1.0,Size=2,NoZero),Arrows(6),above=true); yaxis("""",ymin,ymax,Ticks(laxis,Step=1.0,Size=2,NoZero),Arrows(6),above=true);
+real f1(real x){return (x-0.5)*(x-2.5)*(x-6.5)*(x-7.5)/16+x;}
+draw(graph(f1,-0.25,8.25),linewidth(1));
+clip((xmin,ymin)--(xmin,ymax)--(xmax,ymax)--(xmax,ymin)--cycle);
+label(""$y=h(x)$"",(8.5,8),E);
+[/asy]
+
+What is the sum of all integers $x$ in the interval shown ($0\le x\le 8$) such that there exists another real number $x'$ and $h(x)=h(x')$ ?",\boxed{36}
+5,"If the parabola $y_1 = x^2 + 7$ and the line $y_2 = 6x + b$ intersect at only one point, what is the value of $b$?",\boxed{-2},"If the parabola $y_1 = x^2 + 2x + 7$ and the line $y_2 = bx + 6$ intersect at only one point, what is the value of $b$?",\boxed{0 or 4}
+6,"Find the area of an equiangular octagon with side lengths 2, 2, 2, 4, 2, 2, 2, 4, in that order.",\boxed{12+12\sqrt{2}},"Find the area of an equiangular hexagon with side lengths 1,2,3,1,2,3 in that order.",\boxed{11\sqrt{3}/2}
+9,"A number is doubled, then decreased by $13.7$.  The result is greater than $123.28$. What is the smallest integer that satisfies this condition?",\boxed{69},"A number is tripled, then decreased by $13.7$.  The result is greater than $125.28$. What is the smallest even integer that satisfies this condition?",\boxed{48}
+11,"Let $x,$ $y,$ and $z$ be positive real numbers.  Then the minimum value of
+\[\frac{(x^2 + 1)(y^3 + 1)(z^3 + 1)}{xy^2 z}\]is of the form $\frac{a \sqrt[3]{b}}{c},$ for some positive integers $a,$ $b,$ and $c,$ where $a$ and $c$ are relatively prime, and $b$ is not divisible by the cubic of a prime.  Enter $a + b + c.$",\boxed{15},"Let $x,$ $y,$ and $z$ be positive real numbers and $x+y+z=1$.  Then the minimum value of
+\[\frac{(x^4 + 1)(y^4 + 1)(z^4 + 1)}{xy z}\]is of the form $\frac{a \sqrt{b}}{c},$ for some positive integers $a,$ $b,$ and $c,$ where $a$ and $c$ are relatively prime, and $b$ is not divisible by the square of a prime.  Enter $a + b + c.$",\boxed{571052}
+12,Find the smallest positive integer $n$ such that $$ 617n \equiv 943n \pmod{21}. $$,\boxed{21},Find the smallest positive integer $n$ such that $$ 617n \equiv 943 \pmod{18}. $$,\boxed{5}
+15,"Quadrilateral $ABCD$ is a parallelogram. If the measure of angle $A$ is 55 degrees and the measure of angle $ADB$ is 75 degrees, what is the measure of angle $ADC$, in degrees?",\boxed{125},"Quadrilateral $ABCD$ is a parallelogram. If the measure of angle $A$ is 62 degrees and the measure of angle $ADB$ is 75 degrees, what is the measure of angle $BDC$, in degrees?",\boxed{43}
+16,Find the least positive four-digit solution $r$ of the congruence $r^2 + 4r + 4 \equiv r^2 + 2r + 1 \pmod{45} $.,\boxed{1011},Find the least positive four-digit solution $r$ of the congruence $r^2 + 4r + 4 \equiv 1 \pmod{55} $.,\boxed{1009}
+23,"In how many ways can $8$ people sit around a round table if no two of the $3$ people Pierre, Rosa, and Thomas can sit next to each other? (Seating arrangements which are rotations of each other are treated as the same.)",\boxed{1440},"In how many ways can $7$ people sit around a round table if no two of the $3$ people Pierre, Rosa, and Thomas can sit next to each other? (Seating arrangements which are rotations or reflections of each other are treated as the same.)",\boxed{72}
+243,"Let $(a_1,b_1),$ $(a_2,b_2),$ $\dots,$ $(a_n,b_n)$ be the ordered pairs $(a,b)$ of real numbers such that the polynomial \[p(x) = (x^2 + 2ax + b)^2 +2a(x^2 + 2ax + b) - b\] has exactly one real root and no nonreal complex roots.  Find $a_1 + b_1 + a_2 + b_2 + \dots + a_n + b_n.$",\boxed{0.25},"Let $(a_1,b_1),$ $(a_2,b_2),$ $\dots,$ $(a_n,b_n)$ be the ordered pairs $(a,b)$ of real numbers such that the polynomial \[p(x) = ((x-a)^2 + 2ax + b)^2 +2a((x-a)^2 + 2ax + b) - b\] has exactly one real root and no nonreal complex roots.  Find $a_1 + b_1 + a_2 + b_2 + \dots + a_n + b_n.$",\boxed{0}
+246,"There is a polynomial $P$ such that for every real number $x$,
+\[
+  x^{32} + x^{16} + 1 = (x^2 + x + 1) P(x).
+\]When $P$ is written in standard polynomial form, how many of its coefficients are nonzero?",\boxed{21},"For any $n\geq 1$ and $n$ is an odd number, there is a polynomial $P$ such that for every real number $x$,
+\[
+  x^{2^n} + x^{2^{n-1}} + 1 = (x^2 + x + 1) P(x).
+\]When $P$ is written in standard polynomial form, how many of its coefficients are nonzero?",\boxed{2\times(2^n-2)/3+1}
+247,"Find the degree measure of the second least positive angle $\theta$ for which
+\[\tan \theta = \frac{\cos 5^\circ \cos 20^\circ + \cos 35^\circ \cos 50^\circ - \sin 5^\circ \sin 20^\circ - \sin 35^\circ \sin 50^\circ}{\sin 5^\circ \cos 20^\circ - \sin 35^\circ \cos 50^\circ + \cos 5^\circ \sin 20^\circ - \cos 35^\circ \sin 50^\circ}.\]",\boxed{300},Find the degree measure of the least positive angle $\theta$ for which \[\tan \theta = \frac{\cos 5^\circ \cos 20^\circ \sin 85^\circ+ \cos 35^\circ \cos 50^\circ \sin 25^\cric - \sin 5^\circ \sin 20^\circ\sin 85^\circ - \sin 35^\circ \sin 50^\circ \sin 25^\cric}{\sin 5^\circ \cos 20^\circ \cos85^\cric+ \sin 35^\circ \cos 50^\circ\cos 25^\cric + \cos 5^\circ \sin 20^\circ \cos85^\cric + \cos 35^\circ \sin 50^\circ \cos 25\cric}.\],\boxed{45}
+260,"Find the number of integer values of $k$ in the closed interval $[-250,250]$ for which the equation $\log(kx)=2\log(x+2)$ has exactly one real solution.",\boxed{251},"Find the number of integer values of $k$ in the closed interval $[-500,500]$ for which the equation $\log(kx^2+kx)=2\log(x+2)$ has exactly one real solution.",\boxed{2}
+267,"Let $f(x)$ be a polynomial with real coefficients such that $f(0) =
+1$, $f(2) + f(3) = 125,$ and for all $x$, $f(x)f(2x^2) = f(2x^3 +
+x)$. Find $f(4)$.",\boxed{289},"Let $f(x)$ be a polynomial with real coefficients such that $f(0) =
+1$ and for all $x$, $f(x)f(2x^2) = f(2x^3 +
+x)$. If $z$ is a root of $f(x)$, find $z^2$.",\boxed{-1}
+282,"There are 32 cars in my building's parking lot.  All of the cars are red or white, and a car can have either 2 doors or 4 doors. $12$ of them are red, 17 of them are 4-door, and 8 of them are 2-door and white.  How many of the cars are 4-door and red?",\boxed{5},"There are 36 cars in my building's parking lot.  All of the cars are red, white or blue, and a car can have either 2 doors or 4 doors. 10 of them are red, 21 of them are 4-door, 6 of them are blue, and 8 of them are 2-door and white.  How many of the cars are 4-door and but not white?",\boxed{9}
+293,Find the minimum value of $x^6 + y^6 - 6xy$ over all real numbers $x$ and $y.$,\boxed{-4},Find the minimum value of $x^8 + y^4 - 8*\sqrt[8]{1/4}xy$ over all real numbers $x$ and $y.$,\boxed{-5}
+340,"Let $\alpha,$ $\beta,$ $\gamma,$ and $\delta$ be the roots of \[x^4 + kx^2 + 90x - 2009 = 0.\]If $\alpha \beta = 49,$ find $k^2$.",\boxed{49},"Let $\alpha,$ $\beta,$ $\gamma,$ and $\delta$ be the roots of \[x^4 + kx^2 + 90x - 2009 = 0.\]If $\alpha \beta = 49$. What is $\gamma+\delta$?",\boxed{-1}
+506,"The five-digit number $N = 14{,}6AB$ is divisible by 12. Given that $A$ and $B$ are nonzero digits, what is the smallest possible value of $N$?",\boxed{14616},"The five-digit number $N = 14{,}A0B$ is divisible by 24. Given that $A$ and $B$ are nonzero digits, what is the smallest possible value of $N$?",\boxed{14208}
+513,What is the value of $b$ if $5^b + 5^b + 5^b + 5^b + 5^b = 625^{2(b-1)}$? Express your answer as a common fraction.,\boxed{\frac{9}{7}},What is the value of $b$ if $5^b + 5^b + 5^b + 5^b = 25^{(b-1)}$? Express your answer as a common fraction.,\boxed{2+\log_5 4}
+528,The product of all the prime numbers between 1 and 40 is equal to $P$. What is the remainder when $P$ is divided by 16?,\boxed{10},The product of all the prime numbers between -50 and 50 is equal to $P$. What is the remainder when $P$ is divided by 16?,\boxed{2}
+529,"What is the shortest distance from the point $(6, 0)$ to the line $y = 2x-3$? Express your answer in simplest radical form.",\boxed{9/\sqrt{5}},"What is the shortest distance from the point $(6, 0)$ to the line $y = 2x^2-24x+70$? Express your answer in simplest radical form.",\boxed{\sqrt{15}/4}
+552,"Spinner I is divided into four equal sections labeled 2, 3, 4 and 5. Spinner II is divided into five equal sections labeled 1, 3, 5, 7 and 9. If each spinner is spun and the resulting numbers are multiplied, what is the probability that the product is not a two-digit even number? Express your answer as a common fraction in simplest form.",\boxed{\frac{13}{20}},"Spinner I is divided into four equal sections labeled 2, 3, 4 and 5. Spinner II is divided into five equal sections labeled 1, 3, 5, 7 and 9. If each spinner is spun and the resulting numbers are multiplied, what is the probability that the product is a two-digit number? Express your answer as a common fraction in simplest form.",\boxed{\frac{7}{10}}
+554,How many integers $n$ satisfy both of the inequalities $4n + 3 < 23$ and $-7n + 5 < 24$?,\boxed{7},How many integers $n$ satisfy both of the inequalities $4n + 3 > 25$ and $-7n + 5 < 24$?,\boxed{\infty}
+555,Simplify $\frac{2-m}{3}-\frac{2m+8}{3}$.,\boxed{-m-2},Simplify $\frac{2m+8}{3}-\frac{3}{2-m}$.,\boxed{\frac{2m^2+4m-7}{3m-6}}
+567,"If the function $j(x)$ is defined only on domain $[-1,2]$, and is defined on this domain by the formula $$j(x) = 2x^2+2,$$ then what is the range of $j(x)$? Express your answer as an interval or as a union of intervals. If your answer includes any decimal, round it to three decimal places.","\boxed{[2,10]}","If the function $j(x)$ is defined only on domain $[-1,2]$, and is defined on this domain by the formula $$j(x) = \frac{2x}{\sin x}+1,$$ then what is the range of $j(x)$? Express your answer as an interval or as a union of intervals. If your answer includes any decimal, round it to three decimal places.","\boxed{[3,5.399]}"
+636,"Find the smallest positive integer $x$ (measured in degrees) such that
+\[\tan (x - 150^{\circ}) = \frac{\cos50^{\circ}}{1 - \sin50^{\circ}}.\]",\boxed{40^\circ},Find the smallest positive integer $x$ (measured in degrees) such that \[\tan (x - 160^{\circ}) = \frac{\sin50^{\circ}}{1 - 2\sin^2 25^{\circ}}.\],\boxed{30^\circ}
+726,"Bill walks $\frac{1}{2}$ mile south, then $\frac{3}{4}$ mile east, and finally $1$ mile south. How many miles is he, in a direct line, from his starting point?  Express your answer as a decimal to the nearest hundredth.",\boxed{1.68},"Bill walks $\frac{1}{2}$ mile south, then $\frac{3}{4}$ mile east, and finally $\frac{1}{2}$ mile southeast. How many miles is he, in a direct line, from his starting point? Express your answer as a decimal to the nearest hundredth.",\boxed{1.40}
+728,"Given a right triangle whose side lengths are all integer multiples of 10, how many units are in the smallest possible perimeter of such a triangle?",\boxed{120},"Given a isosceles triangle whose side lengths are all integer multiples of 8, how many units are in the smallest possible perimeter of such a triangle?",\boxed{24}
+729,"Let $S$ be the set of all integers $k$ such that, if $k$ is in $S$, then $\frac{17k}{66}$ and $\frac{13k}{165}$ are terminating decimals. What is the smallest integer in $S$ that is greater than 2010?",\boxed{2013},"Let $S$ be the set of all integers $k$ such that, if $k$ is in $S$, then $\frac{17k}{66}$ is a terminating decimal and $\sqrt{k}+\frac{1}{k}$ is a rational number. What is the smallest integer in $S$ that is greater than 2010?",\boxed{4356}
+731,"A worker receives an annual wage of $\$20{,}000$, which he always deposits into a savings account at the end of the year. By the end of the third year (when he makes the third deposit), he wants to have at least $\$63,050$ in the account to finance the purchase of a house. What is the minimal compound interest rate that the savings account must provide? Express your answer as a percentage, but do not include the percent sign.",\boxed{5},"A worker receives an annual wage of $\$20{,}000$, which he always deposits into a savings account at the end of the year. Upon deposit, the bank offers an extra $\$200$ bonus credited to his account. By the end of the third year (when he makes the third deposit), he wants to have at least $\$73,528$ in the account to finance the purchase of a house. What is the minimal compound interest rate that the savings account must provide? Express your answer as a percentage, but do not include the percent sign.",\boxed{20}
+733,"Consider the geometric series $5+\frac{20}{a}+\frac{80}{a^2}+\cdots$. If the sum is a perfect square, what is the smallest possible value of $a$ where $a$ is a positive integer?",\boxed{5},"Consider the geometric series $4 + \dfrac{12}{a} + \dfrac{36}{a^2} + \cdots$ and $\dfrac{12}{a} + \dfrac{36}{a^2} + \dfrac{108}{a^3} + \cdots$. If the sum of the two series is a perfect square, what is the smallest possible value of $a$ where $a$ is a positive integer?",\boxed{5}
+734,"Amy's grandmother gave her 4 identical chocolate chip cookies and 4 identical sugar cookies. In how many different orders can Amy eat the cookies such that either she eats a chocolate chip cookie first, she eats a chocolate chip cookie last, or both?",\boxed{55},"Amy's grandmother gave her 3 chocolate chip cookies (2 identical ones and 1 smaller cookie) and 4 identical sugar cookies. In how many different orders can Amy eat the cookies such that either she eats a chocolate chip cookie first, she eats a chocolate chip cookie last, or both?",\boxed{75}
+743,Our basketball team has 10 players. We need to divide into a teams of 6 and a team of 4 for an intra-squad scrimmage. In how many ways can we do this without restrictions?,\boxed{210},Our basketball team has 10 players. We need to divide into two teams with the difference of number of people in each team no bigger than 2. In how many ways can we do this?,\boxed{336}
+746,"The points $(-4,3)$ and $(-3,4)$ lie on a circle whose center is on the $x$-axis. What is the radius of the circle?",\boxed{5},"The points $(-4,2)$ and $(-3,3)$ lie on a circle and form a equilateral triangle with the center of circle. What is the largest possible x coordinate of the center of circle?
+",\boxed{\frac{-7+\sqrt{3}}{2}}
+751,"Let $x$ and $y$ be nonnegative real numbers such that $x + y = 2.$  Find the maximum value of
+\[x^4 y + xy^4.\]",\boxed{\frac{8}{3}},"Let $x$ and $y$ be real numbers such that $x + y = 1.$  Find the minimum value of
+\[x^4 y + xy^4.\]",\boxed{-\infty}
+757,"If we express $-2x^2 + 4x + 3$ in the form $a(x - h)^2 + k$, then what is $k$?",\boxed{5},"If we express $-2x^2 + 4x + 5$ in the form $a(x - h)^2 + k$, then what is $a+h+k$?",\boxed{6}
+763,"A committee is to be made up from a group of 12 candidates. The committee must consist of a chairman and some (not necessarily nonzero) number of members-at-large. How many ways can the committee be chosen? (For example, suppose that Alex is chair while Betty, Carl, and D'Angelo make up the committee. This counts as the same as Alex being chair while Carl, Betty, and D'Angelo make up the committee. It is not the same as Betty being the chair, with Alex, Carl, and D'Angelo making up the committee. It is also not the same as Alex being chair with the committee consisting of Betty and Carl.)",\boxed{24576},"A committee is to be made up from a group of 12 candidates. The committee must consist of a chairman, a vice chairman and at least one members-at-large. How many ways can the committee be chosen?",\boxed{135036}
+765,"The shortest distance from the circle $x^2 + y^2 = 2x$ to the point $(4,4)$ can be written in the form $\sqrt{m}$, where $m$ is an integer. Find $m$.",\boxed{16},"The longest distance from the circle $x^2 + y^2 = 2x$ to the point $(4,4)$ can be written in the form $\sqrt[3]{m}$, where $m$ is an integer. Find $m$.",\boxed{216}
+794,How many ways are there to put 3 balls in 3 boxes if the balls are distinguishable but the boxes are not?,\boxed{5},How many ways are there to put 8 balls in 4 boxes if the boxes are distinguishable but balls are not?,\boxed{165}
+968,Square $ABCD$ has side lengths of 13 units. Point $E$ lies in the interior of the square such that $AE = 5$ units and $BE = 8$ units. What is the distance from $E$ to side $AD$?,\boxed{5},Square $ABCD$ has side lengths of 13 units. Point $E$ lies in the interior of the square such that $AE = 5$ units and $BE = 12$ units. What is the distance from $A$ to line $DE$?,\boxed{25\sqrt{74}/74}
+969,Dakota randomly selected three different integers $2$ through $7$. What is the probability that the three numbers selected could be the sides of a triangle? Express your answer as a common fraction.,\boxed{\frac{13}{20}},Dakota randomly selected three integers $1$ through $6$. What is the probability that the three numbers selected could be the sides of a triangle? Express your answer as a common fraction.,\boxed{37/72}
+971,The sum of two numbers is 150. Four times the smaller number is 60 more than twice the larger number. What is the larger number?,\boxed{90},The product of two numbers is -100. Four times the smaller number is 60 less than twice the larger number. What is the larger number?,\boxed{10 or 20}
+976,"Given that a sequence satisfies $x_0=0$ and $|x_k|=|x_{k-1}+1|$ for all integers $k\ge1$, find the minimum possible value of $|x_1+x_2+\cdots+x_{2006}|$.",\boxed{9},"Given that a sequence satisfies $x_0=0$ and $|x_k+3|=|2*x_{k-1}+6|$ for all integers $k\ge1$, find the minimum possible value of $|x_1+x_2+\cdots+x_{2006}|$.",\boxed{0}
+981,"The sides of a triangle with positive area have lengths 4, 6, and $x$. The sides of a second triangle with positive area have lengths 4, 14, and $y$. What is the smallest positive number that is $\textbf{not}$ a possible value of $|x-y|$?",\boxed{16},"The sides of a triangle with positive area have lengths 4, 6, and $x$. The sides of a second triangle with positive area have lengths 4, $2x$, and $y$. What is the smallest positive number that is $\textbf{not}$ a possible value of $|x-y|$?",\boxed{13}
+987,"Let $A = (0, 0),$ $B = (0, 4),$ $C=(3, 3),$ and $D = (4, 0).$ Quadrilateral $ABCD$ is cut into two pieces with the same area by a line passing through $A.$ What are the coordinates of the point where this line intersects $\overline{CD}$?","\boxed{(3,3)}","Let $A = (0, 0),$ $B = (3, 1),$ $C=(3, 9),$ and $D = (4, 0).$ Quadrilateral $ABCD$ is cut into two pieces with the same area by a line passing through $A.$ What are the coordinates of the point where this line intersects $\overline{CD}$?","\boxed{((37+\sqrt{73})/12,(33-3\sqrt{73})/4)}"
+991,Suppose $m$ is a two-digit positive integer such that $6^{-1}\pmod m$ exists and $3*6^{-1}\equiv 6^2\pmod m$. What is $m$?,\boxed{71},Suppose $m$ is a two-digit positive integer such that $6^{-1/2}\pmod m$ exists and $2*6^{-1/2}\equiv 6^2\pmod m$. What is $m$?,\boxed{29 or 67}
+1002,"In trapezoid $ABCD$  we have $\overline{AB}$   parallel to $\overline{DC}$, $E$  as the midpoint of $\overline{BC}$, and $F$ as the midpoint of $\overline{DA}$. The area of $ABEF$ is the same as the area of $FECD$. What is $AB/DC$?",\boxed{1},"In trapezoid $ABCD$  we have $\overline{AB}$   parallel to $\overline{DC}$, $E$  as the midpoint of $\overline{BC}$, and $F$ as the midpoint of $\overline{DB}$. The area of $ABEF$ is twice the area of $FECD$. What is $AB/DC$?",\boxed{5/2}
+1020,The domain of the function $h(x) = \sqrt{68-x^2}+\sqrt{-(x-2)}$ is an interval of what width?,\boxed{2+2\sqrt{17}},The range of the function $h(x) = \sqrt{68-x^2}+\sqrt{-(x-2)}$ is an interval of what width?,\boxed{10-\sqrt{2+2\sqrt{17}}}
+1206,"The matrix
+\[\begin{pmatrix} \frac{5}{13} & \frac{12}{13} \\ \frac{12}{13} & \frac{-5}{13} \end{pmatrix}\]corresponds to reflecting over a certain vector $\begin{pmatrix} x \\ y \end{pmatrix}.$  Find $\frac{y}{x}.$",\boxed{\frac{2}{3}},"The matrix
+\[\begin{pmatrix} -\frac{7}{8a+b} & \frac{8a}{8a+b} \\ \frac{24b}{8a+b} & \frac{7}{8a+b} \end{pmatrix}\]corresponds to reflecting over a certain vector $\begin{pmatrix} x \\ y \end{pmatrix}.$ Here a is positive.  Find $x+y.",\boxed{7}
+1207,"Sam is carrying a 5 gallon bucket of milk to his house from the barn, which is 10 miles away from his house. However, the bucket has a leak in it. For each mile he walks, there is $\frac{1}{2}$ as much milk in the bucket as at the beginning of the mile. How many gallons of milk will be in the bucket when Sam gets home?",\boxed{\frac{5}{1024}},"Sam is carrying a 10 gallon bucket of milk to the barn from his house, which is 3 miles away.  At the barn, he drank 1 gallon of milk.  He then goes to a market 5 miles away, where he poured another 3 gallons into his bucket, and walk for another 2 miles to get back home.  However, the bucket has a leak in it. For each mile he walks, there is $\frac{1}{2}$ as much milk in the bucket as at the beginning of the mile. How many gallons of milk will be in the bucket when Sam gets home? Represent the final answer in common fraction.",\boxed{\frac{385}{512}}
+1208,Suppose that the least common multiple of the first $26$ positive integers is equal to $26BB11DDDEE$. Find $ 10 \times B +  3 \times D+ 2 \times E $.,\boxed{82},"Suppose that last 23 digits of the least common multiple of the first $10^16 + 32$ positive integers is equal to $A_1....A_23$. Find the average of $32, A_1, ..., A_23$.",\boxed{\frac{4}{3}}
+1209,"If $x+2y=7$ and $x^2+y^2=10$, $x$ and $y$ are positive integers, find $x^3-y^3$.
+
+",\boxed{-26},"If $x^2+y^2= 13/2 pi^2 $ and $sin(x)+2 sin(y)=3$. Given x<y, find $x^2 +2y^2$.
+
+",\boxed{\frac{51}{4} \pi^2}
+1215,"A birdbath is designed to overflow so that it will be self-cleaning.  Water flows in at the rate of 30 milliliters per minute and drains at the rate of 15 milliliters per minute.  One of these graphs shows the volume of water in the birdbath during the filling time and continuing into the overflow time.  Which one is it?
+
+[asy]
+size(3inch,0.75inch);
+for ( int x = 0; x <= 4; ++x )
+{
+
+draw((x*1.5,1)--(x*1.5,0)--(x*1.5+1,0));
+
+label(rotate(90)*scale(0.7)*""Volume"", (x*1.5-.2,.5));
+}
+label(""$A$"", (.5,0), S);
+label(""$B$"", (2,0), S);
+label(""$C$"", (3.5,0), S);
+label(""$D$"", (5,0), S);
+label(""$E$"", (6.5,0), S);
+draw((0,0.6)--(0.3,0.6)--(1,0), linewidth(1));
+draw((1.5,0)--(2,.5)--(2.5,.5),linewidth(1));
+draw((3,0)--(4,.75), linewidth(1));
+draw((4.5,.8)--(5.5,.8), linewidth(1));
+draw((6,0)--(6.5,.5)--(7,0), linewidth(1));
+[/asy]
+
+Provide the correct letter (A, B, C, D, or E) answer.",\boxed{B},"A fullfilled birdbath is designed to be drained although water is still coming in.  Water flows in at the rate of 10 milliliters per minute and drains at the rate of 15 milliliters per minute.  One of these graphs shows the volume of water in the birdbath after the process starts.  Which one is it?
+
+[asy]
+size(3inch,0.75inch);
+for ( int x = 0; x <= 4; ++x )
+{
+
+draw((x*1.5,1)--(x*1.5,0)--(x*1.5+1,0));
+
+label(rotate(90)*scale(0.7)*""Volume"", (x*1.5-.2,.5));
+}
+label(""$A$"", (.5,0), S);
+label(""$B$"", (2,0), S);
+label(""$C$"", (3.5,0), S);
+label(""$D$"", (5,0), S);
+label(""$E$"", (6.5,0), S);
+draw((0,0)--(.5,.5)--(1,.5),linewidth(1));
+draw((1.5,0.6)--(1.8,0.6)--(2.5,0), linewidth(1));
+draw((3,0)--(4,.75), linewidth(1));
+draw((4.5,.8)--(5.5,.8), linewidth(1));
+draw((6,0)--(6.5,.5)--(7,0), linewidth(1));
+[/asy]
+
+Provide the correct letter (A, B, C, D, or E) answer.",\boxed{B}
+1218,What is the simplified value of $\frac{\sqrt{24}}{\sqrt{30}}\div\frac{\sqrt{20}}{3\sqrt{36}}$? Simplify the denomenator to an integer.,\boxed{\frac{18}{5}},"What is the simplified value of $\frac{\sqrt{82}}{\sqrt{15}}\div\frac{\sqrt{10}}{\sqrt{432}}$? Simplify the denomenator of the final answer to an integer, and represent the answer in its simplest form .",\boxed{\frac{12\sqrt{41}}{5}}
+1224,"One morning each member of Angela's family drank an 10-ounce mixture of coffee with milk. The amounts of coffee and milk varied from cup to cup, but were never zero. Angela drank one third of the total amount of milk and a fifth of the total amount of coffee. How many people are in the family?",\boxed{4},"One morning each member of Angela's family drank an 12-ounce mixture of coffee with milk. The amounts of coffee and milk varied from cup to cup, but were never zero. Angela drank one third of the total amount of milk and a seventh of the total amount of coffee. What' s the biggest possible number of people in the family?",\boxed{6}
+1229,How many positive perfect cube factors does $3^65^{10}7^8 13^2$ have?,\boxed{36},"How many positive perfect cube factors does $\Prod_{i=1}^n p_i^{a_i}$ have, where $p_i$ are all 
+prime numbers and $a_i$ are positive integers?","\boxed{\prod_{i=1}^n \left( \left\lfloor \frac{a_i}{3} \right\rfloor + 1 \right)
+}"
+1693,Let $S$ be the set of all real numbers $\alpha$ such that the function \[\frac{x^2+4x+\alpha}{x^2 - 11x -26}\]can be expressed as a quotient of two linear functions. What is the sum of the elements of $S$?,\boxed{-217},Let $S$ be the set of all real numbers $\alpha$ such that the function \[\frac{x^3+2x^2-7x+\alpha}{x^3 -x^2 -x +1}\]can be expressed as a quotient of two linear functions. What is the sum of the elements of $S$?,\boxed{4}
+1694,Two numbers are said to be 'relatively prime' if their greatest common factor is 1. How many integers greater than 10 and less than 50 are relatively prime with 42?,\boxed{12},Two numbers are said to be 'relatively prime' if their greatest common factor is 2. How many integers greater than 30 and less than 300 are relatively prime with 28?,\boxed{57}
+1695,"Let \[\mathbf{a} = \begin{pmatrix} 5 \\ -3 \\ -4 \end{pmatrix} \quad \text{and} \quad \mathbf{b} = \begin{pmatrix} -3 \\ 1 \\ 16 \end{pmatrix}.\]There exist vectors $\mathbf{p}$ and $\mathbf{d}$ such that the line containing $\mathbf{a}$ and $\mathbf{b}$ can be expressed in the form \[\mathbf{v} = \mathbf{p} + \mathbf{d} t.\]Furthermore, for a certain choice of $\mathbf{d}$, it is the case that for all points $\mathbf{v}$ lying on the same side of $\mathbf{a}$ that $\mathbf{b}$ lies on, the distance between $\mathbf{v}$ and $\mathbf{a}$ is $t$. Find $\mathbf{d}$.",\boxed{\begin{pmatrix} \dfrac{-2}{\sqrt{30}} \\ \dfrac{1}{\sqrt{30}} \\ \dfrac{5}{\sqrt{30}} \end{pmatrix}},"Let \[\mathbf{a} = \begin{pmatrix} 5 \\ -3 \\ -4 \end{pmatrix} \quad \text{and} \quad \mathbf{b} = \begin{pmatrix} -11 \\ 1 \\ 28 \end{pmatrix}.\]There exist vectors $\mathbf{p}$ and $\mathbf{d}$ such that the line containing $\mathbf{a}$ and $\mathbf{b}$ can be expressed in the form \[\mathbf{v} = \mathbf{p} + \mathbf{d} t.\]Furthermore, for a certain choice of $\mathbf{d}$, it is the case that for all points $\mathbf{v}$ lying on the opposite side of $\mathbf{a}$ that $\mathbf{b}$ lies on, the distance between $\mathbf{v}$ and $\mathbf{a}$ is $t-4$. Find $\mathbf{d}$.",\boxed{\begin{pmatrix} 4/9 \\ -1/9 \\ -8/9 \end{pmatrix}}
+1697,Annie's soccer team is conducting a passing drill in which each of the 17 members of the soccer team must pass the ball to each of the other members exactly four times. How many times must the ball be passed before the passing drill is over?,\boxed{1088},"Annie's soccer team is conducting a passing drill that at the end of it is found that for any three of the 4 members A,B,C, there exists an A to B, B to C, and C to A pass. How many times must the ball be passed at least?",\boxed{8}
+1712,Let $a$ and $b$ be the positive roots of $x^2 - 5x + 1 = 0.$ Find \[\frac{a}{\sqrt{b}} + \frac{b}{\sqrt{a}}.\],\boxed{4\sqrt{7}},Let $a$ and $b$ be the positive roots of $x^2 - 3x + 1 = 0.$ Find \[\frac{a}{{b}^{1/4}} + \frac{b}{{a}^{1/4}}.\],\boxed{(4-\sqrt{5})\sqrt{2+\sqrt{5}}}
+1713,The length of one leg of a right triangle is 23 meters. The lengths of the other two sides are consecutive integer numbers of meters. What is the number of meters in the perimeter of the triangle?,\boxed{552},The length of one side of a right triangle is 15 meters. The lengths of the other two sides are integer numbers of meters whose difference is 3. What is the number of meters in the perimeter of the triangle?,\boxed{36 or 90}
+1720,Seven 6-sided dice are rolled. What is the probability that exactly two of the dice show a 2 or a 4?,\boxed{\frac{224}{729}},"Five 6-sided dice are rolled. What is the probability that exactly one pair of these dice sums to 7, and all other pairs do not sum to 7?",\boxed{\frac{35}{162}}
+1724,"Carson flips over the cards of a standard 52-card deck one at a time. What is the probability that he flips over the ace and 2 of spades before any face card (jack, queen or king)?",\boxed{\frac{1}{91}},"Carson flips over the cards of a standard 52-card deck one at a time. What is the probability that, at any point during the process, the number of face cards (jacks, queens, or kings) he has flipped is always greater than the number of aces he has flipped?",\boxed{\frac{1}{2}}
+1727,"The graph of the equation $y=ax^2+bx-6$ is completely below the $x$-axis. If $a^2=79$, what is the largest possible integral value of $b$?",\boxed{14},"The area enclosed by the graph of the equation $y=ax^2+bx-6$ above $x$-axis and the $x$-axis is at most 2. If $a^2=49$, what is the largest possible integral value of $b$?",\boxed{15}
+1739,"Let $a,$ $b,$ and $c$ be positive real numbers.  Find the set of all possible values of
+\[\frac{c}{a} + \frac{a}{2b + 2c} + \frac{b}{c}.\]","\boxed{(\sqrt{2}, \infty)}","Let $a,$ $b,$ and $c$ be positive real numbers.  Find the set of all possible values of
+\[\frac{c^2}{a^2} + \frac{a}{b + c} + \frac{b}{c}.\]","\boxed{(5*2^{-4/5} - 1, \infty)}"
+1958,How many square units are in the region satisfying the inequalities $y \ge |x|$ and $y \le -|x|+6$? Express your answer as a decimal.,\boxed{18},How many square units are in the region satisfying the inequalities $y \ge |x|$ and $y \le -|x|-3$? Express your answer as a decimal.,\boxed{0}
+1960,Find the maximum value of  \[\frac{x + y}{x^4 + y^4 + 6} + 1\]over all real numbers $x$ and $y.$,\boxed{\frac{5}{4}},Find the minimum value of  \[\frac{x - y}{x^4 + y^4 + 6}\]over all real numbers $x$ and $y.$,\boxed{-\frac{1}{4}}
+1971,"Find the largest value of $x$ for which \[x^2 + y^2 = 2x + 2y\]has a solution, if $x$ and $y$ are real.",\boxed{1+\sqrt{2}},"Find the largest value of $x$ for which \[x^2 - y^2 = 2x + 2y\]has a solution, if $x$ and $y$ are real.",\boxed{\infty}
+1977,What is the range of the function $$F(x) = |x+1|+|x-6|~?$$Express your answer in interval notation.,"\boxed{[7,\infty)}",What is the range of the function $$F(x) = |x+1|-|x-5|~?$$Express your answer in interval notation.,"\boxed{[-6,6]}"
+2007,"Pat wants to select 8 pieces of fruit to bring in the car for the people he's driving to Montana with. He randomly chooses each piece of fruit to be an orange, an apple, or a banana. What is the probability that either exactly 4 of the pieces of fruit are oranges or exactly 6 of the pieces of fruit are apples?",\boxed{\frac{1232}{6561}},"Pat wants to select 9 pieces of fruit to bring in the car for the people he's driving to Montana with. He randomly chooses each piece of fruit to be an orange, an apple, or a banana. What is the probability that either exactly 3 of the pieces of fruit are oranges or exactly 6 of the pieces of fruit are apples?",\boxed{\frac{5964}{19683}}
+2017,"A bookstore is deciding what price it should charge for a certain book. After research, the store finds that if the book's price is $p$ dollars (where $p \le 40$), then the number of books sold per month is $180-3p$. What price should the store charge to maximize its revenue?",\boxed{30},"A bookstore is deciding what price it should charge for a certain book. After research, the store finds that if the book's price is $p$ dollars (where $p \le 40$), then the number of books sold per month is $270-3p$. What price should the store charge to maximize its revenue?",\boxed{40}
+2041,What is the value of $x$ if $-\frac23(x-5) = (x+1)$?,\boxed{\frac{7}{5}},"What is the value of $x$ if $-\frac{2}{3}|x-5|=\frac{3}{2}(x+1)$?
+",\boxed{-\frac{29}{5}}
+2072,"What is the product of all constants $k$ such that the quadratic $x^2 + kx +6$ can be factored in the form $(x+a)(x+b)$, where $a$ and $b$ are integers?",\boxed{1225},"What is the product of all constants $k$ such that the quadratic $x^3 + kx +2$ can be factored in the form $(x+a)(x+b)(x+c)$, where $a$ and $b$ are integers?",\boxed{-3}
+2174,"Suppose we define $\ell(n)$ as follows: If $n$ is an integer from $9$ to $20,$ inclusive, then $\ell(n)$ is the number of letters in the English spelling of the number $n;$ otherwise, $\ell(n)$ is undefined. For example, $\ell(11)=6,$ because ""eleven"" has six letters, but $\ell(23)$ is undefined, because $23$ is not an integer from $0$ to $20.$
+
+How many numbers are in the domain of $\ell(n)$ but not the range of $\ell(n)?$",\boxed{11},"Suppose we define $\ell(n)$ as follows: If $n$ is an integer from $0$ to $20,$ inclusive, then $\ell(n)$ is the number of non-vowel letters in the English spelling of the number $n;$ otherwise, $\ell(n)$ is undefined. For example, $\ell(11)=3,$ because ""eleven"" has three non-vowel letters, but $\ell(23)$ is undefined, because $23$ is not an integer from $0$ to $20.$
+
+How many numbers are in the domain of $\ell(n)$ but not the range of $\ell(n)?$",\boxed{16}
+2175,The polynomial $x^4 + ax + b$ is divisible by $x^2 - 2x -1.$  Find $a + b.$,\boxed{-17},The polynomial $x^6 + ax + b$ is divisible by $x^2 - 2x + 1.$  Find $a - b.$,\boxed{-11}
+2181,A reflection takes $\begin{pmatrix} 5 \\ 0 \end{pmatrix}$ to $\begin{pmatrix} 4 \\ 3 \end{pmatrix}.$  Which vector does the reflection take $\begin{pmatrix} -1 \\ 3/2 \end{pmatrix}$ to?,\boxed{\begin{pmatrix} \frac{1}{10} \\ -\frac{9}{5} \end{pmatrix}},A reflection takes $\begin{pmatrix} 5 \\ 0 \end{pmatrix}$ to $\begin{pmatrix} 4 \\ 3 \end{pmatrix}.$  Give the expression of the line connecting $\begin{pmatrix} -2 \\ 3 \end{pmatrix}$ and the vector it reflects to?,\boxed{y=-3x-3}
+2182,"Each day, two out of the three teams in a class are randomly selected to participate in a MATHCOUNTS trial competition. What is the probability that Team A is selected on at most one of the next three days? Express your answer as a common fraction.",\boxed{7/27},"Each day, two out of the three teams in a class are randomly selected to participate in a MATHCOUNTS trial competition. What is the probability that both Team A and Team B are each selected on at least two of the next three days? Express your answer as a common fraction.",\boxed{13/27}
+2183,How many perfect squares are factors of $4 \times 6 \times 8 \times 10 \times 12?$,\boxed{10},How many perfect squares divisible by $5$ are factors of $2 \times 4 \times 6 \times 8 \times 10 \times 12?$.,\boxed{0}
+2184,"Let A = 1, B = 2, C = 3, ..., Z = 26. The product value of a word is equal to the product of the values of its letters. For example, CAB has a product value of 3 $\times$ 1 $\times$ 2 = 6. What common English word of 4 letters has a product value of 165?",\boxed{CAKE},"Let A = 1, B = 2, C = 3, ..., Z = 26. The product value of a word is equal to the product of the values of its letters. For example, CAB has a product value of 3 $\times$ 1 $\times$ 2 = 6. How many common English words have a product value same as CAT (inclusive)? It does not have to be of length 3.",\boxed{7}
+2191,"The foci of the ellipse $\frac{x^2}{49} + \frac{y^2}{33} = 1$ are $F_1$ and $F_2,$ as shown below.  Let $P$ be a point on the circle $x^2 + (y - 2)^2 = 4.$  Line $F_2 P$ intersects the ellipse again at $Q,$ where the $y$-coordinate of $Q$ is positive.  Find the maximum value of $PQ + F_1 Q.$
+
+[asy]
+unitsize(0.4 cm);
+
+pair P, Q;
+pair[] F;
+
+path ell = yscale(sqrt(33))*xscale(7)*Circle((0,0),1);
+F[1] = (4,0);
+F[2] = (-4,0);
+P = (0,3) + 2*dir(240);
+Q = intersectionpoint(P--interp(F[2],P,5),ell);
+
+draw(ell);
+draw((-8,0)--(8,0));
+draw((0,-7)--(0,7));
+draw(Circle((0,3),2));
+draw(F[1]--Q--F[2]);
+
+dot(""$F_1$"", F[1], S);
+dot(""$F_2$"", F[2], S);
+dot(""$P$"", P, S);
+label(""$Q$"", Q, NE);
+[/asy]",\boxed{16-2\sqrt{5}},"The foci of the ellipse $\frac{x^2}{49} + \frac{y^2}{33} = 1$ are $F_1$ and $F_2,$ as shown below.  Let $P$ be a point on the circle $x^2 + (y - 3)^2 = 4.$  Line $F_2 P$ intersects the ellipse again at $Q,$ where the $y$-coordinate of $Q$ is positive.  Find P when $PQ + F_1 Q.$ is maximized. [asy]
+unitsize(0.4 cm);
+
+pair P, Q;
+pair[] F;
+
+path ell = yscale(sqrt(33))*xscale(7)*Circle((0,0),1);
+F[1] = (4,0);
+F[2] = (-4,0);
+P = (0,3) + 2*dir(240);
+Q = intersectionpoint(P--interp(F[2],P,5),ell);
+
+draw(ell);
+draw((-8,0)--(8,0));
+draw((0,-7)--(0,7));
+draw(Circle((0,3),2));
+draw(F[1]--Q--F[2]);
+
+dot(""$F_1$"", F[1], S);
+dot(""$F_2$"", F[2], S);
+dot(""$P$"", P, S);
+label(""$Q$"", Q, NE);
+[/asy]","\boxed{(-8/5,9/5)}"
+2194,"If $f(x)$, whose graph is shown below, is defined on $1 \le x \le 6$, what is the minimum value of $f^{-1}(x)$? [asy] import graph; size(7.94cm); real lsf=0.5; pen dps=linewidth(0.7)+fontsize(10); defaultpen(dps); pen ds=black; real xmin=-0.96,xmax=8.96,ymin=-2.66,ymax=4.38; Label laxis; laxis.p=fontsize(10); xaxis(""$x$"",-0.96,8.96,Ticks(laxis,Step=1.0,Size=2,OmitTick(0)),Arrows(6),above=true); yaxis(""$y$"",-2.66,4.38,Ticks(laxis,Step=1.0,Size=2,OmitTick(0)),Arrows(6),above=true); draw((1,2)--(3,0),linewidth(1.2)); draw((3,3)--(5,2),linewidth(1.2)); draw((5,-2)--(6,0),linewidth(1.2)); filldraw(circle((5,-2),0.08),white); label(""$ f(x) $"",(0.5,4.3),SE*lsf); dot((3,0),UnFill(0)); dot((1,2)); dot((3,3)); dot((5,2),ds); dot((6,0)); clip((xmin,ymin)--(xmin,ymax)--(xmax,ymax)--(xmax,ymin)--cycle); [/asy]",\boxed{1},"If $f(x)$, whose graph is shown below, is defined on $1 \le x \le 6$, what is the maximum value of $f^{-1}(x)+x+1$? [asy]
+
+import graph; size(7.94cm); real lsf=0.5; pen dps=linewidth(0.7)+fontsize(10); defaultpen(dps); pen ds=black; real xmin=-0.96,xmax=8.96,ymin=-2.66,ymax=4.38;
+
+Label laxis; laxis.p=fontsize(10);
+
+xaxis(""$x$"",-0.96,8.96,Ticks(laxis,Step=1.0,Size=2,OmitTick(0)),Arrows(6),above=true); yaxis(""$y$"",-2.66,4.38,Ticks(laxis,Step=1.0,Size=2,OmitTick(0)),Arrows(6),above=true); draw((1,2)--(3,0),linewidth(1.2)); draw((3,3)--(5,2),linewidth(1.2)); draw((5,-2)--(6,0),linewidth(1.2)); filldraw(circle((5,-2),0.08),white); label(""$ f(x) $"",(0.5,4.3),SE*lsf);
+
+dot((3,0),UnFill(0)); dot((1,2)); dot((3,3)); dot((5,2),ds); dot((6,0));
+
+clip((xmin,ymin)--(xmin,ymax)--(xmax,ymax)--(xmax,ymin)--cycle);
+
+[/asy]",\boxed{8}
+2197,What is the remainder when $2^4 \cdot 4^5 \cdot 6^7 \cdot 8^9$ is divided by 13?,\boxed{3},What is the remainder when $2^3 + 4^5 + 6^7+ 8^9$ is divided by 13?,\boxed{7}
+2417,"Solve for $x,$ where
+\[\frac{x}{x - a} + \frac{x - 2b}{x - a - 2b} = \frac{x - a}{x - 2a} + \frac{x + a - 2b}{x - 2b}.\]Assume that $2a > x > 2b > a > 0.$",\boxed{a + b},"Find the smallest possible $x,$ where
+\[\frac{x}{x - a} + \frac{x - b}{x - a - b} = \frac{x - a}{x - 2a} + \frac{x + a - b}{x - b}.\]Assume that $a = b > x >= 0.$",\boxed{0}
+2419,"Five cars pull up to a red light, one at a time. At the light, there are three lanes, one left-turn lane, one straight-going lane, and one right-turn lane. How many ways can the cars stack up so that all three lanes are occupied?
+
+Note that if the first car turns left and the second goes straight, this is considered different from the first car going straight and the second car turning left. In other words, the cars are distinguishable, but pull up to the intersection in a fixed order.",\boxed{150},"Six cars pull up to a red light, one at a time. At the light, there are four lanes, one stop lane, one left-turn lane, one straight-going lane, and one right-turn lane. How many ways can the cars stack up so that all four lanes are occupied?
+
+Note that if the first car turns left and the second goes straight, this is considered different from the first car going straight and the second car turning left. In other words, the cars are distinguishable, but pull up to the intersection in a fixed order.",\boxed{1560}
+2423,I have 6 marbles numbered 1 through 6 in a bag.  Suppose I take out two different marbles at random.  What is the expected value of the product of the numbers on the marbles?  Answer as a decimal to the nearest tenth.,\boxed{11.7},I have 6 marbles numbered 1 through 6 in a bag.  Suppose I take out two marbles at random with replacement.  What is the expected value of the product of the numbers on the marbles?  Answer as a decimal to the nearest tenth.,\boxed{12.3}
+2427,"Let $\alpha,$ $\beta,$ and $\gamma$ be three real numbers.  Suppose that
+\begin{align*}
+\cos \alpha + \cos \beta + \cos \gamma &= 2, \\
+\sin \alpha + \sin \beta + \sin \gamma &= 2.
+\end{align*}Then the minimum value of $\cos \alpha$ can be expressed in the form $\frac{p - \sqrt{q}}{r},$ where $p,$ $q,$ and $r$ are positive integers, and $q$ is not divisible by the square of a prime.  Find $p + q + r.$",\boxed{20},"Let $\alpha,$ $\beta,$ and $\gamma$ be three real numbers.  Suppose that
+\begin{align*}
+\cos \alpha + \cos \beta + \cos \gamma &= \frac{3}{\sqrt{2}}, \\
+\sin \alpha + \sin \beta + \sin \gamma &= \frac{3}{\sqrt{2}}.
+\end{align*}Then the minimum value of $\cos \alpha$ can be expressed in the form $\frac{p + \sqrt{q}}{r},$ where $p,$ $q,$ and $r$ are integers, and $q$ is not divisible by the square of a prime.  Find $p + q + r.$",\boxed{4}
+2428,"Let $m$ be a constant not equal to $0$ or $1.$ Then the graph of \[x^2 + my^2 = 1\]is a conic section with two foci. Find all values of $m$ such that the foci both lie on the circle $x^2+y^2=4.$
+
+Enter the sum of all possible values of $m$.",\boxed{-\frac{2}{15}},"Let $m$ be a constant. If the graph of \[x^2 + my^2 = 4\]is a conic section with two foci, find all values of $m$ such that the foci both lie on the circle $x^2+y^2=16.$
+
+Enter the product of all possible values of $m$.",\boxed{-\frac{1}{15}}
+2433,"Let $S$ be the set of points $(a,b)$ in the coordinate plane, where each of $a$ and $b$ may be 0, 1, or 2, and $a+b>0$. How many distinct lines pass through at least two members of $S$?",\boxed{18},"Let $S$ be the set of points $(a,b)$ in the coordinate plane, where each of $a$ and $b$ may be $-2$, $-1$, 0, or 1. How many distinct lines pass through at least two members of $S$?",\boxed{62}
+2434,"We have two geometric sequences of positive real numbers: $$3,a,b\text{ and }\frac{1}{b},a,27$$Solve for $a$.",\boxed{3},"We have two geometric sequences of positive real numbers: $$4,a,b\text{ and }a,\frac{1}{b},16$$Solve for $a$.",\boxed{1}
+2435,Ten people are sitting around a round table.  Four of them are chosen at random to give a presentation.  What is the probability that the four chosen people were sitting in consecutive seats?,\boxed{\frac{1}{21}},Ten people are sitting around a round table.  Three of them are chosen at random to give a presentation in a specific order.  What is the probability that the first and second presenter were sitting in consecutive seats and at the same time the second and third presenter were sitting in consecutive seats? ,\boxed{\frac{1}{36}}
+2436,"Let $p(x)$ be a monic, quartic polynomial, such that $p(1) = 4,$ $p(3) = 12,$ and $p(5) = 28.$  Find
+\[p(-2) + 7p(6).\]",\boxed{1120},"Let $p(x)$ be a monic, quartic polynomial, such that $p(1) = 4,$ $p(3) = 14,$ and $p(5) = 32.$  Find
+\[p(-2) + 7p(6).\]",\boxed{1152}
+2652,"Let  \[f(x) =
+\begin{cases}
+k(x) &\text{if }x>2, \\
+x^2-6x+10&\text{if }x\leq2.
+\end{cases}
+\] Find the function $k(x)$ such that $f$ is its own inverse.",\boxed{3 - \sqrt{x-1}},"Let  \[f(x) =
+\begin{cases}
+k(x) &\text{if }x>0, \\
+x^4 - 4x^3 + 6x^2- 4x &\text{if }x\leq 0.
+\end{cases}
+\] Find the function $k(x)$ such that $f$ is its own inverse.",\boxed{1 - (x + 1)^{\frac14}}
+2657,"A parabola with equation $y=ax^2+bx+c$ has a vertical line of symmetry at $x=2$ and goes through the two points $(1,1)$ and $(4,-1)$. The quadratic $ax^2 + bx +c$  has two real roots. What is the sum of two roots?",\boxed{4},"A parabola with equation $y=ax^2+bx+c$ has a vertical line of symmetry at $x=2$ and goes through the point $(2,1)$. The quadratic $ax^2 + bx +c$  has two distinct real roots with distance less than $4$. What is the possible range of $a$ ?","\boxed{(-\infty, -0.25)}"
+2660,"If $n$ is an integer, $2 \leq n \leq 2010,$ how many fractions $\frac{n}{2010}$ yield repeating decimals?",\boxed{1999},"If $n$ is an integer, $1 \leq n \leq 201,$ how many fractions $\frac{n}{201+n}$ yield repeating decimals?",\boxed{190}
+2664,"If $f(c)=\frac{3}{2c-3}$, find $\frac{lm}{k+n}$ when $f^{-1}(c)\times c \times f(c)$ equals the simplified fraction$\frac{kc+l}{mc+n}$, where $k,l,m,\text{ and }n$ are integers.",\boxed{12},"If $f(x)=\frac{x+b}{x+d}$, and $f(x)$ is not a constant. Find $d$ when $f^{-1}(x)\times f(x)$ is a constant.",\boxed{1}
+2667,"In an equation of the form $k = ax^2 + bx + c$ with $a > 0$, the least possible value of $k$ occurs at $x = -b/(2a)$. In the equation $k = (x + 12)(x - 8)$, what is the least possible value for $k$?",\boxed{-100},"In an equation of the form $k = ax^2 + bx + c$ with $a > 0$, the least possible value of $k$ occurs at $x = -b/(2a)$. In the equation $k = x^4 + 4x^3 + 8x^2 + 8x +2$, what is the least possible value for $k$?",\boxed{-1}
+2670,Alice and Bob both go to a party which starts at 5:00. Each of them arrives at a random time between 5:00 and 6:00. What is the probability that the number of minutes Alice is late for the party plus the number of minutes Bob is late for the party is less than 30? Express your answer as a common fraction.,\boxed{\frac{1}{8}},"Alice and Bob both go to a party which starts at 5:00. Each of them arrives at a random time between 5:00 and 6:00. What is the probability that the number of minutes Alice is late for the party plus the number of minutes Bob is late for the party is less than 45, given that Alice is late for more than 30 minutes? Express your answer as a common fraction.",\boxed{\frac{1}{16}}
+2673,"One line is parameterized by
+\[\begin{pmatrix} 2 - 3t \\ -5 - 2t \\ 1 - 6t \end{pmatrix}.\]Another line is parameterized by
+\[\begin{pmatrix} -\frac{3}{2} + s \\ 2s \\ -6 + 2s \end{pmatrix}.\]The two lines intersect at $P.$  If $\theta$ is the acute angle formed by the two lines at $P,$ then find $\sin \theta.$",\boxed{\frac{4\sqrt{5}}{21}},"One line is parameterized by
+\[\begin{pmatrix} 2 - 3t \\ -5 - 2t \\ 1 - 6t \end{pmatrix}.\]Another line is parameterized by
+\[\begin{pmatrix} -\frac{3}{2} + c*s \\ 2s \\ -6 + 2s \end{pmatrix}.\] Here $c$ is some undetermined constant. The two lines intersect at some point $P.$  If $\theta$ is the acute angle formed by the two lines at $P,$ then find $\sin \theta.$",\boxed{\frac{4 \sqrt{5}}{21}}
+2675,Heisenberg's Uncertainty Principle says that the product of the error in the measurement of a particle's momentum and the error in the measurement of a particle's position must be at least Planck's constant divided by $4\pi$. Suppose the error in the measurement of the momentum of a particle is doubled. By how many percent does the minimum error in the measurement of its position decrease?,\boxed{0.5},"Heisenberg's Uncertainty Principle says that the product of the error in the measurement of a particle's momentum and the error in the measurement of a particle's position must be at least Planck's constant divided by $4\pi$. Let $S$ be the sum of the error in the measurement of the momemtum and the position of a particle. What is the minimum value of $S$,  if we denote Planck's constant by $p$? ",\boxed{\sqrt{p/\pi}}
+2676,Compute $12^{13} - 22^{13}$ modulo 7.,\boxed{4},Compute $22^{30} - 12^{30}$ modulo 31.,\boxed{0}
+2679,"Let $a$ and $b$ be real numbers. Let $r,$ $s,$ and $t$ be the roots of \[f(x) = x^3 + ax^2 + bx - 1,\]and then let $g(x) = x^3 + mx^2 + nx + p$ be a polynomial with roots $r^2,$ $s^2,$ and $t^2.$ If $g(-1) = -5,$ find the greatest possible value for $a.$",\boxed{\sqrt{5} - 1},"Let $a$ and $b$ be real numbers. Let $r,$ $s,$ and $t$ be the roots of \[f(x) = x^3 + ax^2 + bx - 1,\]and then let $g(x) = x^3 + mx^2 + nx + p$ be a polynomial with roots $r+s,$ $s+t,$ and $t+r.$ If $g(-1) = 5,$ find the smallest possible value for $|b|.$",\boxed{4}
+2680,"Solve
+\[\frac{x(x + 2)^2}{x - 6} \le 0.\]Enter your answer using interval notation.","\boxed{\{-2\} \cup [0,6)}","Solve
+\[\frac{x(x + 2)^2}{x + 8} \le 1.\]Enter your answer using interval notation.","\boxed{(-8,1]}"
+3134,A rectangle has integer dimensions. The number of square units in its area is triple the number of units in its perimeter. What is the smallest possible length for the perimeter?,\boxed{48},A non-square rectangle has integer dimensions. The number of square units in its area is 1/3 the number of units in its perimeter. What is the smallest possible length for the perimeter?,\boxed{6}
+3136,"For how many ordered triples $(x,y,z)$ of nonnegative integers less than $20$ are there exactly three distinct elements in the set $\{i^x, (1+i)^y, z\}$, where $i^2 = -1$?",\boxed{7770},"For how many ordered triples $(x,y,z)$ of nonnegative integers less than $20$ are there exactly two distinct elements in the set $\{(2i)^x, (1+i)^y, z\}$, where $i^2 = -1$?",\boxed{274}
+3140,Determine the number of solutions in $x$ of the congruence $64x\equiv 6\pmod {66}$ such that $0< x\le 200$.,\boxed{6},Determine the number of solutions in $x$ of the congruence $64x\equiv 1\pmod {66}$ such that $0< x\le 100$.,\boxed{0}
+3142,Let $P(x)$ be a polynomial such that \[P(P(x)) + P(x) = 12x\]for all real numbers $x.$ Find the sum of all possible values of $P(5).$,\boxed{-5},Let $P(x)$ be a polynomial such that \[P(P(x)) + P(x) = 6\]for all real numbers $x.$ Find the sum of all possible values of $P(10).$,\boxed{-1}
+3146,How many integers $n$ satisfy $0<n<100$ and $4n\equiv 4\pmod 6?$,\boxed{33},How many integers $n$ satisfy $0<n<60$ and $4n\equiv 2\pmod 5?$,\boxed{12}
+3155,"Carlos has chosen twelve different compact discs (CDs) he would like to buy. Four are rap music, six are country music, and two are heavy metal music. Carlos then randomly selects five of the 12 CDs to purchase. What is the probability that his purchase includes at least one CD from each of the three categories? Express your answer as a common fraction.",\boxed{11/18},"Carlos has chosen twelve different compact discs (CDs) he would like to buy. Four are rap music, five are country music, and three are heavy metal music. Carlos then randomly selects five of the 12 CDs to purchase. What is the probability that his purchase includes exactly two categories? Express your answer as a common fraction.",\boxed{67/264}
+3156,"Let $\mathbf{a},$ $\mathbf{b},$ and $\mathbf{c}$ be three unit vectors such that $\mathbf{a} \cdot \mathbf{b} = \mathbf{a} \cdot \mathbf{c} = 0,$ and the angle between $\mathbf{b}$ and $\mathbf{c}$ is $30^\circ.$  Compute $|\mathbf{a} \cdot (\mathbf{b} \times \mathbf{c})|.$",\boxed{1/2},"Let $\mathbf{a},$ $\mathbf{b},$ and $\mathbf{c}$ be three unit vectors such that $\mathbf{a} \cdot \mathbf{b} = \mathbf{a} \cdot \mathbf{c} = 1/2,$ and the angle between $\mathbf{b}$ and $\mathbf{c}$ is $60^\circ.$  Compute $|\mathbf{a} \cdot (\mathbf{b} \times \mathbf{c})|.$",\boxed{\sqrt{2}/2}
+3157,The sum of the first 5 terms of an arithmetic series is $70$.  The sum of the first 10 terms of this  arithmetic series is $200$.  What is the first term of the series?,\boxed{46/5},The sum of the first 5 terms of a geometric series is $70$.  The sum of the first 10 terms of this geometric series is $210$.  What is the first term of the series?,\boxed{70*(2^{1/5}-1)}
+3158,"A point has rectangular coordinates $(2,-1,-2)$ and spherical coordinates $(\rho, \theta, \phi).$  Find the rectangular coordinates of the point with spherical coordinates $(\rho, \theta, 3 \phi).$","\boxed{(14/9,-7/9,22/9)}","A point has rectangular coordinates $(2,-1,-2)$ and spherical coordinates $(\rho, \theta, \phi).$  Find the rectangular coordinates of the point with spherical coordinates $(\rho, 2 \theta, 2 \phi).$","\boxed{(-\frac{4\sqrt{5}}{5},\frac{16\sqrt{5}}{15},-\frac{1}{3})}"
+3165,"Determine the smallest non-negative integer $a$ that satisfies the congruences: \begin{align*} &a\equiv 2\pmod 3,\\ &a\equiv 4\pmod 5,\\ &a\equiv 6\pmod 7,\\ &a\equiv 5\pmod 9. \end{align*}",\boxed{104},"Determine the smallest non-negative integer $a$ that satisfies the congruences: \begin{align*} &a\equiv 2\pmod 3,\\ &a\equiv 4\pmod 5,\\ &a\equiv 6\pmod 7,\\ &a\equiv 10\pmod 9. \end{align*} Answer 0 if doesn't exist.",\boxed{0}
+3175,"How many ordered pairs of positive integers $(m,n)$ satisfy $\gcd(m,n) = 2$ and $\mathop{\text{lcm}}[m,n] = 120$?",\boxed{8},"How many ordered pairs of positive integers $(m,n)$ satisfy $\gcd(m,n) = 2$ and $\mathop{\text{lcm}}[m,n] | 108$?",\boxed{21}
+3194,"Integers $a$, $b$, $c$, and $d$, not necessarily distinct, are chosen independently and at random from 0 to 2025, inclusive. What is the probability that $ad-bc$ is odd?",\boxed{3/8},"Integers $a$, $b$, $c$, and $d$, not necessarily distinct, are chosen independently and at random from 0 to 2007, inclusive. What is the probability that $ad-bc$ is divisible by 4?",\boxed{11/32}
