@@ -86,7 +86,7 @@ variants = {
 }
 # question_indices = df["question_index"].tolist()
 question_indices = df["problem_id"].tolist()  
-hits = df["Unnamed: 0"].tolist()  # replace with df["hit"].tolist() if needed
+# hits = df["Unnamed: 0"].tolist()  # replace with df["hit"].tolist() if needed
 
 # ———————————————————
 # Run LLM inference for each variant
@@ -134,7 +134,7 @@ for variant, data in variants.items():
                 "variant": variant,
                 "trial_index": i,
                 "question_index": question_indices[j],
-                "hit": hits[j],
+                # "hit": hits[j],
                 "prompt": prompts[j],
                 "ground_truth": ground_truths[j],
                 "response": responses_matrix[i, j],
