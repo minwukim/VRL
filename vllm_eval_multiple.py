@@ -14,7 +14,8 @@ from math_verify import verify, parse
  
 # model_path ="Qwen/Qwen2.5-3B-instruct"
 # model_path = "Qwen/Qwen2.5-3B"
-model_path = "Qwen/Qwen2.5-Math-1.5B"
+# model_path = "Qwen/Qwen2.5-Math-1.5B"
+model_path = "hkust-nlp/Qwen-2.5-1.5B-SimpleRL-Zoo"
 
 
 model_path = "./0702-1.5B-1to64/checkpoint-325"
@@ -115,12 +116,12 @@ all_ground_truths = ground_truths * num_trials  # Will align index-wise
 # ——————————————
 # Generate responses
 # ——————————————
-llm = LLM(model=model_path, max_model_len=4000, tensor_parallel_size=1)
+llm = LLM(model=model_path, max_model_len=8000, tensor_parallel_size=1)
 sampling_params = SamplingParams(
     temperature=temperature,
     top_p=top_p,
     top_k=top_k,
-    max_tokens=4000,
+    max_tokens=8000,
     n=1,
 )
 
