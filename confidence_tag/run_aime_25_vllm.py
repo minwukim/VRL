@@ -18,17 +18,17 @@ CSV_PATH = "aime25_results_vllm.csv"
 MODEL_PATH = "Qwen/Qwen3-8B"   # swap as needed
 TOP_K_ENTROPY = 10
 
-TOTAL_MAX_NEW_TOKENS = 16000
+TOTAL_MAX_NEW_TOKENS = 4096
 STEP_MAX_TOKENS = 512
 
-# Qwen-style thinking-mode defaults (good for most reasoning models)
+# Qwen-style thinking-mode defaults
 TEMPERATURE = 0.6
 TOP_P = 0.95
 TOP_K = 20
 
-# vLLM engine sizing
+# vLLM sizing
 TENSOR_PARALLEL_SIZE = 2        # set to your number of GPUs
-MAX_MODEL_LEN = 16000
+MAX_MODEL_LEN = 16384
 GPU_MEM_UTIL = 0.90
 
 LOG_EVERY = 1  # overwrite CSV every N rows
@@ -161,49 +161,55 @@ def main():
 
     # 4) Sequential loop with tqdm
     logging.info("Starting sequential generation over AIME25 with vLLM...")
-    for idx, (qid, qtext, gt) in enumerate(
-        tqdm(zip(ids, questions, ground_truths), total=len(questions), desc="AIME25 vLLM Inference")
-    ):
-        prompt = prepare_prompt(qtext)
+    try:
+        for idx, (qid, qtext, gt) in enumerate(
+            tqdm(zip(ids, questions, ground_truths), total=len(questions), desc="AIME25 vLLM Inference")
+        ):
+            prompt = prepare_prompt(qtext)
 
+            try:
+                gen_text = engine.generate_with_confidence(
+                    prompt=prompt,
+                    total_max_new_tokens=TOTAL_MAX_NEW_TOKENS,
+                    step_max_tokens=STEP_MAX_TOKENS,
+                    temperature=TEMPERATURE,
+                    top_p=TOP_P,
+                    top_k=TOP_K,
+                )
+            except Exception as e:
+                logging.error(f"[{idx}] Generation error: {e}")
+                gen_text = ""
+
+            pred_boxed = last_boxed_only_string(gen_text)
+            gt_boxed = f"\\boxed{{{gt}}}" if gt is not None else None
+            reward = reward_without_format(pred_boxed, gt_boxed)
+
+            token_count = len(tokenizer.encode(gen_text, add_special_tokens=False))
+
+            row = {
+                "question_index": idx,
+                "id": qid,
+                "question": qtext,
+                "ground_truth": gt,
+                "prompt": prompt,
+                "generated_text": gen_text,
+                "token_count": token_count,
+                "reward": reward,
+                "manual_conf_tags": engine.manual_tags_added,
+                "auto_conf_tags": engine.self_generated_tags,
+            }
+            all_results.append(row)
+
+            append_row(CSV_PATH, row)
+            if (idx + 1) % LOG_EVERY == 0:
+                overwrite_with_dataframe(CSV_PATH, all_results)
+                logging.info(f"Saved progress: {idx + 1}/{len(questions)} → {CSV_PATH}")
+    finally:
+        # Try to cleanly shut down vLLM workers to reduce NCCL warnings
         try:
-            gen_text = engine.generate_with_confidence(
-                prompt=prompt,
-                total_max_new_tokens=TOTAL_MAX_NEW_TOKENS,
-                step_max_tokens=STEP_MAX_TOKENS,
-                temperature=TEMPERATURE,
-                top_p=TOP_P,
-                top_k=TOP_K,
-            )
-        except Exception as e:
-            logging.error(f"[{idx}] Generation error: {e}")
-            gen_text = ""
-
-        pred_boxed = last_boxed_only_string(gen_text)
-        gt_boxed = f"\\boxed{{{gt}}}" if gt is not None else None
-        reward = reward_without_format(pred_boxed, gt_boxed)
-
-        # Token count via tokenizer
-        token_count = len(tokenizer.encode(gen_text, add_special_tokens=False))
-
-        row = {
-            "question_index": idx,
-            "id": qid,
-            "question": qtext,
-            "ground_truth": gt,
-            "prompt": prompt,
-            "generated_text": gen_text,
-            "token_count": token_count,
-            "reward": reward,
-            "manual_conf_tags": engine.manual_tags_added,
-            "auto_conf_tags": engine.self_generated_tags,
-        }
-        all_results.append(row)
-
-        append_row(CSV_PATH, row)
-        if (idx + 1) % LOG_EVERY == 0:
-            overwrite_with_dataframe(CSV_PATH, all_results)
-            logging.info(f"Saved progress: {idx + 1}/{len(questions)} → {CSV_PATH}")
+            engine.llm.shutdown()
+        except Exception:
+            pass
 
     overwrite_with_dataframe(CSV_PATH, all_results)
     logging.info(f"Done. Wrote {len(all_results)} rows to {CSV_PATH}")

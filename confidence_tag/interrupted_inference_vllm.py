@@ -7,7 +7,6 @@ from vllm import LLM, SamplingParams
 
 
 def _clean_first_word(s: str) -> str:
-    # take first whitespace-delimited token, strip punctuation, lowercase
     first = s.strip().split(" ")[0] if s.strip() else ""
     return re.sub(r"[^a-zA-Z]", "", first).lower()
 
@@ -58,7 +57,6 @@ class InterruptedInferenceVLLM:
         self.top_k_entropy = max(2, int(top_k_entropy))
         self.max_entropy = float(torch.log(torch.tensor(float(self.top_k_entropy))))
 
-        # Lowercased set of step cues for keyword lookahead
         self.keyword_list = {
             'now', 'first', 'second', 'starting', 'suppose',
             'similarly', 'since', 'from', 'given', 'third', 'next',
@@ -66,7 +64,6 @@ class InterruptedInferenceVLLM:
             'wait', 'alternatively', 'hmm', 'another', 'ah', 'alternative', 'however', 'alright', 'but'
         }
 
-        # vLLM engine (prefix caching speeds up iterative prompting)
         self.llm = LLM(
             model=model_name,
             tensor_parallel_size=tensor_parallel_size,
@@ -76,14 +73,11 @@ class InterruptedInferenceVLLM:
             trust_remote_code=True,
         )
 
-        # Tokenizer for counting & prompt building
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-        # Runtime counters for logging
         self.manual_tags_added = 0
         self.self_generated_tags = 0
 
-        # The stop strings we will use and detect
         self.STOP_NN = "\n\n"
         self.STOP_THINK_END = "</think>"
         self.STOP_CONF = "<confidence>"
@@ -111,6 +105,10 @@ class InterruptedInferenceVLLM:
         Single vLLM generate with logprobs and stop strings.
         Returns (generated_text, per_step_logprobs_list, stop_reason_str_or_None).
         """
+        # vLLM requires top_k == -1 (disable) or >= 1
+        if top_k is None or top_k <= 0:
+            top_k = -1
+
         sp = SamplingParams(
             temperature=temperature,
             top_p=top_p,
@@ -123,31 +121,24 @@ class InterruptedInferenceVLLM:
         out = self.llm.generate([prompt], sp)[0]
         seq = out.outputs[0]
 
-        # vLLM may expose .finish_reason and .stop_reason (depending on version).
-        # We handle both and fall back to None if not present.
         stop_reason = getattr(seq, "stop_reason", None)
         finish_reason = getattr(seq, "finish_reason", None)
-        # Some versions keep only finish_reason="stop" and omit the exact stop string.
-        # We'll prefer stop_reason if present; otherwise, leave None and detect via peek.
-        if stop_reason is None and finish_reason not in (None, "length"):
-            # finish_reason="stop" but no exact string. We'll use greedy peek later.
-            pass
-
+        # If stop_reason missing and finish_reason is “stop”, we’ll detect via peek later.
         return seq.text, (seq.logprobs or []), stop_reason
 
     def _greedy_peek(self, prompt: str, max_tokens: int = 8) -> str:
         """
         Greedy continuation to inspect what's next from 'prompt'.
-        Useful for detecting which stop string was encountered, since vLLM strips it.
+        Use top_k=-1 (disabled) to satisfy vLLM constraints.
         """
         txt, _, _ = self._generate_once(
             prompt=prompt,
             temperature=0.0,   # greedy
             top_p=1.0,
-            top_k=0,          # disable top-k filter
+            top_k=-1,         # FIX: disable top-k properly (was 0 before)
             max_tokens=max_tokens,
             logprobs_k=0,
-            stops=[],         # no stop; we parse the raw peek text
+            stops=[],         # no stop; raw peek
         )
         return txt
 
@@ -190,23 +181,20 @@ class InterruptedInferenceVLLM:
             )
 
             if not chunk_text and stop_reason is None:
-                # nothing emitted and no stop reported → likely hit budget or edge case
                 break
 
-            # 2) Compute confidence for this chunk from per-token entropies
+            # 2) Compute confidence for this chunk
             entropies = [_entropy_from_logprobs(lp, self.top_k_entropy) for lp in step_logprobs]
             confidence = self._confidence_from_entropies(entropies)
 
-            # 3) Track token budget using tokenizer
+            # 3) Track token budget
             new_tokens = len(self.tokenizer.encode(chunk_text, add_special_tokens=False))
             tokens_used += new_tokens
 
-            # 4) Determine which stop triggered.
+            # 4) Determine which stop triggered
             detected_stop = stop_reason
             if detected_stop is None:
-                # Fallback: peek from the end of the chunk
                 peek = self._greedy_peek(context + chunk_text, max_tokens=8)
-                # Priority order: explicit markers before whitespace boundary
                 if peek.startswith(self.STOP_THINK_END):
                     detected_stop = self.STOP_THINK_END
                 elif peek.startswith(self.STOP_CONF):
@@ -214,50 +202,39 @@ class InterruptedInferenceVLLM:
                 elif peek.startswith(self.STOP_NN):
                     detected_stop = self.STOP_NN
                 else:
-                    # Unknown; assume boundary "\n\n" behavior as a safe default
-                    detected_stop = self.STOP_NN
+                    detected_stop = self.STOP_NN  # safe default
 
             # 5) Handle according to stop
             if detected_stop == self.STOP_THINK_END:
-                # Just append what we have and stop the whole generation
                 rendered += chunk_text
                 break
 
             elif detected_stop == self.STOP_CONF:
-                # The model attempted to start "<confidence>" → we compute and inject a tag now.
-                # No need for keyword lookahead here.
+                # Model intended to start "<confidence>" → emit computed tag now
                 tag = f" <confidence> {confidence:.2f} </confidence>\n\n"
                 rendered += chunk_text.rstrip('\n') + tag
                 self.manual_tags_added += 1
-
-                # Continue from updated context (prefix cache makes this cheap)
                 context = prompt + rendered
 
             elif detected_stop == self.STOP_NN:
-                # Boundary case: decide whether to insert a tag by looking at the first word after boundary
-                # Peek after adding the boundary back
+                # Boundary: look at first word after "\n\n"
                 lookahead_prompt = context + chunk_text + self.STOP_NN
                 first_word_snippet = self._greedy_peek(lookahead_prompt, max_tokens=8)
                 cleaned_word = _clean_first_word(first_word_snippet)
 
                 if cleaned_word in self.keyword_list:
-                    # Insert <confidence> now
                     tag = f" <confidence> {confidence:.2f} </confidence>\n\n"
                     rendered += chunk_text.rstrip('\n') + tag
                     self.manual_tags_added += 1
                 else:
-                    # No tag; re-materialize the boundary
                     rendered += chunk_text + self.STOP_NN
-
-                # Continue from updated context
                 context = prompt + rendered
 
             else:
-                # Unknown stop (future-proof): treat as boundary
+                # Unknown stop → treat as boundary
                 rendered += chunk_text + self.STOP_NN
                 context = prompt + rendered
 
-            # 6) Stop if token budget exhausted
             if tokens_used >= total_max_new_tokens:
                 break
 
