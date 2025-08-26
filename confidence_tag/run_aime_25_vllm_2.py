@@ -18,17 +18,17 @@ from interrupted_inference_vllm_2 import InterruptedInferenceVLLM
 # --------------------
 # Config
 # --------------------
-CSV_PATH_INTERRUPTED = "aime25_results_vllm_interrupted_qwen3_4B.csv"
-CSV_PATH_NORMAL = "aime25_results_vllm_normal_qwen_4B.csv"
+CSV_PATH_INTERRUPTED = "aime25_results_vllm_interrupted_qwen3_14B.csv"
+CSV_PATH_NORMAL = "aime25_results_vllm_normal_qwen_14B.csv"
 
 # CSV_PATH_INTERRUPTED = "aime25_results_vllm_interrupted_qwq_32B.csv"
 # CSV_PATH_NORMAL = "aime25_results_vllm_normal_qwq_32B.csv"
 
 # Optional: lossless JSONL logs (Fix C)
-JSONL_PATH_INTERRUPTED = "aime25_results_vllm_interrupted_qwen3_4B.jsonl"
-JSONL_PATH_NORMAL = "aime25_results_vllm_normal_qwen3_4B.jsonl"
+JSONL_PATH_INTERRUPTED = "aime25_results_vllm_interrupted_qwen3_14B.jsonl"
+JSONL_PATH_NORMAL = "aime25_results_vllm_normal_qwen3_14B.jsonl"
 
-MODEL_PATH = "Qwen/Qwen3-4B"      # swap as needed
+MODEL_PATH = "Qwen/Qwen3-14B"      # swap as needed
 # MODEL_PATH = "Qwen/QwQ-32B"      # swap as needed
 
 TOP_K_ENTROPY = 20
