@@ -1,40 +1,66 @@
 import re
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer
+from vllm import LLM, SamplingParams
 
 
-class InterruptedInference:
+def _clean_first_word(s: str) -> str:
+    first = s.strip().split(" ")[0] if s.strip() else ""
+    return re.sub(r"[^a-zA-Z]", "", first).lower()
+
+
+def _entropy_from_logprobs(step_logprobs: Optional[dict], top_k: int) -> float:
     """
-    LLM inference with custom interruption logic to insert <confidence> tags.
-    - Segments are detected by '\n\n'
-    - A greedy lookahead checks the next word; if it's in a keyword list, we insert a tag
-    - After insertion, we REBUILD input_ids so the tag conditions future tokens
-    - Early stop on EOS or the literal string '</think>' in the decoded stream
-    - Sampling follows Qwen3 'thinking mode' (temperature/top-p/top-k/min-p)
+    Compute entropy using up to the top-k logprobs returned by vLLM for a single step.
+    step_logprobs: dict[token -> LogProb] where value has .logprob
+    """
+    if not step_logprobs:
+        return 0.0
+    vals = []
+    for i, lp in enumerate(step_logprobs.values()):
+        if i >= top_k:
+            break
+        vals.append(lp.logprob)
+    if not vals:
+        return 0.0
+    log_probs = torch.tensor(vals, dtype=torch.float32)
+    probs = torch.exp(log_probs)
+    s = probs.sum()
+    if s.item() <= 0:
+        return 0.0
+    probs = probs / s
+    entropy = -(probs * torch.log(probs.clamp_min(1e-12))).sum().item()
+    return float(entropy)
+
+
+class InterruptedInferenceVLLM:
+    """
+    vLLM-based generator that:
+      - generates chunk-by-chunk with stop strings: ["\\n\\n", "</think>", "<confidence>"]
+      - computes confidence from per-token entropies (top-k of vLLM logprobs) for each segment
+      - on stop "<confidence>", immediately inserts a computed <confidence> tag and continues
+      - on stop "\\n\\n", optionally inserts a tag depending on lookahead keyword
+      - on stop "</think>", stops
+      - uses prefix caching for speed
+
+    Safety against context overflow:
+      - If the tokenized context length >= max_model_len, we stop gracefully and
+        return whatever has been generated so far (no exception leaks out).
     """
 
-    def __init__(self, model_name: str = "meta-llama/Llama-2-7b-chat-hf", top_k_entropy: int = 10):
-        print("Loading model and tokenizer...")
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModelForCausalLM.from_pretrained(
-            model_name,
-            torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-            device_map="auto",
-        )
-
-        if self.tokenizer.pad_token is None:
-            self.tokenizer.pad_token = self.tokenizer.eos_token
-
-        assert top_k_entropy > 1, "top_k_entropy must be greater than 1."
-        self.top_k_entropy = top_k_entropy
-        # theoretical max entropy (ln(k)) for uniform distr over top-k
+    def __init__(
+        self,
+        model_name: str = "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
+        top_k_entropy: int = 10,
+        tensor_parallel_size: int = 1,
+        max_model_len: int = 16384,
+        gpu_mem_util: float = 0.90,
+    ):
+        self.top_k_entropy = max(2, int(top_k_entropy))
         self.max_entropy = float(torch.log(torch.tensor(float(self.top_k_entropy))))
 
-        # Lowercased keywords for robust match
         self.keyword_list = {
             'now', 'first', 'second', 'starting', 'suppose',
             'similarly', 'since', 'from', 'given', 'third', 'next',
@@ -42,262 +68,211 @@ class InterruptedInference:
             'wait', 'alternatively', 'hmm', 'another', 'ah', 'alternative', 'however', 'alright', 'but'
         }
 
+        self.llm = LLM(
+            model=model_name,
+            tensor_parallel_size=tensor_parallel_size,
+            max_model_len=max_model_len,
+            enable_prefix_caching=True,
+            gpu_memory_utilization=gpu_mem_util,
+            trust_remote_code=True,
+        )
+
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+
         self.manual_tags_added = 0
         self.self_generated_tags = 0
 
-    # ---------------------------
-    # Entropy / Confidence helpers
-    # ---------------------------
-    def _safe_softmax(self, logits: torch.Tensor, dim: int = -1) -> torch.Tensor:
-        return torch.nn.functional.softmax(logits, dim=dim)
+        self.STOP_NN = "\n\n"
+        self.STOP_THINK_END = "</think>"
+        self.STOP_CONF = "<confidence>"
+        self.STOPS = [self.STOP_NN, self.STOP_THINK_END, self.STOP_CONF]
 
-    def _calculate_entropy(self, logits: torch.Tensor) -> float:
-        """
-        Token entropy (natural log) over the top-k tokens ONLY.
-        """
-        top_k = min(self.top_k_entropy, logits.shape[-1])
-        top_k_logits = torch.topk(logits, top_k).values
-        probs = self._safe_softmax(top_k_logits, dim=-1)
-        log_probs = torch.log(probs.clamp_min(1e-12))
-        entropy = -torch.sum(probs * log_probs)
-        e = float(entropy.detach().cpu())
-        if not (e == e):  # NaN guard
-            e = 0.0
-        return e
+        # Keep a local copy for quick checks
+        self.max_model_len = max_model_len
 
-    def _calculate_confidence(self, entropies: List[float]) -> float:
-        """
-        Confidence = 1 - (avg_entropy / max_entropy), clamped to [0,1].
-        """
-        if not entropies:
+    # ---------- helpers ----------
+    def _count_tokens(self, text: str) -> int:
+        # No special tokens; align with how we count elsewhere
+        return len(self.tokenizer.encode(text, add_special_tokens=False))
+
+    def _confidence_from_entropies(self, entropies: List[float]) -> float:
+        if not entropies or self.max_entropy <= 0:
             return 1.0
         avg_entropy = sum(entropies) / len(entropies)
-        if not (avg_entropy == avg_entropy) or self.max_entropy <= 0:
-            return 1.0
         conf = 1.0 - (avg_entropy / self.max_entropy)
         return max(0.0, min(1.0, conf))
 
-    # ---------------------------
-    # Decoding helpers
-    # ---------------------------
-    def _decode_ids(self, ids: List[int]) -> str:
-        if not ids:
-            return ""
-        return self.tokenizer.decode(ids, skip_special_tokens=True)
-
-    def _first_double_newline_token_index(self, ids: List[int]) -> int:
-        """
-        Return the smallest token index i (1-based slice end) such that decode(ids[:i]) contains '\n\n'.
-        If none, return -1.
-        """
-        for i in range(1, len(ids) + 1):
-            s = self._decode_ids(ids[:i])
-            if "\n\n" in s:
-                return i
-        return -1
-
-    # ---------------------------
-    # Qwen3 "thinking mode" sampler
-    # ---------------------------
-    def _sample_next_token(
+    def _generate_once(
         self,
-        logits: torch.Tensor,            # shape [vocab]
-        temperature: float = 0.6,
-        top_p: float = 0.95,
-        top_k: int = 20,
-        min_p: float = 0.0,
-    ) -> int:
+        prompt: str,
+        temperature: float,
+        top_p: float,
+        top_k: int,
+        max_tokens: int,
+        logprobs_k: int,
+        stops: List[str],
+        seed: Optional[int] = None,
+    ) -> Tuple[str, List[dict], Optional[str]]:
         """
-        Qwen3 thinking-mode sampler:
-          - temperature (default 0.6)
-          - top-k (default 20)
-          - top-p (default 0.95)
-          - min-p (default 0.0 → disabled)
-        Avoid greedy decoding in thinking mode.
+        Single vLLM generate with logprobs and stop strings.
+        Returns (generated_text, per_step_logprobs_list, stop_reason_str_or_None).
         """
-        # Temperature
-        if temperature is None or temperature <= 0.0:
-            # per model card: avoid greedy; fallback to 0.6
-            temperature = 0.6
 
-        logits = logits / temperature
-        probs = torch.softmax(logits, dim=-1)
+        # Guardrail: if prompt already exceeds model limit, abort this step.
+        if self._count_tokens(prompt) >= self.max_model_len:
+            # Signal the caller to stop gracefully by raising a lightweight exception.
+            raise RuntimeError("max_model_len_exceeded")
 
-        # Top-k
-        if top_k is not None and top_k > 0:
-            k = min(top_k, probs.numel())
-            topk_vals, topk_idx = torch.topk(probs, k=k)
-            mask = torch.zeros_like(probs, dtype=torch.bool)
-            mask[topk_idx] = True
-            probs = torch.where(mask, probs, torch.zeros_like(probs))
+        # vLLM requires top_k == -1 (disable) or >= 1
+        if top_k is None or top_k <= 0:
+            top_k = -1
 
-        # Top-p (nucleus)
-        if top_p is not None and 0.0 < top_p < 1.0:
-            sorted_probs, sorted_idx = torch.sort(probs, descending=True)
-            cumsum = torch.cumsum(sorted_probs, dim=-1)
-            cutoff = cumsum <= top_p
-            if not cutoff.any():
-                cutoff[0] = True  # keep the top-1 at least
-            keep_idx = sorted_idx[cutoff]
-            mask = torch.zeros_like(probs, dtype=torch.bool)
-            mask[keep_idx] = True
-            probs = torch.where(mask, probs, torch.zeros_like(probs))
+        sp = SamplingParams(
+            temperature=temperature,
+            top_p=top_p,
+            top_k=top_k,
+            max_tokens=max_tokens,
+            n=1,
+            stop=stops,
+            logprobs=logprobs_k,
+            seed=seed,
+        )
+        out = self.llm.generate([prompt], sp)[0]
+        seq = out.outputs[0]
 
-        # Min-p (rarely used; leave default 0.0)
-        if min_p is not None and min_p > 0.0:
-            probs = torch.where(probs >= min_p, probs, torch.zeros_like(probs))
+        stop_reason = getattr(seq, "stop_reason", None)
+        return seq.text, (seq.logprobs or []), stop_reason
 
-        # Renormalize
-        s = probs.sum()
-        if s.item() == 0.0:
-            probs = torch.softmax(logits, dim=-1)
-        else:
-            probs = probs / s
+    def _greedy_peek(self, prompt: str, max_tokens: int = 8) -> str:
+        """
+        Greedy continuation to inspect what's next from 'prompt'.
+        Use top_k=-1 (disabled) to satisfy vLLM constraints.
+        """
+        # If we're at/over the limit, avoid calling into vLLM; return empty peek.
+        if self._count_tokens(prompt) >= self.max_model_len:
+            return ""
 
-        next_id = torch.multinomial(probs, num_samples=1).item()
-        return int(next_id)
+        txt, _, _ = self._generate_once(
+            prompt=prompt,
+            temperature=0.0,   # greedy
+            top_p=1.0,
+            top_k=-1,         # disable top-k properly
+            max_tokens=max_tokens,
+            logprobs_k=0,
+            stops=[],         # no stop; raw peek
+            seed=0,           # seed irrelevant for greedy
+        )
+        return txt
 
-    # ---------------------------
-    # Main generation
-    # ---------------------------
+    # ---------- main ----------
     def generate_with_confidence(
         self,
         prompt: str,
-        max_new_tokens: int = 1024,
+        total_max_new_tokens: int = 4096,
+        step_max_tokens: int = 512,
         temperature: float = 0.6,
         top_p: float = 0.95,
         top_k: int = 20,
-        min_p: float = 0.0,
+        seed: Optional[int] = None,
     ) -> str:
         """
-        Token-by-token generation; insert <confidence> tags after segments ending with '\n\n'
-        when lookahead suggests a new step/keyword. After insertion, rebuild input_ids so
-        the tag conditions future tokens. Early-stop on EOS or literal '</think>'.
+        Chunked generation loop with stop strings:
+          - generate until one of ["\\n\\n", "</think>", "<confidence>"]
+          - compute confidence from the per-token entropies of the chunk
+          - If stop == "</think>": append chunk and stop
+          - If stop == "<confidence>": append chunk + computed tag immediately
+          - If stop == "\\n\\n": do keyword lookahead to decide inserting tag
+          - Continue with updated context (prefix cache makes this fast)
+
+        If the tokenized context would exceed `max_model_len`, we stop gracefully
+        and return `rendered` (everything generated so far).
         """
         self.manual_tags_added = 0
         self.self_generated_tags = 0
 
-        prompt_ids = self.tokenizer.encode(prompt, return_tensors="pt").to(self.device)
-        input_ids = prompt_ids.clone()
+        context = prompt
+        rendered = ""  # accumulated visible text after the prompt
+        tokens_used = 0
 
-        generated_ids: List[int] = []
-        current_segment_ids: List[int] = []
-        current_segment_entropies: List[float] = []
+        base_seed = seed
 
-        full_generated_text = ""
-        decoded_so_far = ""
-
-        for _ in range(max_new_tokens):
-            with torch.no_grad():
-                outputs = self.model(input_ids)
-            next_token_logits = outputs.logits[:, -1, :]  # [1, vocab]
-
-            # Qwen3 thinking-mode sampling
-            next_token = self._sample_next_token(
-                logits=next_token_logits.squeeze(0),
-                temperature=temperature,
-                top_p=top_p,
-                top_k=top_k,
-                min_p=min_p,
-            )
-            next_token_id = torch.tensor([[next_token]], device=input_ids.device)
-
-            # EOS stop
-            if next_token == self.tokenizer.eos_token_id:
+        while tokens_used < total_max_new_tokens:
+            # Hard stop if the prompt has already reached model limit
+            if self._count_tokens(context) >= self.max_model_len:
                 break
 
-            # Update states
-            generated_ids.append(next_token)
-            current_segment_ids.append(next_token)
-            current_segment_entropies.append(self._calculate_entropy(next_token_logits.squeeze(0)))
-
-            input_ids = torch.cat([input_ids, next_token_id], dim=-1)
-
-            # String-level early stop
-            decoded_piece = self._decode_ids([next_token])
-            decoded_so_far += decoded_piece
-            if "</think>" in decoded_so_far:
+            try:
+                # 1) Generate a chunk up to next stop
+                chunk_text, step_logprobs, stop_reason = self._generate_once(
+                    prompt=context,
+                    temperature=temperature,
+                    top_p=top_p,
+                    top_k=top_k,
+                    max_tokens=min(step_max_tokens, total_max_new_tokens - tokens_used),
+                    logprobs_k=self.top_k_entropy,
+                    stops=self.STOPS,
+                    seed=base_seed,
+                )
+            except Exception as e:
+                # If we overflow (or any generation error occurs), stop gracefully
+                # and return everything we've got so far.
+                # Specifically handles vLLM "decoder prompt ... longer than ..." cases.
                 break
 
-            # Segmenting by '\n\n'
-            current_segment_text = self._decode_ids(current_segment_ids)
-            if "\n\n" in current_segment_text:
-                split_idx = self._first_double_newline_token_index(current_segment_ids)
-                if split_idx == -1:
-                    continue
+            if not chunk_text and stop_reason is None:
+                # Nothing new produced; stop and return what we have
+                break
 
-                ids_for_conf = current_segment_ids[:split_idx]
-                ents_for_conf = current_segment_entropies[:split_idx]
-                remaining_ids = current_segment_ids[split_idx:]
+            # 2) Compute confidence for this chunk
+            entropies = [_entropy_from_logprobs(lp, self.top_k_entropy) for lp in step_logprobs]
+            confidence = self._confidence_from_entropies(entropies)
 
-                # Greedy lookahead to next word (keep greedy for stability)
-                lookahead_input_ids = input_ids.clone()
-                lookahead_word_ids: List[int] = []
-                lookahead_word_str = ""
-                for __ in range(10):
-                    with torch.no_grad():
-                        la_out = self.model(lookahead_input_ids)
-                    la_logits = la_out.logits[:, -1, :]
-                    la_next = torch.argmax(la_logits, dim=-1).unsqueeze(0)
-                    la_int = int(la_next.item())
-                    if la_int == self.tokenizer.eos_token_id:
-                        break
-                    lookahead_input_ids = torch.cat([lookahead_input_ids, la_next], dim=-1)
-                    lookahead_word_ids.append(la_int)
-                    token_str = self.tokenizer.decode(la_next[0], skip_special_tokens=True)
-                    lookahead_word_str += token_str
-                    if " " in lookahead_word_str:
-                        break
+            # 3) Track token budget
+            new_tokens = len(self.tokenizer.encode(chunk_text, add_special_tokens=False))
+            tokens_used += new_tokens
 
-                cleaned_word = re.sub(r'[^a-zA-Z]', '', lookahead_word_str.split(" ")[0]).lower()
+            # 4) Determine which stop triggered
+            detected_stop = stop_reason
+            if detected_stop is None:
+                peek = self._greedy_peek(context + chunk_text, max_tokens=8)
+                if peek.startswith(self.STOP_THINK_END):
+                    detected_stop = self.STOP_THINK_END
+                elif peek.startswith(self.STOP_CONF):
+                    detected_stop = self.STOP_CONF
+                elif peek.startswith(self.STOP_NN):
+                    detected_stop = self.STOP_NN
+                else:
+                    detected_stop = self.STOP_NN  # safe default
 
-                seg_text = self._decode_ids(ids_for_conf)
-                if not seg_text.strip():
-                    current_segment_ids = remaining_ids
-                    current_segment_entropies = current_segment_entropies[split_idx:]
-                    continue
+            # 5) Handle according to stop
+            if detected_stop == self.STOP_THINK_END:
+                rendered += chunk_text
+                break
+
+            elif detected_stop == self.STOP_CONF:
+                tag = f" <confidence> {confidence:.2f} </confidence>\n\n"
+                rendered += chunk_text.rstrip('\n') + tag
+                self.manual_tags_added += 1
+                context = prompt + rendered
+
+            elif detected_stop == self.STOP_NN:
+                lookahead_prompt = context + chunk_text + self.STOP_NN
+                first_word_snippet = self._greedy_peek(lookahead_prompt, max_tokens=8)
+                cleaned_word = _clean_first_word(first_word_snippet)
 
                 if cleaned_word in self.keyword_list:
-                    # avoid double insertion if the model self-generated a tag
-                    if re.search(r'</confidence>\s*?$', seg_text.rstrip('\n')):
-                        full_generated_text += seg_text
-                        self.self_generated_tags += 1
-
-                        # Rewind to split and rebuild state (no new tag)
-                        N_before_segment = len(generated_ids) - len(current_segment_ids)
-                        split_global_index = N_before_segment + split_idx
-                        generated_ids = generated_ids[:split_global_index]
-                        input_ids = torch.cat([prompt_ids, torch.tensor([generated_ids], device=self.device)], dim=-1)
-
-                        current_segment_ids = []
-                        current_segment_entropies = []
-                        continue
-                    else:
-                        # Insert tag
-                        confidence = self._calculate_confidence(ents_for_conf)
-                        confidence_tag = f" <confidence> {confidence:.2f} </confidence>\n\n"
-                        full_generated_text += seg_text.rstrip('\n') + confidence_tag
-                        self.manual_tags_added += 1
-
-                        # Make the tag affect future tokens
-                        N_before_segment = len(generated_ids) - len(current_segment_ids)
-                        split_global_index = N_before_segment + split_idx
-                        generated_ids = generated_ids[:split_global_index]
-                        tag_ids = self.tokenizer.encode(confidence_tag, add_special_tokens=False)
-                        generated_ids.extend(tag_ids)
-                        input_ids = torch.cat([prompt_ids, torch.tensor([generated_ids], device=self.device)], dim=-1)
-
-                        # Reset segment
-                        current_segment_ids = []
-                        current_segment_entropies = []
+                    tag = f" <confidence> {confidence:.2f} </confidence>\n\n"
+                    rendered += chunk_text.rstrip('\n') + tag
+                    self.manual_tags_added += 1
                 else:
-                    # No tag; commit up to boundary and continue
-                    full_generated_text += seg_text
-                    current_segment_ids = remaining_ids
-                    current_segment_entropies = current_segment_entropies[split_idx:]
+                    rendered += chunk_text + self.STOP_NN
+                context = prompt + rendered
 
-        # Flush tail
-        if current_segment_ids:
-            full_generated_text += self._decode_ids(current_segment_ids)
+            else:
+                rendered += chunk_text + self.STOP_NN
+                context = prompt + rendered
 
-        return full_generated_text.strip()
+            if tokens_used >= total_max_new_tokens:
+                break
+
+        return rendered.strip()
