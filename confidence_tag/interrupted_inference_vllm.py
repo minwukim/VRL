@@ -44,6 +44,10 @@ class InterruptedInferenceVLLM:
       - on stop "\\n\\n", optionally inserts a tag depending on lookahead keyword
       - on stop "</think>", stops
       - uses prefix caching for speed
+
+    Safety against context overflow:
+      - If the tokenized context length >= max_model_len, we stop gracefully and
+        return whatever has been generated so far (no exception leaks out).
     """
 
     def __init__(
@@ -83,7 +87,14 @@ class InterruptedInferenceVLLM:
         self.STOP_CONF = "<confidence>"
         self.STOPS = [self.STOP_NN, self.STOP_THINK_END, self.STOP_CONF]
 
+        # Keep a local copy for quick checks
+        self.max_model_len = max_model_len
+
     # ---------- helpers ----------
+    def _count_tokens(self, text: str) -> int:
+        # No special tokens; align with how we count elsewhere
+        return len(self.tokenizer.encode(text, add_special_tokens=False))
+
     def _confidence_from_entropies(self, entropies: List[float]) -> float:
         if not entropies or self.max_entropy <= 0:
             return 1.0
@@ -100,11 +111,18 @@ class InterruptedInferenceVLLM:
         max_tokens: int,
         logprobs_k: int,
         stops: List[str],
+        seed: Optional[int] = None,
     ) -> Tuple[str, List[dict], Optional[str]]:
         """
         Single vLLM generate with logprobs and stop strings.
         Returns (generated_text, per_step_logprobs_list, stop_reason_str_or_None).
         """
+
+        # Guardrail: if prompt already exceeds model limit, abort this step.
+        if self._count_tokens(prompt) >= self.max_model_len:
+            # Signal the caller to stop gracefully by raising a lightweight exception.
+            raise RuntimeError("max_model_len_exceeded")
+
         # vLLM requires top_k == -1 (disable) or >= 1
         if top_k is None or top_k <= 0:
             top_k = -1
@@ -117,13 +135,12 @@ class InterruptedInferenceVLLM:
             n=1,
             stop=stops,
             logprobs=logprobs_k,
+            seed=seed,
         )
         out = self.llm.generate([prompt], sp)[0]
         seq = out.outputs[0]
 
         stop_reason = getattr(seq, "stop_reason", None)
-        finish_reason = getattr(seq, "finish_reason", None)
-        # If stop_reason missing and finish_reason is “stop”, we’ll detect via peek later.
         return seq.text, (seq.logprobs or []), stop_reason
 
     def _greedy_peek(self, prompt: str, max_tokens: int = 8) -> str:
@@ -131,14 +148,19 @@ class InterruptedInferenceVLLM:
         Greedy continuation to inspect what's next from 'prompt'.
         Use top_k=-1 (disabled) to satisfy vLLM constraints.
         """
+        # If we're at/over the limit, avoid calling into vLLM; return empty peek.
+        if self._count_tokens(prompt) >= self.max_model_len:
+            return ""
+
         txt, _, _ = self._generate_once(
             prompt=prompt,
             temperature=0.0,   # greedy
             top_p=1.0,
-            top_k=-1,         # FIX: disable top-k properly (was 0 before)
+            top_k=-1,         # disable top-k properly
             max_tokens=max_tokens,
             logprobs_k=0,
             stops=[],         # no stop; raw peek
+            seed=0,           # seed irrelevant for greedy
         )
         return txt
 
@@ -151,6 +173,7 @@ class InterruptedInferenceVLLM:
         temperature: float = 0.6,
         top_p: float = 0.95,
         top_k: int = 20,
+        seed: Optional[int] = None,
     ) -> str:
         """
         Chunked generation loop with stop strings:
@@ -160,6 +183,9 @@ class InterruptedInferenceVLLM:
           - If stop == "<confidence>": append chunk + computed tag immediately
           - If stop == "\\n\\n": do keyword lookahead to decide inserting tag
           - Continue with updated context (prefix cache makes this fast)
+
+        If the tokenized context would exceed `max_model_len`, we stop gracefully
+        and return `rendered` (everything generated so far).
         """
         self.manual_tags_added = 0
         self.self_generated_tags = 0
@@ -168,19 +194,33 @@ class InterruptedInferenceVLLM:
         rendered = ""  # accumulated visible text after the prompt
         tokens_used = 0
 
+        base_seed = seed
+
         while tokens_used < total_max_new_tokens:
-            # 1) Generate a chunk up to next stop
-            chunk_text, step_logprobs, stop_reason = self._generate_once(
-                prompt=context,
-                temperature=temperature,
-                top_p=top_p,
-                top_k=top_k,
-                max_tokens=min(step_max_tokens, total_max_new_tokens - tokens_used),
-                logprobs_k=self.top_k_entropy,
-                stops=self.STOPS,
-            )
+            # Hard stop if the prompt has already reached model limit
+            if self._count_tokens(context) >= self.max_model_len:
+                break
+
+            try:
+                # 1) Generate a chunk up to next stop
+                chunk_text, step_logprobs, stop_reason = self._generate_once(
+                    prompt=context,
+                    temperature=temperature,
+                    top_p=top_p,
+                    top_k=top_k,
+                    max_tokens=min(step_max_tokens, total_max_new_tokens - tokens_used),
+                    logprobs_k=self.top_k_entropy,
+                    stops=self.STOPS,
+                    seed=base_seed,
+                )
+            except Exception as e:
+                # If we overflow (or any generation error occurs), stop gracefully
+                # and return everything we've got so far.
+                # Specifically handles vLLM "decoder prompt ... longer than ..." cases.
+                break
 
             if not chunk_text and stop_reason is None:
+                # Nothing new produced; stop and return what we have
                 break
 
             # 2) Compute confidence for this chunk
@@ -210,14 +250,12 @@ class InterruptedInferenceVLLM:
                 break
 
             elif detected_stop == self.STOP_CONF:
-                # Model intended to start "<confidence>" → emit computed tag now
                 tag = f" <confidence> {confidence:.2f} </confidence>\n\n"
                 rendered += chunk_text.rstrip('\n') + tag
                 self.manual_tags_added += 1
                 context = prompt + rendered
 
             elif detected_stop == self.STOP_NN:
-                # Boundary: look at first word after "\n\n"
                 lookahead_prompt = context + chunk_text + self.STOP_NN
                 first_word_snippet = self._greedy_peek(lookahead_prompt, max_tokens=8)
                 cleaned_word = _clean_first_word(first_word_snippet)
@@ -231,7 +269,6 @@ class InterruptedInferenceVLLM:
                 context = prompt + rendered
 
             else:
-                # Unknown stop → treat as boundary
                 rendered += chunk_text + self.STOP_NN
                 context = prompt + rendered
 
