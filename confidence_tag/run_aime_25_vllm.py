@@ -15,23 +15,23 @@ from interrupted_inference_vllm import InterruptedInferenceVLLM
 # --------------------
 # Config
 # --------------------
-CSV_PATH_INTERRUPTED = "aime25_results_vllm_interrupted_qwen3_14B_0827.csv"
-CSV_PATH_NORMAL = "aime25_results_vllm_normal_qwen3_14B_0827.csv"
+CSV_PATH_INTERRUPTED = "aime25_results_vllm_interrupted_qwen3_32B_0827.csv"
+CSV_PATH_NORMAL = "aime25_results_vllm_normal_qwen3_32B_0827.csv"
 
-MODEL_PATH = "Qwen/Qwen3-14B"
+MODEL_PATH = "Qwen/Qwen3-32B"
 
 TOP_K_ENTROPY = 20
-TOTAL_MAX_NEW_TOKENS = 16000
+TOTAL_MAX_NEW_TOKENS = 21000
 STEP_MAX_TOKENS = 512
 TEMPERATURE = 0.6
 TOP_P = 0.95
 TOP_K = 20
 
-TENSOR_PARALLEL_SIZE = 2
-MAX_MODEL_LEN = 17000
+TENSOR_PARALLEL_SIZE = 4
+MAX_MODEL_LEN = 22000
 GPU_MEM_UTIL = 0.90
 
-NUM_SAMPLES = 10
+NUM_SAMPLES = 5
 BASE_SEED = 20250825
 
 LOG_EVERY = 1
